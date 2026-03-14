@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:pascoa_scout/src/domain/entities/upwork_scrap/enums.dart';
+import 'package:pascoa_scout/src/entities/upwork_scrap/enums.dart';
 
 part 'job_filter.freezed.dart';
 part 'job_filter.g.dart';
@@ -18,7 +18,6 @@ abstract class JobFilter with _$JobFilter {
     List<Region>? regions,
     List<SubRegion>? subRegions,
     MaximumJobAge? jobAgeFilter,
-    Pagination? pagination,
     List<CustomFilter>? customFilters,
   }) = _JobFilter;
 
@@ -79,12 +78,7 @@ extension JobFilterX on JobFilter {
         'value': jobAgeFilter!.value,
       };
     }
-
-    json['page'] = pagination?.pageNumber; // "page": 2,
-    json['pagesToScrape'] = pagination?.pagesToScrape; // "pagesToScrape": 5,
     json['paymentVerified'] = paymentVerified; // "paymentVerified": false,
-    json['perPage'] = pagination?.resultsPerPage; // "perPage": 15,
-    json['sort'] = pagination?.searchSortOrder.apiName; // "sort": "newest"
 
     if (customFilters != null) {
       json['customFilters'] = customFilters!.map((filter) {
@@ -100,6 +94,14 @@ extension JobFilterX on JobFilter {
   }
 }
 
+/*
+USE DIRECTLY IN THE SAME JSON WHERE THE FILTER IS USED
+```dart
+pagination?.toApifyJson.forEach((key, value) {
+  json[key] = value;
+});
+```
+*/
 @freezed
 abstract class Pagination with _$Pagination {
   factory Pagination({
@@ -118,6 +120,17 @@ abstract class Pagination with _$Pagination {
 
   factory Pagination.fromJson(Map<String, dynamic> json) =>
       _$PaginationFromJson(json);
+}
+
+extension PaginationX on Pagination {
+  Map<String, dynamic> get toApifyJson {
+    final Map<String, dynamic> json = {};
+    json['page'] = pageNumber; // "page": 2,
+    json['pagesToScrape'] = pagesToScrape; // "pagesToScrape": 5,
+    json['perPage'] = resultsPerPage; // "perPage": 15,
+    json['sort'] = searchSortOrder.apiName; // "sort": "newest"
+    return json;
+  }
 }
 
 @freezed

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$JobFilter {
 
- String get searchQueryTerm; List<ExperienceLevel>? get experienceLevel; List<ClientHistory>? get clientHistory; List<JobType>? get jobType; bool get paymentVerified; MinMax? get fixedPriceRange; MinMax? get hourlyRateRange; List<Country>? get countries; List<Region>? get regions; List<SubRegion>? get subRegions; MaximumJobAge? get jobAgeFilter; Pagination? get pagination; List<CustomFilter>? get customFilters;
+ String get searchQueryTerm; List<ExperienceLevel>? get experienceLevel; List<ClientHistory>? get clientHistory; List<JobType>? get jobType; bool get paymentVerified; MinMax? get fixedPriceRange; MinMax? get hourlyRateRange; List<Country>? get countries; List<Region>? get regions; List<SubRegion>? get subRegions; MaximumJobAge? get jobAgeFilter; List<CustomFilter>? get customFilters;
 /// Create a copy of JobFilter
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $JobFilterCopyWith<JobFilter> get copyWith => _$JobFilterCopyWithImpl<JobFilter>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobFilter&&(identical(other.searchQueryTerm, searchQueryTerm) || other.searchQueryTerm == searchQueryTerm)&&const DeepCollectionEquality().equals(other.experienceLevel, experienceLevel)&&const DeepCollectionEquality().equals(other.clientHistory, clientHistory)&&const DeepCollectionEquality().equals(other.jobType, jobType)&&(identical(other.paymentVerified, paymentVerified) || other.paymentVerified == paymentVerified)&&(identical(other.fixedPriceRange, fixedPriceRange) || other.fixedPriceRange == fixedPriceRange)&&(identical(other.hourlyRateRange, hourlyRateRange) || other.hourlyRateRange == hourlyRateRange)&&const DeepCollectionEquality().equals(other.countries, countries)&&const DeepCollectionEquality().equals(other.regions, regions)&&const DeepCollectionEquality().equals(other.subRegions, subRegions)&&(identical(other.jobAgeFilter, jobAgeFilter) || other.jobAgeFilter == jobAgeFilter)&&(identical(other.pagination, pagination) || other.pagination == pagination)&&const DeepCollectionEquality().equals(other.customFilters, customFilters));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is JobFilter&&(identical(other.searchQueryTerm, searchQueryTerm) || other.searchQueryTerm == searchQueryTerm)&&const DeepCollectionEquality().equals(other.experienceLevel, experienceLevel)&&const DeepCollectionEquality().equals(other.clientHistory, clientHistory)&&const DeepCollectionEquality().equals(other.jobType, jobType)&&(identical(other.paymentVerified, paymentVerified) || other.paymentVerified == paymentVerified)&&(identical(other.fixedPriceRange, fixedPriceRange) || other.fixedPriceRange == fixedPriceRange)&&(identical(other.hourlyRateRange, hourlyRateRange) || other.hourlyRateRange == hourlyRateRange)&&const DeepCollectionEquality().equals(other.countries, countries)&&const DeepCollectionEquality().equals(other.regions, regions)&&const DeepCollectionEquality().equals(other.subRegions, subRegions)&&(identical(other.jobAgeFilter, jobAgeFilter) || other.jobAgeFilter == jobAgeFilter)&&const DeepCollectionEquality().equals(other.customFilters, customFilters));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,searchQueryTerm,const DeepCollectionEquality().hash(experienceLevel),const DeepCollectionEquality().hash(clientHistory),const DeepCollectionEquality().hash(jobType),paymentVerified,fixedPriceRange,hourlyRateRange,const DeepCollectionEquality().hash(countries),const DeepCollectionEquality().hash(regions),const DeepCollectionEquality().hash(subRegions),jobAgeFilter,pagination,const DeepCollectionEquality().hash(customFilters));
+int get hashCode => Object.hash(runtimeType,searchQueryTerm,const DeepCollectionEquality().hash(experienceLevel),const DeepCollectionEquality().hash(clientHistory),const DeepCollectionEquality().hash(jobType),paymentVerified,fixedPriceRange,hourlyRateRange,const DeepCollectionEquality().hash(countries),const DeepCollectionEquality().hash(regions),const DeepCollectionEquality().hash(subRegions),jobAgeFilter,const DeepCollectionEquality().hash(customFilters));
 
 @override
 String toString() {
-  return 'JobFilter(searchQueryTerm: $searchQueryTerm, experienceLevel: $experienceLevel, clientHistory: $clientHistory, jobType: $jobType, paymentVerified: $paymentVerified, fixedPriceRange: $fixedPriceRange, hourlyRateRange: $hourlyRateRange, countries: $countries, regions: $regions, subRegions: $subRegions, jobAgeFilter: $jobAgeFilter, pagination: $pagination, customFilters: $customFilters)';
+  return 'JobFilter(searchQueryTerm: $searchQueryTerm, experienceLevel: $experienceLevel, clientHistory: $clientHistory, jobType: $jobType, paymentVerified: $paymentVerified, fixedPriceRange: $fixedPriceRange, hourlyRateRange: $hourlyRateRange, countries: $countries, regions: $regions, subRegions: $subRegions, jobAgeFilter: $jobAgeFilter, customFilters: $customFilters)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $JobFilterCopyWith<$Res>  {
   factory $JobFilterCopyWith(JobFilter value, $Res Function(JobFilter) _then) = _$JobFilterCopyWithImpl;
 @useResult
 $Res call({
- String searchQueryTerm, List<ExperienceLevel>? experienceLevel, List<ClientHistory>? clientHistory, List<JobType>? jobType, bool paymentVerified, MinMax? fixedPriceRange, MinMax? hourlyRateRange, List<Country>? countries, List<Region>? regions, List<SubRegion>? subRegions, MaximumJobAge? jobAgeFilter, Pagination? pagination, List<CustomFilter>? customFilters
+ String searchQueryTerm, List<ExperienceLevel>? experienceLevel, List<ClientHistory>? clientHistory, List<JobType>? jobType, bool paymentVerified, MinMax? fixedPriceRange, MinMax? hourlyRateRange, List<Country>? countries, List<Region>? regions, List<SubRegion>? subRegions, MaximumJobAge? jobAgeFilter, List<CustomFilter>? customFilters
 });
 
 
-$MinMaxCopyWith<$Res>? get fixedPriceRange;$MinMaxCopyWith<$Res>? get hourlyRateRange;$MaximumJobAgeCopyWith<$Res>? get jobAgeFilter;$PaginationCopyWith<$Res>? get pagination;
+$MinMaxCopyWith<$Res>? get fixedPriceRange;$MinMaxCopyWith<$Res>? get hourlyRateRange;$MaximumJobAgeCopyWith<$Res>? get jobAgeFilter;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$JobFilterCopyWithImpl<$Res>
 
 /// Create a copy of JobFilter
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? searchQueryTerm = null,Object? experienceLevel = freezed,Object? clientHistory = freezed,Object? jobType = freezed,Object? paymentVerified = null,Object? fixedPriceRange = freezed,Object? hourlyRateRange = freezed,Object? countries = freezed,Object? regions = freezed,Object? subRegions = freezed,Object? jobAgeFilter = freezed,Object? pagination = freezed,Object? customFilters = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? searchQueryTerm = null,Object? experienceLevel = freezed,Object? clientHistory = freezed,Object? jobType = freezed,Object? paymentVerified = null,Object? fixedPriceRange = freezed,Object? hourlyRateRange = freezed,Object? countries = freezed,Object? regions = freezed,Object? subRegions = freezed,Object? jobAgeFilter = freezed,Object? customFilters = freezed,}) {
   return _then(_self.copyWith(
 searchQueryTerm: null == searchQueryTerm ? _self.searchQueryTerm : searchQueryTerm // ignore: cast_nullable_to_non_nullable
 as String,experienceLevel: freezed == experienceLevel ? _self.experienceLevel : experienceLevel // ignore: cast_nullable_to_non_nullable
@@ -78,8 +78,7 @@ as MinMax?,countries: freezed == countries ? _self.countries : countries // igno
 as List<Country>?,regions: freezed == regions ? _self.regions : regions // ignore: cast_nullable_to_non_nullable
 as List<Region>?,subRegions: freezed == subRegions ? _self.subRegions : subRegions // ignore: cast_nullable_to_non_nullable
 as List<SubRegion>?,jobAgeFilter: freezed == jobAgeFilter ? _self.jobAgeFilter : jobAgeFilter // ignore: cast_nullable_to_non_nullable
-as MaximumJobAge?,pagination: freezed == pagination ? _self.pagination : pagination // ignore: cast_nullable_to_non_nullable
-as Pagination?,customFilters: freezed == customFilters ? _self.customFilters : customFilters // ignore: cast_nullable_to_non_nullable
+as MaximumJobAge?,customFilters: freezed == customFilters ? _self.customFilters : customFilters // ignore: cast_nullable_to_non_nullable
 as List<CustomFilter>?,
   ));
 }
@@ -118,18 +117,6 @@ $MaximumJobAgeCopyWith<$Res>? get jobAgeFilter {
 
   return $MaximumJobAgeCopyWith<$Res>(_self.jobAgeFilter!, (value) {
     return _then(_self.copyWith(jobAgeFilter: value));
-  });
-}/// Create a copy of JobFilter
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$PaginationCopyWith<$Res>? get pagination {
-    if (_self.pagination == null) {
-    return null;
-  }
-
-  return $PaginationCopyWith<$Res>(_self.pagination!, (value) {
-    return _then(_self.copyWith(pagination: value));
   });
 }
 }
@@ -213,10 +200,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String searchQueryTerm,  List<ExperienceLevel>? experienceLevel,  List<ClientHistory>? clientHistory,  List<JobType>? jobType,  bool paymentVerified,  MinMax? fixedPriceRange,  MinMax? hourlyRateRange,  List<Country>? countries,  List<Region>? regions,  List<SubRegion>? subRegions,  MaximumJobAge? jobAgeFilter,  Pagination? pagination,  List<CustomFilter>? customFilters)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String searchQueryTerm,  List<ExperienceLevel>? experienceLevel,  List<ClientHistory>? clientHistory,  List<JobType>? jobType,  bool paymentVerified,  MinMax? fixedPriceRange,  MinMax? hourlyRateRange,  List<Country>? countries,  List<Region>? regions,  List<SubRegion>? subRegions,  MaximumJobAge? jobAgeFilter,  List<CustomFilter>? customFilters)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _JobFilter() when $default != null:
-return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,_that.jobType,_that.paymentVerified,_that.fixedPriceRange,_that.hourlyRateRange,_that.countries,_that.regions,_that.subRegions,_that.jobAgeFilter,_that.pagination,_that.customFilters);case _:
+return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,_that.jobType,_that.paymentVerified,_that.fixedPriceRange,_that.hourlyRateRange,_that.countries,_that.regions,_that.subRegions,_that.jobAgeFilter,_that.customFilters);case _:
   return orElse();
 
 }
@@ -234,10 +221,10 @@ return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String searchQueryTerm,  List<ExperienceLevel>? experienceLevel,  List<ClientHistory>? clientHistory,  List<JobType>? jobType,  bool paymentVerified,  MinMax? fixedPriceRange,  MinMax? hourlyRateRange,  List<Country>? countries,  List<Region>? regions,  List<SubRegion>? subRegions,  MaximumJobAge? jobAgeFilter,  Pagination? pagination,  List<CustomFilter>? customFilters)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String searchQueryTerm,  List<ExperienceLevel>? experienceLevel,  List<ClientHistory>? clientHistory,  List<JobType>? jobType,  bool paymentVerified,  MinMax? fixedPriceRange,  MinMax? hourlyRateRange,  List<Country>? countries,  List<Region>? regions,  List<SubRegion>? subRegions,  MaximumJobAge? jobAgeFilter,  List<CustomFilter>? customFilters)  $default,) {final _that = this;
 switch (_that) {
 case _JobFilter():
-return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,_that.jobType,_that.paymentVerified,_that.fixedPriceRange,_that.hourlyRateRange,_that.countries,_that.regions,_that.subRegions,_that.jobAgeFilter,_that.pagination,_that.customFilters);case _:
+return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,_that.jobType,_that.paymentVerified,_that.fixedPriceRange,_that.hourlyRateRange,_that.countries,_that.regions,_that.subRegions,_that.jobAgeFilter,_that.customFilters);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -254,10 +241,10 @@ return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String searchQueryTerm,  List<ExperienceLevel>? experienceLevel,  List<ClientHistory>? clientHistory,  List<JobType>? jobType,  bool paymentVerified,  MinMax? fixedPriceRange,  MinMax? hourlyRateRange,  List<Country>? countries,  List<Region>? regions,  List<SubRegion>? subRegions,  MaximumJobAge? jobAgeFilter,  Pagination? pagination,  List<CustomFilter>? customFilters)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String searchQueryTerm,  List<ExperienceLevel>? experienceLevel,  List<ClientHistory>? clientHistory,  List<JobType>? jobType,  bool paymentVerified,  MinMax? fixedPriceRange,  MinMax? hourlyRateRange,  List<Country>? countries,  List<Region>? regions,  List<SubRegion>? subRegions,  MaximumJobAge? jobAgeFilter,  List<CustomFilter>? customFilters)?  $default,) {final _that = this;
 switch (_that) {
 case _JobFilter() when $default != null:
-return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,_that.jobType,_that.paymentVerified,_that.fixedPriceRange,_that.hourlyRateRange,_that.countries,_that.regions,_that.subRegions,_that.jobAgeFilter,_that.pagination,_that.customFilters);case _:
+return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,_that.jobType,_that.paymentVerified,_that.fixedPriceRange,_that.hourlyRateRange,_that.countries,_that.regions,_that.subRegions,_that.jobAgeFilter,_that.customFilters);case _:
   return null;
 
 }
@@ -269,7 +256,7 @@ return $default(_that.searchQueryTerm,_that.experienceLevel,_that.clientHistory,
 @JsonSerializable()
 
 class _JobFilter implements JobFilter {
-   _JobFilter({required this.searchQueryTerm, final  List<ExperienceLevel>? experienceLevel, final  List<ClientHistory>? clientHistory, final  List<JobType>? jobType, this.paymentVerified = false, this.fixedPriceRange, this.hourlyRateRange, final  List<Country>? countries, final  List<Region>? regions, final  List<SubRegion>? subRegions, this.jobAgeFilter, this.pagination, final  List<CustomFilter>? customFilters}): _experienceLevel = experienceLevel,_clientHistory = clientHistory,_jobType = jobType,_countries = countries,_regions = regions,_subRegions = subRegions,_customFilters = customFilters;
+   _JobFilter({required this.searchQueryTerm, final  List<ExperienceLevel>? experienceLevel, final  List<ClientHistory>? clientHistory, final  List<JobType>? jobType, this.paymentVerified = false, this.fixedPriceRange, this.hourlyRateRange, final  List<Country>? countries, final  List<Region>? regions, final  List<SubRegion>? subRegions, this.jobAgeFilter, final  List<CustomFilter>? customFilters}): _experienceLevel = experienceLevel,_clientHistory = clientHistory,_jobType = jobType,_countries = countries,_regions = regions,_subRegions = subRegions,_customFilters = customFilters;
   factory _JobFilter.fromJson(Map<String, dynamic> json) => _$JobFilterFromJson(json);
 
 @override final  String searchQueryTerm;
@@ -331,7 +318,6 @@ class _JobFilter implements JobFilter {
 }
 
 @override final  MaximumJobAge? jobAgeFilter;
-@override final  Pagination? pagination;
  final  List<CustomFilter>? _customFilters;
 @override List<CustomFilter>? get customFilters {
   final value = _customFilters;
@@ -355,16 +341,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobFilter&&(identical(other.searchQueryTerm, searchQueryTerm) || other.searchQueryTerm == searchQueryTerm)&&const DeepCollectionEquality().equals(other._experienceLevel, _experienceLevel)&&const DeepCollectionEquality().equals(other._clientHistory, _clientHistory)&&const DeepCollectionEquality().equals(other._jobType, _jobType)&&(identical(other.paymentVerified, paymentVerified) || other.paymentVerified == paymentVerified)&&(identical(other.fixedPriceRange, fixedPriceRange) || other.fixedPriceRange == fixedPriceRange)&&(identical(other.hourlyRateRange, hourlyRateRange) || other.hourlyRateRange == hourlyRateRange)&&const DeepCollectionEquality().equals(other._countries, _countries)&&const DeepCollectionEquality().equals(other._regions, _regions)&&const DeepCollectionEquality().equals(other._subRegions, _subRegions)&&(identical(other.jobAgeFilter, jobAgeFilter) || other.jobAgeFilter == jobAgeFilter)&&(identical(other.pagination, pagination) || other.pagination == pagination)&&const DeepCollectionEquality().equals(other._customFilters, _customFilters));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _JobFilter&&(identical(other.searchQueryTerm, searchQueryTerm) || other.searchQueryTerm == searchQueryTerm)&&const DeepCollectionEquality().equals(other._experienceLevel, _experienceLevel)&&const DeepCollectionEquality().equals(other._clientHistory, _clientHistory)&&const DeepCollectionEquality().equals(other._jobType, _jobType)&&(identical(other.paymentVerified, paymentVerified) || other.paymentVerified == paymentVerified)&&(identical(other.fixedPriceRange, fixedPriceRange) || other.fixedPriceRange == fixedPriceRange)&&(identical(other.hourlyRateRange, hourlyRateRange) || other.hourlyRateRange == hourlyRateRange)&&const DeepCollectionEquality().equals(other._countries, _countries)&&const DeepCollectionEquality().equals(other._regions, _regions)&&const DeepCollectionEquality().equals(other._subRegions, _subRegions)&&(identical(other.jobAgeFilter, jobAgeFilter) || other.jobAgeFilter == jobAgeFilter)&&const DeepCollectionEquality().equals(other._customFilters, _customFilters));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,searchQueryTerm,const DeepCollectionEquality().hash(_experienceLevel),const DeepCollectionEquality().hash(_clientHistory),const DeepCollectionEquality().hash(_jobType),paymentVerified,fixedPriceRange,hourlyRateRange,const DeepCollectionEquality().hash(_countries),const DeepCollectionEquality().hash(_regions),const DeepCollectionEquality().hash(_subRegions),jobAgeFilter,pagination,const DeepCollectionEquality().hash(_customFilters));
+int get hashCode => Object.hash(runtimeType,searchQueryTerm,const DeepCollectionEquality().hash(_experienceLevel),const DeepCollectionEquality().hash(_clientHistory),const DeepCollectionEquality().hash(_jobType),paymentVerified,fixedPriceRange,hourlyRateRange,const DeepCollectionEquality().hash(_countries),const DeepCollectionEquality().hash(_regions),const DeepCollectionEquality().hash(_subRegions),jobAgeFilter,const DeepCollectionEquality().hash(_customFilters));
 
 @override
 String toString() {
-  return 'JobFilter(searchQueryTerm: $searchQueryTerm, experienceLevel: $experienceLevel, clientHistory: $clientHistory, jobType: $jobType, paymentVerified: $paymentVerified, fixedPriceRange: $fixedPriceRange, hourlyRateRange: $hourlyRateRange, countries: $countries, regions: $regions, subRegions: $subRegions, jobAgeFilter: $jobAgeFilter, pagination: $pagination, customFilters: $customFilters)';
+  return 'JobFilter(searchQueryTerm: $searchQueryTerm, experienceLevel: $experienceLevel, clientHistory: $clientHistory, jobType: $jobType, paymentVerified: $paymentVerified, fixedPriceRange: $fixedPriceRange, hourlyRateRange: $hourlyRateRange, countries: $countries, regions: $regions, subRegions: $subRegions, jobAgeFilter: $jobAgeFilter, customFilters: $customFilters)';
 }
 
 
@@ -375,11 +361,11 @@ abstract mixin class _$JobFilterCopyWith<$Res> implements $JobFilterCopyWith<$Re
   factory _$JobFilterCopyWith(_JobFilter value, $Res Function(_JobFilter) _then) = __$JobFilterCopyWithImpl;
 @override @useResult
 $Res call({
- String searchQueryTerm, List<ExperienceLevel>? experienceLevel, List<ClientHistory>? clientHistory, List<JobType>? jobType, bool paymentVerified, MinMax? fixedPriceRange, MinMax? hourlyRateRange, List<Country>? countries, List<Region>? regions, List<SubRegion>? subRegions, MaximumJobAge? jobAgeFilter, Pagination? pagination, List<CustomFilter>? customFilters
+ String searchQueryTerm, List<ExperienceLevel>? experienceLevel, List<ClientHistory>? clientHistory, List<JobType>? jobType, bool paymentVerified, MinMax? fixedPriceRange, MinMax? hourlyRateRange, List<Country>? countries, List<Region>? regions, List<SubRegion>? subRegions, MaximumJobAge? jobAgeFilter, List<CustomFilter>? customFilters
 });
 
 
-@override $MinMaxCopyWith<$Res>? get fixedPriceRange;@override $MinMaxCopyWith<$Res>? get hourlyRateRange;@override $MaximumJobAgeCopyWith<$Res>? get jobAgeFilter;@override $PaginationCopyWith<$Res>? get pagination;
+@override $MinMaxCopyWith<$Res>? get fixedPriceRange;@override $MinMaxCopyWith<$Res>? get hourlyRateRange;@override $MaximumJobAgeCopyWith<$Res>? get jobAgeFilter;
 
 }
 /// @nodoc
@@ -392,7 +378,7 @@ class __$JobFilterCopyWithImpl<$Res>
 
 /// Create a copy of JobFilter
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? searchQueryTerm = null,Object? experienceLevel = freezed,Object? clientHistory = freezed,Object? jobType = freezed,Object? paymentVerified = null,Object? fixedPriceRange = freezed,Object? hourlyRateRange = freezed,Object? countries = freezed,Object? regions = freezed,Object? subRegions = freezed,Object? jobAgeFilter = freezed,Object? pagination = freezed,Object? customFilters = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? searchQueryTerm = null,Object? experienceLevel = freezed,Object? clientHistory = freezed,Object? jobType = freezed,Object? paymentVerified = null,Object? fixedPriceRange = freezed,Object? hourlyRateRange = freezed,Object? countries = freezed,Object? regions = freezed,Object? subRegions = freezed,Object? jobAgeFilter = freezed,Object? customFilters = freezed,}) {
   return _then(_JobFilter(
 searchQueryTerm: null == searchQueryTerm ? _self.searchQueryTerm : searchQueryTerm // ignore: cast_nullable_to_non_nullable
 as String,experienceLevel: freezed == experienceLevel ? _self._experienceLevel : experienceLevel // ignore: cast_nullable_to_non_nullable
@@ -405,8 +391,7 @@ as MinMax?,countries: freezed == countries ? _self._countries : countries // ign
 as List<Country>?,regions: freezed == regions ? _self._regions : regions // ignore: cast_nullable_to_non_nullable
 as List<Region>?,subRegions: freezed == subRegions ? _self._subRegions : subRegions // ignore: cast_nullable_to_non_nullable
 as List<SubRegion>?,jobAgeFilter: freezed == jobAgeFilter ? _self.jobAgeFilter : jobAgeFilter // ignore: cast_nullable_to_non_nullable
-as MaximumJobAge?,pagination: freezed == pagination ? _self.pagination : pagination // ignore: cast_nullable_to_non_nullable
-as Pagination?,customFilters: freezed == customFilters ? _self._customFilters : customFilters // ignore: cast_nullable_to_non_nullable
+as MaximumJobAge?,customFilters: freezed == customFilters ? _self._customFilters : customFilters // ignore: cast_nullable_to_non_nullable
 as List<CustomFilter>?,
   ));
 }
@@ -446,18 +431,6 @@ $MaximumJobAgeCopyWith<$Res>? get jobAgeFilter {
 
   return $MaximumJobAgeCopyWith<$Res>(_self.jobAgeFilter!, (value) {
     return _then(_self.copyWith(jobAgeFilter: value));
-  });
-}/// Create a copy of JobFilter
-/// with the given fields replaced by the non-null parameter values.
-@override
-@pragma('vm:prefer-inline')
-$PaginationCopyWith<$Res>? get pagination {
-    if (_self.pagination == null) {
-    return null;
-  }
-
-  return $PaginationCopyWith<$Res>(_self.pagination!, (value) {
-    return _then(_self.copyWith(pagination: value));
   });
 }
 }

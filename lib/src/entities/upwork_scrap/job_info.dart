@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:pascoa_scout/src/domain/entities/upwork_scrap/enums.dart';
+import 'package:pascoa_scout/src/entities/upwork_scrap/enums.dart';
 
 part 'job_info.freezed.dart';
 part 'job_info.g.dart';

@@ -36,9 +36,6 @@ _JobFilter _$JobFilterFromJson(Map<String, dynamic> json) => _JobFilter(
   jobAgeFilter: json['jobAgeFilter'] == null
       ? null
       : MaximumJobAge.fromJson(json['jobAgeFilter'] as Map<String, dynamic>),
-  pagination: json['pagination'] == null
-      ? null
-      : Pagination.fromJson(json['pagination'] as Map<String, dynamic>),
   customFilters: (json['customFilters'] as List<dynamic>?)
       ?.map((e) => CustomFilter.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -64,7 +61,6 @@ Map<String, dynamic> _$JobFilterToJson(
       ?.map((e) => _$SubRegionEnumMap[e]!)
       .toList(),
   'jobAgeFilter': instance.jobAgeFilter,
-  'pagination': instance.pagination,
   'customFilters': instance.customFilters,
 };
 
