@@ -1,9 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/ui/dashboard_page.dart';
+import 'package:pascoa_scout_client/pascoa_scout_client.dart';
+import 'package:serverpod_flutter/serverpod_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(ProviderScope(child: const PascoaScoutApp()));
+void main() async {
+  final Client client = Client(
+    'serverUrl',
+    connectionTimeout: Duration(minutes: 2),
+  )..connectivityMonitor = FlutterConnectivityMonitor();
+
+  final pref = await SharedPreferences.getInstance();
+  runApp(
+    ProviderScope(
+      overrides: [
+        clientProvider.overrideWithValue(client),
+        sharedPreferencesProvider.overrideWithValue(pref),
+      ],
+      child: const PascoaScoutApp(),
+    ),
+  );
 }
 
 class PascoaScoutApp extends StatelessWidget {
