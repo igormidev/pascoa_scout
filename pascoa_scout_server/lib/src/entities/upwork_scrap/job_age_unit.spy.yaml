@@ -1,0 +1,7 @@
+enum: JobAgeUnit
+serialized: byName
+values:
+  - minutes
+  - hours
+  - days
+  - weeks

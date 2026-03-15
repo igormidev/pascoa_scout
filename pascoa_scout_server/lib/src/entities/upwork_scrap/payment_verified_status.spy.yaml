@@ -1,0 +1,6 @@
+enum: PaymentVerifiedStatus
+serialized: byName
+values:
+  - unknown
+  - verified
+  - unverified

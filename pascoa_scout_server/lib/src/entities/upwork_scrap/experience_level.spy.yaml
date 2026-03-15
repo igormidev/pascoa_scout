@@ -1,0 +1,6 @@
+enum: ExperienceLevel
+serialized: byName
+values:
+  - entryLevel
+  - intermediate
+  - expert

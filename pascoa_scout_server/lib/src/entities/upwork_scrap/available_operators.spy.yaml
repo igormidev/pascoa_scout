@@ -1,0 +1,7 @@
+enum: AvailableOperators
+serialized: byName
+values:
+  - includes
+  - equals
+  - notIncludes
+  - notEquals

@@ -1,0 +1,5 @@
+enum: JobType
+serialized: byName
+values:
+  - fixed
+  - hourly

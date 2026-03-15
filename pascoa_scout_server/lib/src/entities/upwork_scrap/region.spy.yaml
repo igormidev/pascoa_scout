@@ -1,0 +1,9 @@
+enum: Region
+serialized: byName
+values:
+  - africa
+  - americas
+  - antarctica
+  - asia
+  - europe
+  - oceania

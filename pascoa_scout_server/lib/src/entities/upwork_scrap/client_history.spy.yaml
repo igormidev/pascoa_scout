@@ -1,0 +1,6 @@
+enum: ClientHistory
+serialized: byName
+values:
+  - noHires
+  - oneTonNineHires
+  - tenPlusHires

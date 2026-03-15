@@ -1,0 +1,25 @@
+enum: SubRegion
+serialized: byName
+values:
+  - australiaAndNewZealand
+  - caribbean
+  - centralAmerica
+  - centralAsia
+  - easternAfrica
+  - easternAsia
+  - easternEurope
+  - melanesia
+  - micronesia
+  - middleAfrica
+  - northernAfrica
+  - northernAmerica
+  - northernEurope
+  - polynesia
+  - southAmerica
+  - southEasternAsia
+  - southernAfrica
+  - southernAsia
+  - southernEurope
+  - westernAfrica
+  - westernAsia
+  - westernEurope

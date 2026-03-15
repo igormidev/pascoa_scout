@@ -1,0 +1,6 @@
+class: Pagination
+fields:
+  pageNumber: int
+  pagesToScrape: int
+  resultsPerPage: int
+  searchSortOrder: SearchSortOrder

@@ -1,0 +1,5 @@
+class: CustomFilter
+fields:
+  properties: AvailableProperties
+  operators: AvailableOperators
+  values: List<String>

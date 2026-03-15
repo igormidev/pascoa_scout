@@ -1,0 +1,4 @@
+class: MaximumJobAge
+fields:
+  unit: JobAgeUnit
+  value: int

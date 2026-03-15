@@ -1,0 +1,44 @@
+services:
+  # Development services
+  postgres:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "8090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: pascoa_scout
+      POSTGRES_PASSWORD: "8gQ0g9m-PxuERxfcV6qfXNUT5baNduLL"
+    volumes:
+      - pascoa_scout_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:6.2.6
+    ports:
+      - "8091:6379"
+    command: redis-server --requirepass "7uIqgQRQG0ANPiDH6FW7dSkmrKXBteOX"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+  # Test services
+  postgres_test:
+    image: pgvector/pgvector:pg16
+    ports:
+      - "9090:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_DB: pascoa_scout_test
+      POSTGRES_PASSWORD: "s1DF2J9tn5T_DalPZWwgTg-3zNZ4Es8e"
+    volumes:
+      - pascoa_scout_test_data:/var/lib/postgresql/data
+
+  redis_test:
+    image: redis:6.2.6
+    ports:
+      - "9091:6379"
+    command: redis-server --requirepass "mPFk_3JrIk00k3VivA2MLH5zPy0hVBTf"
+    environment:
+      - REDIS_REPLICATION_MODE=master
+
+volumes:
+  pascoa_scout_data:
+  pascoa_scout_test_data:

@@ -1,0 +1,5 @@
+class: ClientLocation
+fields:
+  country: Country?
+  region: Region?
+  subRegion: SubRegion?

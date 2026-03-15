@@ -1,0 +1,6 @@
+exception: PascoaException
+fields:
+  message: String
+  description: String
+  error: String?
+  stackTrace: String?

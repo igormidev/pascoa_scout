@@ -1,0 +1,5 @@
+enum: SearchSortOrder
+serialized: byName
+values:
+  - relevance
+  - newest

@@ -1,0 +1,4 @@
+class: MinMax
+fields:
+  min: int
+  max: int

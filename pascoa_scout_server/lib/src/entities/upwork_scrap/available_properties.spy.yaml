@@ -1,0 +1,14 @@
+enum: AvailableProperties
+serialized: byName
+values:
+  - title
+  - description
+  - jobType
+  - experienceLevel
+  - budget
+  - tags
+  - relativeDate
+  - absoluteDate
+  - paymentVerified
+  - clientLocation
+  - allowedApplicantCountries

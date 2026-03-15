@@ -1,0 +1,14 @@
+class: JobFilter
+fields:
+  searchQueryTerm: String
+  experienceLevel: List<ExperienceLevel>?
+  clientHistory: List<ClientHistory>?
+  jobType: List<JobType>?
+  paymentVerified: bool
+  fixedPriceRange: MinMax?
+  hourlyRateRange: MinMax?
+  countries: List<Country>?
+  regions: List<Region>?
+  subRegions: List<SubRegion>?
+  jobAgeFilter: MaximumJobAge?
+  customFilters: List<CustomFilter>?

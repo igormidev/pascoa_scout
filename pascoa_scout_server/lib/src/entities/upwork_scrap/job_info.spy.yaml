@@ -1,0 +1,24 @@
+class: JobInfo
+fields:
+  id: String
+  subId: String?
+  title: String
+  description: String
+  url: String
+  relativeDate: String?
+  absoluteDate: String?
+  budget: String?
+  jobType: JobType
+  experienceLevel: ExperienceLevel
+  clientLocation: ClientLocation?
+  paymentVerifiedStatus: PaymentVerifiedStatus
+  allowedApplicantCountries: List<Country>
+  clientName: String?
+  clientNameConfidencePercent: double?
+  clientAvgHourlyRate: double?
+  clientRating: double?
+  clientHireRatePercent: double?
+  clientTotalSpent: double?
+  tags: List<String>
+  hasHired: bool
+  questions: List<Question>

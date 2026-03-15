@@ -1,0 +1,4 @@
+class: Question
+fields:
+  question: String
+  positionIndex: int
