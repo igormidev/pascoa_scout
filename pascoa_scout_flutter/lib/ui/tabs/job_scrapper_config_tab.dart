@@ -5,8 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:pascoa_scout/interactor/job_filter/filter_panel_mode_provider.dart';
 import 'package:pascoa_scout/interactor/job_filter/current_filter_state.dart';
 import 'package:pascoa_scout/interactor/job_filter/job_filter_providers.dart';
+import 'package:pascoa_scout/interactor/job_sync/job_sync_providers.dart';
+import 'package:pascoa_scout/interactor/job_sync/job_sync_state.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
 class JobScrapperConfigTab extends ConsumerStatefulWidget {
@@ -181,6 +184,8 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
     }
 
     ref.read(currentFilterNotifier.notifier).saveFilter(_buildFilter());
+    ref.read(jobSyncControllerProvider.notifier).resetForNewFilter();
+    ref.read(filterPanelModeProvider.notifier).showSummary();
 
     if (!mounted) {
       return;
@@ -198,6 +203,10 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
   void _handleDiscard() {
     FocusScope.of(context).unfocus();
     _restoreFromState(ref.read(currentFilterNotifier));
+
+    if (ref.read(currentFilterNotifier.notifier).currentFilter != null) {
+      ref.read(filterPanelModeProvider.notifier).showSummary();
+    }
   }
 
   JobFilter _buildFilter() {
@@ -358,108 +367,198 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
         .toList();
   }
 
+  String _buildFilterSummary(JobFilter filter) {
+    final summaryParts = <String>[
+      filter.searchQueryTerm,
+      if (filter.experienceLevel?.isNotEmpty ?? false)
+        filter.experienceLevel!.map(_experienceLevelLabel).join(', '),
+      if (filter.jobType?.isNotEmpty ?? false)
+        filter.jobType!.map(_jobTypeLabel).join(', '),
+      if (filter.paymentVerified) 'payment verified',
+      if (filter.jobAgeFilter != null)
+        '${filter.jobAgeFilter!.value} ${_jobAgeUnitLabel(filter.jobAgeFilter!.unit).toLowerCase()} max age',
+      if (filter.regions?.isNotEmpty ?? false)
+        filter.regions!.take(2).map(_regionLabel).join(', '),
+      if ((filter.countries?.length ?? 0) > 0)
+        '${filter.countries!.length} countries',
+      if ((filter.customFilters?.length ?? 0) > 0)
+        '${filter.customFilters!.length} custom rules',
+    ];
+
+    return summaryParts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 860.0;
+    final currentFilter = ref.watch(
+      currentFilterNotifier.select(
+        (state) => state.maybeWhen(
+          withFilter: (jobFilter) => jobFilter,
+          orElse: () => null,
+        ),
+      ),
+    );
+    final isEditing = ref.watch(filterPanelModeProvider);
+    final syncState = ref.watch(jobSyncControllerProvider);
+    final showEditor = currentFilter == null || isEditing;
+
+    return AnimatedSwitcher(
+      duration: 380.ms,
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      child: showEditor
+          ? _buildEditorView(isDesktop: isDesktop, syncState: syncState)
+          : _CompactFilterRunTab(
+              key: const ValueKey('compact-filter-run-tab'),
+              syncState: syncState,
+              onChangeFilters: syncState.isLocked
+                  ? null
+                  : () {
+                      ref.read(filterPanelModeProvider.notifier).showEditor();
+                    },
+              onToggleSync: syncState.isRunning
+                  ? ref.read(jobSyncControllerProvider.notifier).stopSync
+                  : ref.read(jobSyncControllerProvider.notifier).startSync,
+              onDecreaseInterval:
+                  syncState.isLocked || syncState.intervalMinutes <= 1
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setIntervalMinutes(syncState.intervalMinutes - 1);
+                    },
+              onIncreaseInterval: syncState.isLocked
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setIntervalMinutes(syncState.intervalMinutes + 1);
+                    },
+              summaryText: _buildFilterSummary(currentFilter),
+            ),
+    );
+  }
+
+  Widget _buildEditorView({
+    required bool isDesktop,
+    required JobSyncState syncState,
+  }) {
+    final theme = Theme.of(context);
 
     return Form(
       key: _formKey,
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
-        children: [
-          _HeroCard(isDesktop: isDesktop)
-              .animate()
-              .fadeIn(duration: 320.ms)
-              .slideY(begin: -0.08, curve: Curves.easeOutCubic),
-          const SizedBox(height: 20.0),
-          _SectionCard(
-            title: 'Search query',
-            description:
-                'Start with the Upwork query you want Apify to scrape. The rest of the filters unlock after this field has content.',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _ValidatedTextField(
-                  controller: _queryController,
-                  label: 'What jobs are you looking for?',
-                  hintText:
-                      'Examples: Flutter developer, AI automation, Dart backend',
-                  prefixIcon: Icons.travel_explore_rounded,
-                  textInputAction: TextInputAction.next,
-                  validator: _requiredTextValidator('Search query'),
-                ),
-                const SizedBox(height: 14.0),
-                Text(
-                  'This query is the only mandatory field before the advanced filters appear.',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.64),
-                  ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(delay: 70.ms).slideY(begin: 0.08),
-          const SizedBox(height: 20.0),
-          AnimatedSwitcher(
-            duration: 320.ms,
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            child: _showAdvancedFilters
-                ? _AdvancedFiltersView(
-                    key: const ValueKey('advanced-filters'),
-                    sections: _buildAdvancedSections(isDesktop),
-                  )
-                : const _LockedFiltersCard(key: ValueKey('locked-filters')),
-          ),
-          const SizedBox(height: 20.0),
-          _SectionCard(
-            title: 'Actions',
-            description:
-                'Save only updates the local `CurrentFiltersState` for now. Discard restores the last saved provider snapshot.',
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final useColumn = constraints.maxWidth < 560.0;
-                final buttons = [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _handleDiscard,
-                      icon: const Icon(Icons.restore_rounded),
-                      label: const Text('Discard changes'),
-                    ),
-                  ),
-                  SizedBox(
-                    width: useColumn ? 0.0 : 14.0,
-                    height: useColumn ? 14.0 : 0.0,
-                  ),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: _handleSave,
-                      icon: const Icon(Icons.save_rounded),
-                      label: const Text('Save filter'),
-                    ),
-                  ),
-                ];
-
-                return Column(
+      child: IgnorePointer(
+        ignoring: syncState.isLocked,
+        child: AnimatedOpacity(
+          duration: 220.ms,
+          opacity: syncState.isLocked ? 0.72 : 1.0,
+          child: ListView(
+            key: const ValueKey('filter-editor-view'),
+            padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
+            children: [
+              _HeroCard(isDesktop: isDesktop)
+                  .animate()
+                  .fadeIn(duration: 320.ms)
+                  .slideY(begin: -0.08, curve: Curves.easeOutCubic),
+              const SizedBox(height: 20.0),
+              _SectionCard(
+                title: 'Search query',
+                description:
+                    'Start with the Upwork query you want Apify to scrape. The rest of the filters unlock after this field has content.',
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    useColumn
-                        ? Column(children: buttons)
-                        : Row(children: buttons),
-                    const SizedBox(height: 12.0),
+                    _ValidatedTextField(
+                      controller: _queryController,
+                      label: 'What jobs are you looking for?',
+                      hintText:
+                          'Examples: Flutter developer, AI automation, Dart backend',
+                      prefixIcon: Icons.travel_explore_rounded,
+                      textInputAction: TextInputAction.next,
+                      validator: _requiredTextValidator('Search query'),
+                    ),
+                    const SizedBox(height: 14.0),
                     Text(
-                      'Validation issues will block saving and open a dialog so nothing incomplete slips into state.',
+                      'This query is the only mandatory field before the advanced filters appear.',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: Colors.white.withValues(alpha: 0.64),
                       ),
                     ),
+                    if (syncState.isLocked) ...[
+                      const SizedBox(height: 12.0),
+                      const _CompactInfoCard(
+                        icon: Icons.lock_clock_rounded,
+                        message:
+                            'Synchronization is running, so filter controls are temporarily locked.',
+                      ),
+                    ],
                   ],
-                );
-              },
-            ),
-          ).animate().fadeIn(delay: 140.ms).slideY(begin: 0.08),
-        ],
+                ),
+              ).animate().fadeIn(delay: 70.ms).slideY(begin: 0.08),
+              const SizedBox(height: 20.0),
+              AnimatedSwitcher(
+                duration: 320.ms,
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                child: _showAdvancedFilters
+                    ? _AdvancedFiltersView(
+                        key: const ValueKey('advanced-filters'),
+                        sections: _buildAdvancedSections(isDesktop),
+                      )
+                    : const _LockedFiltersCard(key: ValueKey('locked-filters')),
+              ),
+              const SizedBox(height: 20.0),
+              _SectionCard(
+                title: 'Actions',
+                description:
+                    'Save stores the current filter in Riverpod. Discard restores the last saved snapshot.',
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final useColumn = constraints.maxWidth < 560.0;
+                    final buttons = [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _handleDiscard,
+                          icon: const Icon(Icons.restore_rounded),
+                          label: const Text('Discard changes'),
+                        ),
+                      ),
+                      SizedBox(
+                        width: useColumn ? 0.0 : 14.0,
+                        height: useColumn ? 14.0 : 0.0,
+                      ),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: _handleSave,
+                          icon: const Icon(Icons.save_rounded),
+                          label: const Text('Save filter'),
+                        ),
+                      ),
+                    ];
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        useColumn
+                            ? Column(children: buttons)
+                            : Row(children: buttons),
+                        const SizedBox(height: 12.0),
+                        Text(
+                          'Validation issues block saving and open a dialog before the filter reaches state.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.64),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ).animate().fadeIn(delay: 140.ms).slideY(begin: 0.08),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -946,6 +1045,24 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
   }
 }
 
+String _formatDuration(Duration duration) {
+  final safeDuration = duration.isNegative ? Duration.zero : duration;
+  final days = safeDuration.inDays;
+  final hours = safeDuration.inHours.remainder(24);
+  final minutes = safeDuration.inMinutes.remainder(60);
+  final seconds = safeDuration.inSeconds.remainder(60);
+
+  final parts = <String>[
+    if (days > 0) '${days}d',
+    if (hours > 0 || days > 0) '${hours.toString().padLeft(2, '0')}h',
+    if (minutes > 0 || hours > 0 || days > 0)
+      '${minutes.toString().padLeft(2, '0')}m',
+    '${seconds.toString().padLeft(2, '0')}s',
+  ];
+
+  return parts.join(' ');
+}
+
 class _HeroCard extends StatelessWidget {
   const _HeroCard({required this.isDesktop});
 
@@ -1117,6 +1234,367 @@ class _AdvancedFiltersView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: sections,
+    );
+  }
+}
+
+class _CompactFilterRunTab extends ConsumerWidget {
+  const _CompactFilterRunTab({
+    super.key,
+    required this.syncState,
+    required this.summaryText,
+    required this.onChangeFilters,
+    required this.onToggleSync,
+    required this.onDecreaseInterval,
+    required this.onIncreaseInterval,
+  });
+
+  final JobSyncState syncState;
+  final String summaryText;
+  final VoidCallback? onChangeFilters;
+  final VoidCallback onToggleSync;
+  final VoidCallback? onDecreaseInterval;
+  final VoidCallback? onIncreaseInterval;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final now = ref
+        .watch(jobSyncClockProvider)
+        .maybeWhen(data: (value) => value, orElse: DateTime.now);
+
+    final statusText = syncState.isPulling
+        ? 'Pulling the most recent 10 jobs from Apify.'
+        : syncState.isRunning && syncState.nextPullAt != null
+        ? 'Next pull in ${_formatDuration(syncState.nextPullAt!.difference(now))}.'
+        : syncState.lastPullSucceededAt != null
+        ? 'Polling paused. Last successful pull was ${_formatDuration(now.difference(syncState.lastPullSucceededAt!))} ago.'
+        : 'Polling is paused. Start it when you want the right panel to begin filling.';
+
+    return ListView(
+      key: const ValueKey('compact-filter-run-view'),
+      padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(22.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Text('🗿', style: TextStyle(fontSize: 82.0, height: 1.0)),
+                const SizedBox(height: 10.0),
+                Text(
+                  'Pascoa Scout',
+                  style: theme.textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12.0),
+                Text(
+                  summaryText,
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.78),
+                  ),
+                ),
+                const SizedBox(height: 18.0),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: onChangeFilters,
+                    icon: const Icon(Icons.tune_rounded),
+                    label: const Text('Change filter settings'),
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: Divider(height: 1.0),
+                ),
+                _IntervalStepper(
+                  value: syncState.intervalMinutes,
+                  onDecrease: onDecreaseInterval,
+                  onIncrease: onIncreaseInterval,
+                ),
+                const SizedBox(height: 14.0),
+                _CompactInfoCard(
+                  icon: syncState.isPulling
+                      ? Icons.sync_rounded
+                      : Icons.timer_outlined,
+                  message: statusText,
+                  trailing: syncState.isPulling
+                      ? SizedBox(
+                          width: 18.0,
+                          height: 18.0,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        )
+                      : null,
+                ),
+                const SizedBox(height: 14.0),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: onToggleSync,
+                    icon: Icon(
+                      syncState.isRunning
+                          ? Icons.pause_circle_rounded
+                          : Icons.play_circle_fill_rounded,
+                    ),
+                    label: Text(
+                      syncState.isRunning
+                          ? 'Pause synchronization'
+                          : 'Start synchronization',
+                    ),
+                  ),
+                ),
+                AnimatedSwitcher(
+                  duration: 260.ms,
+                  child: syncState.successBanner == null
+                      ? const SizedBox.shrink(
+                          key: ValueKey('no-success-banner'),
+                        )
+                      : Padding(
+                          key: ValueKey(syncState.successBanner!.shownAt),
+                          padding: const EdgeInsets.only(top: 14.0),
+                          child: _SuccessInfoCard(
+                            message: syncState.successBanner!.message,
+                          ),
+                        ),
+                ),
+                if (syncState.errors.isNotEmpty) ...[
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 18.0),
+                    child: Divider(height: 1.0),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text('Errors', style: theme.textTheme.titleLarge),
+                  ),
+                  const SizedBox(height: 10.0),
+                  for (final error in syncState.errors) ...[
+                    _ErrorLogCard(error: error),
+                    const SizedBox(height: 10.0),
+                  ],
+                ],
+              ],
+            ),
+          ),
+        ).animate().fadeIn(duration: 280.ms).slideX(begin: -0.08),
+      ],
+    );
+  }
+}
+
+class _IntervalStepper extends StatelessWidget {
+  const _IntervalStepper({
+    required this.value,
+    required this.onDecrease,
+    required this.onIncrease,
+  });
+
+  final int value;
+  final VoidCallback? onDecrease;
+  final VoidCallback? onIncrease;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22.0),
+        color: Colors.white.withValues(alpha: 0.03),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.38),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Polling interval', style: theme.textTheme.titleMedium),
+                const SizedBox(height: 4.0),
+                Text(
+                  '$value minute${value == 1 ? '' : 's'} between pulls',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.7),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onDecrease,
+            icon: const Icon(Icons.remove_circle_outline_rounded),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 14.0,
+              vertical: 10.0,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(16.0),
+              color: Colors.white.withValues(alpha: 0.06),
+            ),
+            child: Text(
+              '$value',
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: onIncrease,
+            icon: const Icon(Icons.add_circle_outline_rounded),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactInfoCard extends StatelessWidget {
+  const _CompactInfoCard({
+    required this.icon,
+    required this.message,
+    this.trailing,
+  });
+
+  final IconData icon;
+  final String message;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.0),
+        color: Colors.white.withValues(alpha: 0.03),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.36),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: theme.colorScheme.secondary),
+          const SizedBox(width: 10.0),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white.withValues(alpha: 0.78),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          if (trailing != null) ...[const SizedBox(width: 12.0), trailing!],
+        ],
+      ),
+    );
+  }
+}
+
+class _SuccessInfoCard extends StatelessWidget {
+  const _SuccessInfoCard({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.0),
+        color: const Color(0xFF143328),
+        border: Border.all(
+          color: const Color(0xFF5EE9B5).withValues(alpha: 0.34),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.check_circle_rounded, color: Color(0xFF5EE9B5)),
+          const SizedBox(width: 10.0),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Color(0xFFE2FFF4),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 220.ms).slideY(begin: 0.08);
+  }
+}
+
+class _ErrorLogCard extends StatelessWidget {
+  const _ErrorLogCard({required this.error});
+
+  final JobSyncErrorLog error;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.0),
+        color: const Color(0xFF34191C),
+        border: Border.all(
+          color: const Color(0xFFFF7B72).withValues(alpha: 0.32),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: Color(0xFFFFB4AC)),
+              const SizedBox(width: 10.0),
+              Expanded(
+                child: Text(
+                  error.type,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: const Color(0xFFFFDAD6),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10.0),
+          SelectableText(
+            error.message,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: const Color(0xFFFFDAD6),
+            ),
+          ),
+          const SizedBox(height: 10.0),
+          SelectableText(
+            error.stackTrace,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.white.withValues(alpha: 0.72),
+              fontFamily: 'monospace',
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
