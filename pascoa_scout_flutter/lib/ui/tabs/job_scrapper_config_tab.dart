@@ -364,117 +364,112 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 860.0;
 
-    return Stack(
-      children: [
-        const Positioned.fill(child: _ConfigBackground()),
-        SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 990.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
-                  children: [
-                    _HeroCard(isDesktop: isDesktop)
-                        .animate()
-                        .fadeIn(duration: 320.ms)
-                        .slideY(begin: -0.08, curve: Curves.easeOutCubic),
-                    const SizedBox(height: 20.0),
-                    _SectionCard(
-                      title: 'Search query',
-                      description:
-                          'Start with the Upwork query you want Apify to scrape. The rest of the filters unlock after this field has content.',
-                      child: Column(
+    return SafeArea(
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 990.0),
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
+              children: [
+                _HeroCard(isDesktop: isDesktop)
+                    .animate()
+                    .fadeIn(duration: 320.ms)
+                    .slideY(begin: -0.08, curve: Curves.easeOutCubic),
+                const SizedBox(height: 20.0),
+                _SectionCard(
+                  title: 'Search query',
+                  description:
+                      'Start with the Upwork query you want Apify to scrape. The rest of the filters unlock after this field has content.',
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _ValidatedTextField(
+                        controller: _queryController,
+                        label: 'What jobs are you looking for?',
+                        hintText:
+                            'Examples: Flutter developer, AI automation, Dart backend',
+                        prefixIcon: Icons.travel_explore_rounded,
+                        textInputAction: TextInputAction.next,
+                        validator: _requiredTextValidator('Search query'),
+                      ),
+                      const SizedBox(height: 14.0),
+                      Text(
+                        'This query is the only mandatory field before the advanced filters appear.',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.64),
+                        ),
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 70.ms).slideY(begin: 0.08),
+                const SizedBox(height: 20.0),
+                AnimatedSwitcher(
+                  duration: 320.ms,
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: _showAdvancedFilters
+                      ? _AdvancedFiltersView(
+                          key: const ValueKey('advanced-filters'),
+                          sections: _buildAdvancedSections(isDesktop),
+                        )
+                      : const _LockedFiltersCard(
+                          key: ValueKey('locked-filters'),
+                        ),
+                ),
+                const SizedBox(height: 20.0),
+                _SectionCard(
+                  title: 'Actions',
+                  description:
+                      'Save only updates the local `CurrentFiltersState` for now. Discard restores the last saved provider snapshot.',
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final useColumn = constraints.maxWidth < 560.0;
+                      final buttons = [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _handleDiscard,
+                            icon: const Icon(Icons.restore_rounded),
+                            label: const Text('Discard changes'),
+                          ),
+                        ),
+                        SizedBox(
+                          width: useColumn ? 0.0 : 14.0,
+                          height: useColumn ? 14.0 : 0.0,
+                        ),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _handleSave,
+                            icon: const Icon(Icons.save_rounded),
+                            label: const Text('Save filter'),
+                          ),
+                        ),
+                      ];
+
+                      return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _ValidatedTextField(
-                            controller: _queryController,
-                            label: 'What jobs are you looking for?',
-                            hintText:
-                                'Examples: Flutter developer, AI automation, Dart backend',
-                            prefixIcon: Icons.travel_explore_rounded,
-                            textInputAction: TextInputAction.next,
-                            validator: _requiredTextValidator('Search query'),
-                          ),
-                          const SizedBox(height: 14.0),
+                          useColumn
+                              ? Column(children: buttons)
+                              : Row(children: buttons),
+                          const SizedBox(height: 12.0),
                           Text(
-                            'This query is the only mandatory field before the advanced filters appear.',
+                            'Validation issues will block saving and open a dialog so nothing incomplete slips into state.',
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: Colors.white.withValues(alpha: 0.64),
                             ),
                           ),
                         ],
-                      ),
-                    ).animate().fadeIn(delay: 70.ms).slideY(begin: 0.08),
-                    const SizedBox(height: 20.0),
-                    AnimatedSwitcher(
-                      duration: 320.ms,
-                      switchInCurve: Curves.easeOutCubic,
-                      switchOutCurve: Curves.easeInCubic,
-                      child: _showAdvancedFilters
-                          ? _AdvancedFiltersView(
-                              key: const ValueKey('advanced-filters'),
-                              sections: _buildAdvancedSections(isDesktop),
-                            )
-                          : const _LockedFiltersCard(
-                              key: ValueKey('locked-filters'),
-                            ),
-                    ),
-                    const SizedBox(height: 20.0),
-                    _SectionCard(
-                      title: 'Actions',
-                      description:
-                          'Save only updates the local `CurrentFiltersState` for now. Discard restores the last saved provider snapshot.',
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final useColumn = constraints.maxWidth < 560.0;
-                          final buttons = [
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: _handleDiscard,
-                                icon: const Icon(Icons.restore_rounded),
-                                label: const Text('Discard changes'),
-                              ),
-                            ),
-                            SizedBox(
-                              width: useColumn ? 0.0 : 14.0,
-                              height: useColumn ? 14.0 : 0.0,
-                            ),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _handleSave,
-                                icon: const Icon(Icons.save_rounded),
-                                label: const Text('Save filter'),
-                              ),
-                            ),
-                          ];
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              useColumn
-                                  ? Column(children: buttons)
-                                  : Row(children: buttons),
-                              const SizedBox(height: 12.0),
-                              Text(
-                                'Validation issues will block saving and open a dialog so nothing incomplete slips into state.',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.64),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ).animate().fadeIn(delay: 140.ms).slideY(begin: 0.08),
-                  ],
-                ),
-              ),
+                      );
+                    },
+                  ),
+                ).animate().fadeIn(delay: 140.ms).slideY(begin: 0.08),
+              ],
             ),
           ),
         ),
-      ],
+      ),
     );
   }
 
@@ -2213,92 +2208,6 @@ class _MultiSelectSheetState<T> extends State<_MultiSelectSheet<T>> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ConfigBackground extends StatelessWidget {
-  const _ConfigBackground();
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF071411), Color(0xFF091815), Color(0xFF04100D)],
-        ),
-      ),
-      child: Stack(
-        children: const [
-          _GlowOrb(
-            size: 320.0,
-            color: Color(0xFF0E7C67),
-            top: -80.0,
-            left: -70.0,
-          ),
-          _GlowOrb(
-            size: 260.0,
-            color: Color(0xFF156F8F),
-            top: 120.0,
-            right: -40.0,
-          ),
-          _GlowOrb(
-            size: 220.0,
-            color: Color(0xFF2A8F57),
-            bottom: -40.0,
-            left: 40.0,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _GlowOrb extends StatelessWidget {
-  const _GlowOrb({
-    required this.size,
-    required this.color,
-    this.top,
-    this.right,
-    this.bottom,
-    this.left,
-  });
-
-  final double size;
-  final Color color;
-  final double? top;
-  final double? right;
-  final double? bottom;
-  final double? left;
-
-  final double _blur = 90.0;
-
-  @override
-  Widget build(BuildContext context) {
-    return Positioned(
-      top: top,
-      right: right,
-      bottom: bottom,
-      left: left,
-      child: IgnorePointer(
-        child: Container(
-          width: size,
-          height: size,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.16),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.18),
-                blurRadius: _blur,
-                spreadRadius: 18.0,
-              ),
-            ],
-          ),
         ),
       ),
     );
