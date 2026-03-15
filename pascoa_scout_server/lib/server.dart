@@ -6,8 +6,6 @@ import 'package:serverpod_auth_idp_server/providers/email.dart';
 
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
-import 'src/web/routes/app_config_route.dart';
-import 'src/web/routes/root.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -31,23 +29,10 @@ void run(List<String> args) async {
     ],
   );
 
-  // Setup a default page at the web root.
-  // These are used by the default page.
-  pod.webServer.addRoute(RootRoute(), '/');
-  pod.webServer.addRoute(RootRoute(), '/index.html');
-
   // Serve all files in the web/static relative directory under /.
   // These are used by the default web page.
   final root = Directory(Uri(path: 'web/static').toFilePath());
   pod.webServer.addRoute(StaticRoute.directory(root));
-
-  // Setup the app config route.
-  // We build this configuration based on the servers api url and serve it to
-  // the flutter app.
-  pod.webServer.addRoute(
-    AppConfigRoute(apiConfig: pod.config.apiServer),
-    '/app/assets/assets/config.json',
-  );
 
   // Checks if the flutter web app has been built and serves it if it has.
   final appDir = Directory(Uri(path: 'web/app').toFilePath());

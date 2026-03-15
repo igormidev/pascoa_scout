@@ -29,7 +29,7 @@ abstract class JobFilter
     this.experienceLevel,
     this.clientHistory,
     this.jobType,
-    required this.paymentVerified,
+    bool? paymentVerified,
     this.fixedPriceRange,
     this.hourlyRateRange,
     this.countries,
@@ -37,14 +37,14 @@ abstract class JobFilter
     this.subRegions,
     this.jobAgeFilter,
     this.customFilters,
-  });
+  }) : paymentVerified = paymentVerified ?? false;
 
   factory JobFilter({
     required String searchQueryTerm,
     List<_i2.ExperienceLevel>? experienceLevel,
     List<_i3.ClientHistory>? clientHistory,
     List<_i4.JobType>? jobType,
-    required bool paymentVerified,
+    bool? paymentVerified,
     _i5.MinMax? fixedPriceRange,
     _i5.MinMax? hourlyRateRange,
     List<_i6.Country>? countries,
@@ -72,9 +72,11 @@ abstract class JobFilter
           : _i11.Protocol().deserialize<List<_i4.JobType>>(
               jsonSerialization['jobType'],
             ),
-      paymentVerified: _i1.BoolJsonExtension.fromJson(
-        jsonSerialization['paymentVerified'],
-      ),
+      paymentVerified: jsonSerialization['paymentVerified'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(
+              jsonSerialization['paymentVerified'],
+            ),
       fixedPriceRange: jsonSerialization['fixedPriceRange'] == null
           ? null
           : _i11.Protocol().deserialize<_i5.MinMax>(
@@ -229,7 +231,7 @@ class _JobFilterImpl extends JobFilter {
     List<_i2.ExperienceLevel>? experienceLevel,
     List<_i3.ClientHistory>? clientHistory,
     List<_i4.JobType>? jobType,
-    required bool paymentVerified,
+    bool? paymentVerified,
     _i5.MinMax? fixedPriceRange,
     _i5.MinMax? hourlyRateRange,
     List<_i6.Country>? countries,

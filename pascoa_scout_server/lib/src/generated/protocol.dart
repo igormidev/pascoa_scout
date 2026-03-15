@@ -36,9 +36,8 @@ import 'entities/upwork_scrap/question.dart' as _i21;
 import 'entities/upwork_scrap/region.dart' as _i22;
 import 'entities/upwork_scrap/search_sort_order.dart' as _i23;
 import 'entities/upwork_scrap/sub_region.dart' as _i24;
-import 'greetings/greeting.dart' as _i25;
 import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_info.dart'
-    as _i26;
+    as _i25;
 export 'entities/upwork_scrap/available_operators.dart';
 export 'entities/upwork_scrap/available_properties.dart';
 export 'entities/upwork_scrap/client_history.dart';
@@ -59,7 +58,6 @@ export 'entities/upwork_scrap/question.dart';
 export 'entities/upwork_scrap/region.dart';
 export 'entities/upwork_scrap/search_sort_order.dart';
 export 'entities/upwork_scrap/sub_region.dart';
-export 'greetings/greeting.dart';
 
 class Protocol extends _i1.SerializationManagerServer {
   Protocol._();
@@ -161,9 +159,6 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i24.SubRegion) {
       return _i24.SubRegion.fromJson(data) as T;
     }
-    if (t == _i25.Greeting) {
-      return _i25.Greeting.fromJson(data) as T;
-    }
     if (t == _i1.getType<_i5.AvailableOperators?>()) {
       return (data != null ? _i5.AvailableOperators.fromJson(data) : null) as T;
     }
@@ -225,9 +220,6 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (t == _i1.getType<_i24.SubRegion?>()) {
       return (data != null ? _i24.SubRegion.fromJson(data) : null) as T;
-    }
-    if (t == _i1.getType<_i25.Greeting?>()) {
-      return (data != null ? _i25.Greeting.fromJson(data) : null) as T;
     }
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
@@ -320,8 +312,8 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data as List).map((e) => deserialize<_i21.Question>(e)).toList()
           as T;
     }
-    if (t == List<_i26.JobInfo>) {
-      return (data as List).map((e) => deserialize<_i26.JobInfo>(e)).toList()
+    if (t == List<_i25.JobInfo>) {
+      return (data as List).map((e) => deserialize<_i25.JobInfo>(e)).toList()
           as T;
     }
     try {
@@ -358,7 +350,6 @@ class Protocol extends _i1.SerializationManagerServer {
       _i22.Region => 'Region',
       _i23.SearchSortOrder => 'SearchSortOrder',
       _i24.SubRegion => 'SubRegion',
-      _i25.Greeting => 'Greeting',
       _ => null,
     };
   }
@@ -416,8 +407,6 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'SearchSortOrder';
       case _i24.SubRegion():
         return 'SubRegion';
-      case _i25.Greeting():
-        return 'Greeting';
     }
     className = _i2.Protocol().getClassNameForObject(data);
     if (className != null) {
@@ -499,9 +488,6 @@ class Protocol extends _i1.SerializationManagerServer {
     }
     if (dataClassName == 'SubRegion') {
       return deserialize<_i24.SubRegion>(data['data']);
-    }
-    if (dataClassName == 'Greeting') {
-      return deserialize<_i25.Greeting>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);

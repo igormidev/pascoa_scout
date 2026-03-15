@@ -4,7 +4,7 @@ fields:
   experienceLevel: List<ExperienceLevel>?
   clientHistory: List<ClientHistory>?
   jobType: List<JobType>?
-  paymentVerified: bool
+  paymentVerified: bool, default=false
   fixedPriceRange: MinMax?
   hourlyRateRange: MinMax?
   countries: List<Country>?

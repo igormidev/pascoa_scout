@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/ui/dashboard_page.dart';
 
 void main() {
-  runApp(const PascoaScoutApp());
+  runApp(ProviderScope(child: const PascoaScoutApp()));
 }
 
 class PascoaScoutApp extends StatelessWidget {
