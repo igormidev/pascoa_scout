@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pascoa_scout/ui/dashboard_page.dart';
 
 void main() {
   runApp(const PascoaScoutApp());
@@ -11,10 +12,12 @@ class PascoaScoutApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Pascoa Scout',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0F766E)),
+      theme: ThemeData.dark().copyWith(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color.fromARGB(255, 38, 255, 237),
+        ),
       ),
-      home: const Scaffold(body: Center(child: Text('Pascoa Scout'))),
+      home: DashboardPage(),
     );
   }
 }
