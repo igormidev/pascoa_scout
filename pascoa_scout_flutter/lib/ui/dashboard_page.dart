@@ -1,15 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pascoa_scout/interactor/job_filter/current_filter_state.dart';
+import 'package:pascoa_scout/interactor/job_filter/job_filter_providers.dart';
+import 'package:pascoa_scout/ui/tabs/job_listage_tab.dart';
 import 'package:pascoa_scout/ui/tabs/job_scrapper_config_tab.dart';
 
-class DashboardPage extends StatelessWidget {
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final didAlreadyCreatedAInitialFilter = ref.watch(
+      currentFilterNotifier.select(
+        (state) =>
+            state.maybeWhen(withFilter: (filter) => true, orElse: () => false),
+      ),
+    );
+    final double settingsInitialSide = 990.0;
+    final double sizeAfterSelectedInitial = 600.0;
+
     return Scaffold(
       //
       body: Stack(
-        children: [const _ConfigBackground(), JobScrapperConfigTab()],
+        children: [
+          const _ConfigBackground(),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final double initialPaddingWhenNoFilter =
+                  (constraints.maxWidth - settingsInitialSide) / 2;
+              return Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    width: didAlreadyCreatedAInitialFilter
+                        ? 0
+                        : initialPaddingWhenNoFilter,
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    width: didAlreadyCreatedAInitialFilter
+                        ? sizeAfterSelectedInitial
+                        : settingsInitialSide,
+                    child: JobScrapperConfigTab(),
+                  ),
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 500),
+                    width: didAlreadyCreatedAInitialFilter
+                        ? (constraints.maxWidth - sizeAfterSelectedInitial)
+                        : 0,
+                    child: didAlreadyCreatedAInitialFilter
+                        ? Row(
+                            children: [
+                              SizedBox(width: 2, child: VerticalDivider()),
+                              Expanded(child: JobListageTab()),
+                            ],
+                          )
+                        : null,
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }

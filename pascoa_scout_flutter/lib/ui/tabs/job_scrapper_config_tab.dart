@@ -364,111 +364,102 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isDesktop = screenWidth >= 860.0;
 
-    return SafeArea(
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 990.0),
-          child: Form(
-            key: _formKey,
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
+    return Form(
+      key: _formKey,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
+        children: [
+          _HeroCard(isDesktop: isDesktop)
+              .animate()
+              .fadeIn(duration: 320.ms)
+              .slideY(begin: -0.08, curve: Curves.easeOutCubic),
+          const SizedBox(height: 20.0),
+          _SectionCard(
+            title: 'Search query',
+            description:
+                'Start with the Upwork query you want Apify to scrape. The rest of the filters unlock after this field has content.',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _HeroCard(isDesktop: isDesktop)
-                    .animate()
-                    .fadeIn(duration: 320.ms)
-                    .slideY(begin: -0.08, curve: Curves.easeOutCubic),
-                const SizedBox(height: 20.0),
-                _SectionCard(
-                  title: 'Search query',
-                  description:
-                      'Start with the Upwork query you want Apify to scrape. The rest of the filters unlock after this field has content.',
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _ValidatedTextField(
-                        controller: _queryController,
-                        label: 'What jobs are you looking for?',
-                        hintText:
-                            'Examples: Flutter developer, AI automation, Dart backend',
-                        prefixIcon: Icons.travel_explore_rounded,
-                        textInputAction: TextInputAction.next,
-                        validator: _requiredTextValidator('Search query'),
-                      ),
-                      const SizedBox(height: 14.0),
-                      Text(
-                        'This query is the only mandatory field before the advanced filters appear.',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.64),
-                        ),
-                      ),
-                    ],
-                  ),
-                ).animate().fadeIn(delay: 70.ms).slideY(begin: 0.08),
-                const SizedBox(height: 20.0),
-                AnimatedSwitcher(
-                  duration: 320.ms,
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  child: _showAdvancedFilters
-                      ? _AdvancedFiltersView(
-                          key: const ValueKey('advanced-filters'),
-                          sections: _buildAdvancedSections(isDesktop),
-                        )
-                      : const _LockedFiltersCard(
-                          key: ValueKey('locked-filters'),
-                        ),
+                _ValidatedTextField(
+                  controller: _queryController,
+                  label: 'What jobs are you looking for?',
+                  hintText:
+                      'Examples: Flutter developer, AI automation, Dart backend',
+                  prefixIcon: Icons.travel_explore_rounded,
+                  textInputAction: TextInputAction.next,
+                  validator: _requiredTextValidator('Search query'),
                 ),
-                const SizedBox(height: 20.0),
-                _SectionCard(
-                  title: 'Actions',
-                  description:
-                      'Save only updates the local `CurrentFiltersState` for now. Discard restores the last saved provider snapshot.',
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      final useColumn = constraints.maxWidth < 560.0;
-                      final buttons = [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: _handleDiscard,
-                            icon: const Icon(Icons.restore_rounded),
-                            label: const Text('Discard changes'),
-                          ),
-                        ),
-                        SizedBox(
-                          width: useColumn ? 0.0 : 14.0,
-                          height: useColumn ? 14.0 : 0.0,
-                        ),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _handleSave,
-                            icon: const Icon(Icons.save_rounded),
-                            label: const Text('Save filter'),
-                          ),
-                        ),
-                      ];
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          useColumn
-                              ? Column(children: buttons)
-                              : Row(children: buttons),
-                          const SizedBox(height: 12.0),
-                          Text(
-                            'Validation issues will block saving and open a dialog so nothing incomplete slips into state.',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.64),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
+                const SizedBox(height: 14.0),
+                Text(
+                  'This query is the only mandatory field before the advanced filters appear.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.64),
                   ),
-                ).animate().fadeIn(delay: 140.ms).slideY(begin: 0.08),
+                ),
               ],
             ),
+          ).animate().fadeIn(delay: 70.ms).slideY(begin: 0.08),
+          const SizedBox(height: 20.0),
+          AnimatedSwitcher(
+            duration: 320.ms,
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            child: _showAdvancedFilters
+                ? _AdvancedFiltersView(
+                    key: const ValueKey('advanced-filters'),
+                    sections: _buildAdvancedSections(isDesktop),
+                  )
+                : const _LockedFiltersCard(key: ValueKey('locked-filters')),
           ),
-        ),
+          const SizedBox(height: 20.0),
+          _SectionCard(
+            title: 'Actions',
+            description:
+                'Save only updates the local `CurrentFiltersState` for now. Discard restores the last saved provider snapshot.',
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final useColumn = constraints.maxWidth < 560.0;
+                final buttons = [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _handleDiscard,
+                      icon: const Icon(Icons.restore_rounded),
+                      label: const Text('Discard changes'),
+                    ),
+                  ),
+                  SizedBox(
+                    width: useColumn ? 0.0 : 14.0,
+                    height: useColumn ? 14.0 : 0.0,
+                  ),
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: _handleSave,
+                      icon: const Icon(Icons.save_rounded),
+                      label: const Text('Save filter'),
+                    ),
+                  ),
+                ];
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    useColumn
+                        ? Column(children: buttons)
+                        : Row(children: buttons),
+                    const SizedBox(height: 12.0),
+                    Text(
+                      'Validation issues will block saving and open a dialog so nothing incomplete slips into state.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: Colors.white.withValues(alpha: 0.64),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ).animate().fadeIn(delay: 140.ms).slideY(begin: 0.08),
+        ],
       ),
     );
   }
@@ -962,8 +953,6 @@ class _HeroCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Container(
       padding: const EdgeInsets.all(28.0),
       decoration: BoxDecoration(
@@ -982,22 +971,7 @@ class _HeroCard extends StatelessWidget {
           ),
         ],
       ),
-      child: isDesktop
-          ? Row(
-              children: [
-                const Expanded(child: _HeroCopy()),
-                const SizedBox(width: 24.0),
-                _HeroBadge(theme: theme),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const _HeroCopy(),
-                const SizedBox(height: 18.0),
-                _HeroBadge(theme: theme),
-              ],
-            ),
+      child: const _HeroCopy(),
     );
   }
 }
@@ -1036,44 +1010,6 @@ class _HeroCopy extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _HeroBadge extends StatelessWidget {
-  const _HeroBadge({required this.theme});
-
-  final ThemeData theme;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 260.0,
-      padding: const EdgeInsets.all(22.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(28.0),
-        color: Colors.white.withValues(alpha: 0.06),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.hub_rounded,
-            size: 34.0,
-            color: theme.colorScheme.secondary,
-          ),
-          const SizedBox(height: 18.0),
-          Text('Local filter state', style: theme.textTheme.titleLarge),
-          const SizedBox(height: 8.0),
-          Text(
-            'Save persists the form into Riverpod now, so the scraper execution flow can plug into the same state later.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.72),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
