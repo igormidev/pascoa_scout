@@ -5,8 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:pascoa_scout/interactor/job_filter/filter_panel_mode_provider.dart';
 import 'package:pascoa_scout/interactor/job_filter/current_filter_state.dart';
+import 'package:pascoa_scout/interactor/job_filter/filter_panel_mode_provider.dart';
 import 'package:pascoa_scout/interactor/job_filter/job_filter_providers.dart';
 import 'package:pascoa_scout/interactor/job_sync/job_sync_providers.dart';
 import 'package:pascoa_scout/interactor/job_sync/job_sync_state.dart';
@@ -193,7 +193,20 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Current filter state updated locally.'),
+        content: Row(
+          children: [
+            Icon(
+              Icons.check_circle_rounded,
+              color: Colors.greenAccent.shade400,
+            ),
+            Text(
+              'Current filter state updated locally.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
         behavior: SnackBarBehavior.floating,
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
@@ -517,33 +530,36 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final useColumn = constraints.maxWidth < 560.0;
-                    final buttons = [
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _handleDiscard,
-                          icon: const Icon(Icons.restore_rounded),
-                          label: const Text('Discard changes'),
-                        ),
-                      ),
-                      SizedBox(
-                        width: useColumn ? 0.0 : 14.0,
-                        height: useColumn ? 14.0 : 0.0,
-                      ),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _handleSave,
-                          icon: const Icon(Icons.save_rounded),
-                          label: const Text('Save filter'),
-                        ),
-                      ),
-                    ];
+                    final discardButton = OutlinedButton.icon(
+                      onPressed: _handleDiscard,
+                      icon: const Icon(Icons.restore_rounded),
+                      label: const Text('Discard changes'),
+                    );
+                    final saveButton = ElevatedButton.icon(
+                      onPressed: _handleSave,
+                      icon: const Icon(Icons.save_rounded),
+                      label: const Text('Save filter'),
+                    );
 
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         useColumn
-                            ? Column(children: buttons)
-                            : Row(children: buttons),
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  discardButton,
+                                  const SizedBox(height: 14.0),
+                                  saveButton,
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(child: discardButton),
+                                  const SizedBox(width: 14.0),
+                                  Expanded(child: saveButton),
+                                ],
+                              ),
                         const SizedBox(height: 12.0),
                         Text(
                           'Validation issues block saving and open a dialog before the filter reaches state.',
@@ -723,53 +739,51 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final useColumn = constraints.maxWidth < 620.0;
-                  final fields = [
-                    Expanded(
-                      child: _ValidatedTextField(
-                        controller: _jobAgeValueController,
-                        label: 'Age value',
-                        hintText: '24',
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        validator: _positiveIntegerValidator(
-                          label: 'Age value',
-                          enabled: _enableJobAgeFilter,
-                        ),
-                      ),
+                  final ageValueField = _ValidatedTextField(
+                    controller: _jobAgeValueController,
+                    label: 'Age value',
+                    hintText: '24',
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    validator: _positiveIntegerValidator(
+                      label: 'Age value',
+                      enabled: _enableJobAgeFilter,
                     ),
-                    SizedBox(
-                      width: useColumn ? 0.0 : 14.0,
-                      height: useColumn ? 14.0 : 0.0,
+                  );
+                  final ageUnitField = _ValidatedDropdownField<JobAgeUnit>(
+                    value: _jobAgeUnit,
+                    label: 'Age unit',
+                    hintText: 'Choose unit',
+                    values: JobAgeUnit.values,
+                    labelBuilder: _jobAgeUnitLabel,
+                    validator: (value) => _requiredSelectionValidator(
+                      value: value,
+                      enabled: _enableJobAgeFilter,
+                      label: 'Age unit',
                     ),
-                    Expanded(
-                      child: _ValidatedDropdownField<JobAgeUnit>(
-                        value: _jobAgeUnit,
-                        label: 'Age unit',
-                        hintText: 'Choose unit',
-                        values: JobAgeUnit.values,
-                        labelBuilder: _jobAgeUnitLabel,
-                        validator: (value) => _requiredSelectionValidator(
-                          value: value,
-                          enabled: _enableJobAgeFilter,
-                          label: 'Age unit',
-                        ),
-                        onChanged: (value) {
-                          setState(() {
-                            _jobAgeUnit = value;
-                          });
-                        },
-                      ),
-                    ),
-                  ];
+                    onChanged: (value) {
+                      setState(() {
+                        _jobAgeUnit = value;
+                      });
+                    },
+                  );
 
                   return useColumn
                       ? Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: fields,
+                          children: [
+                            ageValueField,
+                            const SizedBox(height: 14.0),
+                            ageUnitField,
+                          ],
                         )
-                      : Row(children: fields);
+                      : Row(
+                          children: [
+                            Expanded(child: ageValueField),
+                            const SizedBox(width: 14.0),
+                            Expanded(child: ageUnitField),
+                          ],
+                        );
                 },
               ),
             ),
@@ -1910,21 +1924,19 @@ class _RangeFields extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final useColumn = constraints.maxWidth < 620.0;
-        final children = [
-          Expanded(child: minField),
-          SizedBox(
-            width: useColumn ? 0.0 : 14.0,
-            height: useColumn ? 14.0 : 0.0,
-          ),
-          Expanded(child: maxField),
-        ];
 
         return useColumn
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: children,
+                children: [minField, const SizedBox(height: 14.0), maxField],
               )
-            : Row(children: children);
+            : Row(
+                children: [
+                  Expanded(child: minField),
+                  const SizedBox(width: 14.0),
+                  Expanded(child: maxField),
+                ],
+              );
       },
     );
   }
@@ -2296,44 +2308,38 @@ class _CustomFilterCard extends StatelessWidget {
         builder: (context, constraints) {
           final useColumn = constraints.maxWidth < 720.0;
 
-          final propertyField = Expanded(
-            child: _ValidatedDropdownField<AvailableProperties>(
-              value: draft.property,
-              label: 'Property',
-              hintText: 'Choose a property',
-              values: AvailableProperties.values,
-              labelBuilder: propertyLabelBuilder,
-              validator: propertyValidator,
-              onChanged: (value) {
-                draft.property = value;
-                onChanged();
-              },
-            ),
+          final propertyField = _ValidatedDropdownField<AvailableProperties>(
+            value: draft.property,
+            label: 'Property',
+            hintText: 'Choose a property',
+            values: AvailableProperties.values,
+            labelBuilder: propertyLabelBuilder,
+            validator: propertyValidator,
+            onChanged: (value) {
+              draft.property = value;
+              onChanged();
+            },
           );
 
-          final operatorField = Expanded(
-            child: _ValidatedDropdownField<AvailableOperators>(
-              value: draft.operator,
-              label: 'Operator',
-              hintText: 'Choose an operator',
-              values: AvailableOperators.values,
-              labelBuilder: operatorLabelBuilder,
-              validator: operatorValidator,
-              onChanged: (value) {
-                draft.operator = value;
-                onChanged();
-              },
-            ),
+          final operatorField = _ValidatedDropdownField<AvailableOperators>(
+            value: draft.operator,
+            label: 'Operator',
+            hintText: 'Choose an operator',
+            values: AvailableOperators.values,
+            labelBuilder: operatorLabelBuilder,
+            validator: operatorValidator,
+            onChanged: (value) {
+              draft.operator = value;
+              onChanged();
+            },
           );
 
-          final valuesField = Expanded(
-            child: _ValidatedTextField(
-              controller: draft.valuesController,
-              label: 'Values',
-              hintText: 'Comma-separated values',
-              prefixIcon: Icons.filter_alt_rounded,
-              validator: valuesValidator,
-            ),
+          final valuesField = _ValidatedTextField(
+            controller: draft.valuesController,
+            label: 'Values',
+            hintText: 'Comma-separated values',
+            prefixIcon: Icons.filter_alt_rounded,
+            validator: valuesValidator,
           );
 
           if (useColumn) {
@@ -2385,11 +2391,11 @@ class _CustomFilterCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  propertyField,
+                  Expanded(child: propertyField),
                   const SizedBox(width: 12.0),
-                  operatorField,
+                  Expanded(child: operatorField),
                   const SizedBox(width: 12.0),
-                  valuesField,
+                  Expanded(child: valuesField),
                 ],
               ),
             ],
