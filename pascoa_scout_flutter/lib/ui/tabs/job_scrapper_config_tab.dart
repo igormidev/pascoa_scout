@@ -1561,6 +1561,9 @@ class _ErrorLogCard extends StatelessWidget {
 
   final JobSyncErrorLog error;
 
+  String get _clipboardText =>
+      '${error.type}\n\n${error.message}\n\n${error.stackTrace}';
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1579,14 +1582,41 @@ class _ErrorLogCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Icon(Icons.error_outline_rounded, color: Color(0xFFFFB4AC)),
               const SizedBox(width: 10.0),
               Expanded(
-                child: Text(
+                child: SelectableText(
                   error.type,
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: const Color(0xFFFFDAD6),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8.0),
+              Tooltip(
+                message: 'Copy all',
+                child: IconButton(
+                  onPressed: () async {
+                    await Clipboard.setData(
+                      ClipboardData(text: _clipboardText),
+                    );
+                    if (!context.mounted) {
+                      return;
+                    }
+
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Error details copied.'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
+                  visualDensity: VisualDensity.compact,
+                  icon: const Icon(
+                    Icons.content_copy_rounded,
+                    color: Color(0xFFFFDAD6),
                   ),
                 ),
               ),
