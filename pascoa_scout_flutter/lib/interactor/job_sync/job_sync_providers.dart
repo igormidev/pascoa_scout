@@ -57,18 +57,18 @@ class JobSyncController extends Notifier<JobSyncState> {
     }
 
     _sessionId += 1;
-    final nextPullAt = DateTime.now().add(
-      Duration(minutes: state.intervalMinutes),
-    );
+    _disposePullTimer();
+    final startedAt = DateTime.now();
 
     state = state.copyWith(
       isRunning: true,
-      isPulling: false,
-      nextPullAt: nextPullAt,
+      isPulling: true,
+      nextPullAt: null,
+      lastPullStartedAt: startedAt,
       successBanner: null,
     );
 
-    _scheduleNextPull(nextPullAt);
+    unawaited(_runPull(sessionId: _sessionId, rescheduleAfterwards: true));
   }
 
   void stopSync() {
