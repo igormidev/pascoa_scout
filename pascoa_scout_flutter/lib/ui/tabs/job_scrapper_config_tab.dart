@@ -183,7 +183,26 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
       return;
     }
 
-    ref.read(currentFilterNotifier.notifier).saveFilter(_buildFilter());
+    try {
+      await ref.read(currentFilterNotifier.notifier).saveFilter(_buildFilter());
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.error,
+        animType: AnimType.scale,
+        title: 'Unable to save filter',
+        desc:
+            'The filter could not be stored in local preferences. Try saving again.',
+        btnOkText: 'Close',
+        btnOkOnPress: () {},
+      ).show();
+      return;
+    }
+
     ref.read(jobSyncControllerProvider.notifier).resetForNewFilter();
     ref.read(filterPanelModeProvider.notifier).showSummary();
 
@@ -199,8 +218,9 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
               Icons.check_circle_rounded,
               color: Colors.greenAccent.shade400,
             ),
+            const SizedBox(width: 12.0),
             Text(
-              'Current filter state updated locally.',
+              'Filter saved to local preferences.',
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurface,
               ),
@@ -526,7 +546,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
               _SectionCard(
                 title: 'Actions',
                 description:
-                    'Save stores the current filter in Riverpod. Discard restores the last saved snapshot.',
+                    'Save stores the current filter in local preferences and Riverpod. Discard restores the last saved snapshot.',
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final useColumn = constraints.maxWidth < 560.0;
@@ -562,7 +582,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
                               ),
                         const SizedBox(height: 12.0),
                         Text(
-                          'Validation issues block saving and open a dialog before the filter reaches state.',
+                          'Validation issues block saving and open a dialog before the filter reaches local state and preferences.',
                           style: theme.textTheme.bodySmall?.copyWith(
                             color: Colors.white.withValues(alpha: 0.64),
                           ),
@@ -1287,7 +1307,7 @@ class _CompactFilterRunTab extends ConsumerWidget {
 
     return ListView(
       key: const ValueKey('compact-filter-run-view'),
-      padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
+      padding: const EdgeInsets.fromLTRB(20.0, 28.0, 10.0, 28.0),
       children: [
         Card(
           child: Padding(

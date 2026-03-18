@@ -10,7 +10,6 @@ class DashboardPage extends ConsumerWidget {
 
   static const double _centeredConfigMaxWidth = 990.0;
   static const double _splitConfigMaxWidth = 600.0;
-  static const double _contentPadding = 24.0;
   static const double _paneGap = 24.0;
   static const double _splitLayoutMinWidth = 1100.0;
 
@@ -28,52 +27,49 @@ class DashboardPage extends ConsumerWidget {
         children: [
           const _ConfigBackground(),
           SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(_contentPadding),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final isSplitLayout =
-                      hasSavedFilter &&
-                      constraints.maxWidth >= _splitLayoutMinWidth;
-                  final splitConfigWidth = (constraints.maxWidth * 0.42)
-                      .clamp(460.0, _splitConfigMaxWidth)
-                      .toDouble();
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isSplitLayout =
+                    hasSavedFilter &&
+                    constraints.maxWidth >= _splitLayoutMinWidth;
+                final splitConfigWidth = (constraints.maxWidth * 0.42)
+                    .clamp(460.0, _splitConfigMaxWidth)
+                    .toDouble();
 
-                  return AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 420),
-                    switchInCurve: Curves.easeOutCubic,
-                    switchOutCurve: Curves.easeInCubic,
-                    transitionBuilder: (child, animation) {
-                      final slideAnimation = Tween<Offset>(
-                        begin: const Offset(0.0, 0.03),
-                        end: Offset.zero,
-                      ).animate(animation);
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 420),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  transitionBuilder: (child, animation) {
+                    final slideAnimation = Tween<Offset>(
+                      begin: const Offset(0.0, 0.03),
+                      end: Offset.zero,
+                    ).animate(animation);
 
-                      return FadeTransition(
-                        opacity: animation,
-                        child: SlideTransition(
-                          position: slideAnimation,
-                          child: child,
-                        ),
-                      );
-                    },
-                    child: isSplitLayout
-                        ? _SplitDashboardLayout(
-                            key: const ValueKey('dashboard-split-layout'),
-                            configWidth: splitConfigWidth,
-                          )
-                        : _StackedDashboardLayout(
-                            key: ValueKey(
-                              hasSavedFilter
-                                  ? 'dashboard-stacked-layout'
-                                  : 'dashboard-centered-layout',
-                            ),
-                            showJobs: hasSavedFilter,
-                            centerConfig: !hasSavedFilter,
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SlideTransition(
+                        position: slideAnimation,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: isSplitLayout
+                      ? _SplitDashboardLayout(
+                          key: const ValueKey('dashboard-split-layout'),
+                          configWidth: splitConfigWidth,
+                        )
+                      : _StackedDashboardLayout(
+                          key: ValueKey(
+                            hasSavedFilter
+                                ? 'dashboard-stacked-layout'
+                                : 'dashboard-centered-layout',
                           ),
-                  );
-                },
-              ),
+                          showJobs: hasSavedFilter,
+                          centerConfig: !hasSavedFilter,
+                        ),
+                );
+              },
             ),
           ),
         ],

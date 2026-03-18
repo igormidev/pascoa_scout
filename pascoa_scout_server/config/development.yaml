@@ -30,7 +30,7 @@ webServer:
 # This is the database setup for your server.
 database:
   host: localhost
-  port: 8090
+  port: 18432
   name: pascoa_scout
   user: postgres
   #requireSsl: true # defaults to false
@@ -41,7 +41,7 @@ database:
 redis:
   enabled: false
   host: localhost
-  port: 8091
+  port: 18379
   #user: # defaults to empty
   #requireSsl: true # defaults to false
 
