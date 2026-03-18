@@ -8,61 +8,140 @@ import 'package:pascoa_scout/ui/tabs/job_scrapper_config_tab.dart';
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
+  static const double _centeredConfigMaxWidth = 990.0;
+  static const double _splitConfigMaxWidth = 600.0;
+  static const double _contentPadding = 24.0;
+  static const double _paneGap = 24.0;
+  static const double _splitLayoutMinWidth = 1100.0;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final didAlreadyCreatedAInitialFilter = ref.watch(
+    final hasSavedFilter = ref.watch(
       currentFilterNotifier.select(
         (state) =>
             state.maybeWhen(withFilter: (filter) => true, orElse: () => false),
       ),
     );
-    final double settingsInitialSide = 990.0;
-    final double sizeAfterSelectedInitial = 600.0;
 
     return Scaffold(
-      //
       body: Stack(
         children: [
           const _ConfigBackground(),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final double initialPaddingWhenNoFilter =
-                  (constraints.maxWidth - settingsInitialSide) / 2;
-              return Row(
-                children: [
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
-                    width: didAlreadyCreatedAInitialFilter
-                        ? 0
-                        : initialPaddingWhenNoFilter,
-                  ),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 600),
-                    width: didAlreadyCreatedAInitialFilter
-                        ? sizeAfterSelectedInitial
-                        : settingsInitialSide,
-                    child: JobScrapperConfigTab(),
-                  ),
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 500),
-                    width: didAlreadyCreatedAInitialFilter
-                        ? (constraints.maxWidth - sizeAfterSelectedInitial)
-                        : 0,
-                    child: didAlreadyCreatedAInitialFilter
-                        ? Row(
-                            children: [
-                              SizedBox(width: 2, child: VerticalDivider()),
-                              Expanded(child: JobListageTab()),
-                            ],
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(_contentPadding),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isSplitLayout =
+                      hasSavedFilter &&
+                      constraints.maxWidth >= _splitLayoutMinWidth;
+                  final splitConfigWidth = (constraints.maxWidth * 0.42)
+                      .clamp(460.0, _splitConfigMaxWidth)
+                      .toDouble();
+
+                  return AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 420),
+                    switchInCurve: Curves.easeOutCubic,
+                    switchOutCurve: Curves.easeInCubic,
+                    transitionBuilder: (child, animation) {
+                      final slideAnimation = Tween<Offset>(
+                        begin: const Offset(0.0, 0.03),
+                        end: Offset.zero,
+                      ).animate(animation);
+
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(
+                          position: slideAnimation,
+                          child: child,
+                        ),
+                      );
+                    },
+                    child: isSplitLayout
+                        ? _SplitDashboardLayout(
+                            key: const ValueKey('dashboard-split-layout'),
+                            configWidth: splitConfigWidth,
                           )
-                        : null,
-                  ),
-                ],
-              );
-            },
+                        : _StackedDashboardLayout(
+                            key: ValueKey(
+                              hasSavedFilter
+                                  ? 'dashboard-stacked-layout'
+                                  : 'dashboard-centered-layout',
+                            ),
+                            showJobs: hasSavedFilter,
+                            centerConfig: !hasSavedFilter,
+                          ),
+                  );
+                },
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _SplitDashboardLayout extends StatelessWidget {
+  const _SplitDashboardLayout({super.key, required this.configWidth});
+
+  final double configWidth;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(width: configWidth, child: const JobScrapperConfigTab()),
+        SizedBox(
+          width: DashboardPage._paneGap,
+          child: Center(
+            child: Container(
+              width: 1.0,
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              color: theme.colorScheme.outline.withValues(alpha: 0.18),
+            ),
+          ),
+        ),
+        const Expanded(child: JobListageTab()),
+      ],
+    );
+  }
+}
+
+class _StackedDashboardLayout extends StatelessWidget {
+  const _StackedDashboardLayout({
+    super.key,
+    required this.showJobs,
+    required this.centerConfig,
+  });
+
+  final bool showJobs;
+  final bool centerConfig;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Expanded(
+          flex: showJobs ? 5 : 1,
+          child: Align(
+            alignment: centerConfig ? Alignment.topCenter : Alignment.topLeft,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: DashboardPage._centeredConfigMaxWidth,
+              ),
+              child: const JobScrapperConfigTab(),
+            ),
+          ),
+        ),
+        if (showJobs) ...[
+          const SizedBox(height: DashboardPage._paneGap),
+          const Expanded(flex: 6, child: JobListageTab()),
+        ],
+      ],
     );
   }
 }

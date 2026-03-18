@@ -25,58 +25,119 @@ class JobListageTab extends ConsumerWidget {
         .watch(jobSyncClockProvider)
         .maybeWhen(data: (value) => value, orElse: DateTime.now);
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24.0, 28.0, 24.0, 28.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _JobsHeader(syncState: syncState),
-          const SizedBox(height: 18.0),
-          Expanded(
-            child: currentFilter == null
-                ? const _JobsEmptyState(
-                    title: 'Save a filter first',
-                    description:
-                        'The right side activates after you save the first Upwork filter on the left.',
-                    icon: Icons.filter_alt_off_rounded,
-                  )
-                : syncState.jobs.isEmpty
-                ? _JobsEmptyState(
-                    title: syncState.isRunning
-                        ? 'Waiting for the first pull'
-                        : 'No jobs loaded yet',
-                    description: syncState.isRunning
-                        ? 'The polling loop is active. New matches will appear here as soon as the next pull completes.'
-                        : 'Start synchronization on the left and every unique match will accumulate here without pagination.',
-                    icon: syncState.isRunning
-                        ? Icons.hourglass_top_rounded
-                        : Icons.search_off_rounded,
-                  )
-                : ListView.separated(
-                    itemCount: syncState.jobs.length,
-                    separatorBuilder: (_, _) => const SizedBox(height: 14.0),
-                    itemBuilder: (context, index) {
-                      return _JobCard(
-                        trackedJob: syncState.jobs[index],
-                        now: now,
-                      );
-                    },
-                  ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxWidth < 720.0;
+        final horizontalPadding = constraints.maxWidth < 520.0 ? 16.0 : 24.0;
+        final verticalPadding = isCompact ? 20.0 : 28.0;
+
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            horizontalPadding,
+            verticalPadding,
+            horizontalPadding,
+            verticalPadding,
           ),
-        ],
-      ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _JobsHeader(syncState: syncState, compact: isCompact),
+              const SizedBox(height: 18.0),
+              Expanded(
+                child: currentFilter == null
+                    ? const _JobsEmptyState(
+                        title: 'Save a filter first',
+                        description:
+                            'The right side activates after you save the first Upwork filter on the left.',
+                        icon: Icons.filter_alt_off_rounded,
+                      )
+                    : syncState.jobs.isEmpty
+                    ? _JobsEmptyState(
+                        title: syncState.isRunning
+                            ? 'Waiting for the first pull'
+                            : 'No jobs loaded yet',
+                        description: syncState.isRunning
+                            ? 'The polling loop is active. New matches will appear here as soon as the next pull completes.'
+                            : 'Start synchronization on the left and every unique match will accumulate here without pagination.',
+                        icon: syncState.isRunning
+                            ? Icons.hourglass_top_rounded
+                            : Icons.search_off_rounded,
+                      )
+                    : ListView.separated(
+                        itemCount: syncState.jobs.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(height: 14.0),
+                        itemBuilder: (context, index) {
+                          return _JobCard(
+                            trackedJob: syncState.jobs[index],
+                            now: now,
+                            compact: isCompact,
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
 class _JobsHeader extends StatelessWidget {
-  const _JobsHeader({required this.syncState});
+  const _JobsHeader({required this.syncState, required this.compact});
 
   final JobSyncState syncState;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final description = Text(
+      'Every unique match stays in this list. New pulls merge repeated jobs instead of paginating the view.',
+      style: theme.textTheme.bodyMedium?.copyWith(
+        color: Colors.white.withValues(alpha: 0.72),
+      ),
+    );
+    final statsCard = Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.0),
+        color: syncState.isRunning
+            ? theme.colorScheme.primary.withValues(alpha: 0.16)
+            : Colors.white.withValues(alpha: 0.04),
+        border: Border.all(
+          color: syncState.isRunning
+              ? theme.colorScheme.primary.withValues(alpha: 0.42)
+              : theme.colorScheme.outline.withValues(alpha: 0.32),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${syncState.jobs.length}',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          Text(
+            syncState.isRunning ? 'live matches' : 'saved matches',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.white.withValues(alpha: 0.72),
+            ),
+          ),
+        ],
+      ),
+    );
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Job matches', style: theme.textTheme.headlineMedium),
+        const SizedBox(height: 8.0),
+        description,
+      ],
+    );
 
     return Container(
       padding: const EdgeInsets.all(22.0),
@@ -87,61 +148,19 @@ class _JobsHeader extends StatelessWidget {
           color: theme.colorScheme.outline.withValues(alpha: 0.28),
         ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
+      child: compact
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [titleBlock, const SizedBox(height: 16.0), statsCard],
+            )
+          : Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Job matches', style: theme.textTheme.headlineMedium),
-                const SizedBox(height: 8.0),
-                Text(
-                  'Every unique match stays in this list. New pulls merge repeated jobs instead of paginating the view.',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.72),
-                  ),
-                ),
+                Expanded(child: titleBlock),
+                const SizedBox(width: 16.0),
+                statsCard,
               ],
             ),
-          ),
-          const SizedBox(width: 16.0),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 14.0,
-              vertical: 12.0,
-            ),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20.0),
-              color: syncState.isRunning
-                  ? theme.colorScheme.primary.withValues(alpha: 0.16)
-                  : Colors.white.withValues(alpha: 0.04),
-              border: Border.all(
-                color: syncState.isRunning
-                    ? theme.colorScheme.primary.withValues(alpha: 0.42)
-                    : theme.colorScheme.outline.withValues(alpha: 0.32),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${syncState.jobs.length}',
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                Text(
-                  syncState.isRunning ? 'live matches' : 'saved matches',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.72),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -200,16 +219,48 @@ class _JobsEmptyState extends StatelessWidget {
 }
 
 class _JobCard extends ConsumerWidget {
-  const _JobCard({required this.trackedJob, required this.now});
+  const _JobCard({
+    required this.trackedJob,
+    required this.now,
+    required this.compact,
+  });
 
   final TrackedJob trackedJob;
   final DateTime now;
+  final bool compact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final job = trackedJob.job;
     final ageText = '${_formatPostedAge(trackedJob.ageAt(now))} ago';
+    final titleBlock = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          job.title,
+          maxLines: compact ? 3 : 2,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8.0),
+        Text(
+          _buildClientLine(job),
+          maxLines: compact ? 2 : 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: Colors.white.withValues(alpha: 0.74),
+          ),
+        ),
+      ],
+    );
+    final agePill = _MetaPill(
+      label: ageText,
+      icon: Icons.schedule_rounded,
+      highlighted: true,
+    );
 
     return Container(
       padding: const EdgeInsets.all(22.0),
@@ -223,37 +274,19 @@ class _JobCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
+          compact
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [titleBlock, const SizedBox(height: 14.0), agePill],
+                )
+              : Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      job.title,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    Text(
-                      _buildClientLine(job),
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.74),
-                      ),
-                    ),
+                    Expanded(child: titleBlock),
+                    const SizedBox(width: 16.0),
+                    agePill,
                   ],
                 ),
-              ),
-              const SizedBox(width: 16.0),
-              _MetaPill(
-                label: ageText,
-                icon: Icons.schedule_rounded,
-                highlighted: true,
-              ),
-            ],
-          ),
           const SizedBox(height: 16.0),
           Text(
             job.description,
