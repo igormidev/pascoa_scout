@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   final Client client = Client(
-    'serverUrl',
+    'http://localhost:8080/',
     connectionTimeout: Duration(minutes: 2),
   )..connectivityMonitor = FlutterConnectivityMonitor();
 
