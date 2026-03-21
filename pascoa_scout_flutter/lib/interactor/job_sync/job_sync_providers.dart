@@ -19,6 +19,15 @@ final jobSyncClockProvider = StreamProvider<DateTime>((ref) async* {
   }
 });
 
+Pagination buildJobSyncPagination() {
+  return Pagination(
+    pageNumber: 1,
+    pagesToScrape: 1,
+    resultsPerPage: 10,
+    searchSortOrder: SearchSortOrder.newest,
+  );
+}
+
 class JobSyncController extends Notifier<JobSyncState> {
   Timer? _nextPullTimer;
   Timer? _successBannerTimer;
@@ -322,11 +331,6 @@ class JobSyncController extends Notifier<JobSyncState> {
   }
 
   Pagination _fixedPollingPagination() {
-    return Pagination(
-      pageNumber: 1,
-      pagesToScrape: 1,
-      resultsPerPage: 10,
-      searchSortOrder: SearchSortOrder.newest,
-    );
+    return buildJobSyncPagination();
   }
 }

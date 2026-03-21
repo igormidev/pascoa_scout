@@ -1,0 +1,9 @@
+class: PaginationMetadata
+fields:
+  currentPage: int
+  pageSize: int
+  totalCount: int
+  totalPages: int
+  hasNextPage: bool
+  hasPreviousPage: bool
+  referencePaginationHourStamp: DateTime # The timestamp of the first pagination result, used as a reference for future paginations to avoid duplicates and missed results.

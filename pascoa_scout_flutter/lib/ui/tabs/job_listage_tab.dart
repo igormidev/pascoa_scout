@@ -218,7 +218,7 @@ class _JobsEmptyState extends StatelessWidget {
   }
 }
 
-class _JobCard extends ConsumerWidget {
+class _JobCard extends StatelessWidget {
   const _JobCard({
     required this.trackedJob,
     required this.now,
@@ -230,16 +230,30 @@ class _JobCard extends ConsumerWidget {
   final bool compact;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final job = trackedJob.job;
     final ageText = '${_formatPostedAge(trackedJob.ageAt(now))} ago';
+    final topMeta = Column(
+      crossAxisAlignment: compact
+          ? CrossAxisAlignment.start
+          : CrossAxisAlignment.end,
+      children: [
+        _MetaPill(
+          label: ageText,
+          icon: Icons.schedule_rounded,
+          highlighted: true,
+        ),
+        const SizedBox(height: 12.0),
+        _RatingSummary(rating: job.clientRating),
+      ],
+    );
     final titleBlock = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           job.title,
-          maxLines: compact ? 3 : 2,
+          maxLines: compact ? 4 : 3,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w800,
@@ -256,20 +270,30 @@ class _JobCard extends ConsumerWidget {
         ),
       ],
     );
-    final agePill = _MetaPill(
-      label: ageText,
-      icon: Icons.schedule_rounded,
-      highlighted: true,
-    );
+    final detailRows = _buildJobDetailRows(job);
 
     return Container(
       padding: const EdgeInsets.all(22.0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28.0),
-        color: theme.colorScheme.surface.withValues(alpha: 0.94),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            theme.colorScheme.surface.withValues(alpha: 0.98),
+            const Color(0xFF0F211C),
+          ],
+        ),
         border: Border.all(
           color: theme.colorScheme.outline.withValues(alpha: 0.28),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 26.0,
+            offset: const Offset(0.0, 14.0),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -277,83 +301,39 @@ class _JobCard extends ConsumerWidget {
           compact
               ? Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [titleBlock, const SizedBox(height: 14.0), agePill],
+                  children: [titleBlock, const SizedBox(height: 14.0), topMeta],
                 )
               : Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: titleBlock),
                     const SizedBox(width: 16.0),
-                    agePill,
+                    topMeta,
                   ],
                 ),
           const SizedBox(height: 16.0),
-          Text(
-            job.description,
-            maxLines: 4,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.8),
-              height: 1.5,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(18.0),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22.0),
+              color: Colors.white.withValues(alpha: 0.04),
+              border: Border.all(
+                color: theme.colorScheme.outline.withValues(alpha: 0.18),
+              ),
+            ),
+            child: Text(
+              job.description,
+              maxLines: compact ? 7 : 5,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white.withValues(alpha: 0.8),
+                height: 1.5,
+              ),
             ),
           ),
           const SizedBox(height: 16.0),
-          Wrap(
-            spacing: 8.0,
-            runSpacing: 8.0,
-            children: [
-              _MetaPill(
-                label: _jobTypeLabel(job.jobType),
-                icon: Icons.work_history_rounded,
-              ),
-              _MetaPill(
-                label: _experienceLevelLabel(job.experienceLevel),
-                icon: Icons.trending_up_rounded,
-              ),
-              if (job.budget != null && job.budget!.isNotEmpty)
-                _MetaPill(label: job.budget!, icon: Icons.attach_money_rounded),
-              _MetaPill(
-                label: _paymentStatusLabel(job.paymentVerifiedStatus),
-                icon: Icons.verified_user_rounded,
-              ),
-              _MetaPill(
-                label: job.hasHired ? 'Client has hired' : 'No hires yet',
-                icon: Icons.person_search_rounded,
-              ),
-              if (job.clientLocation != null)
-                _MetaPill(
-                  label: _clientLocationLabel(job.clientLocation!),
-                  icon: Icons.public_rounded,
-                ),
-              if (job.clientAvgHourlyRate != null)
-                _MetaPill(
-                  label:
-                      'Avg \$${job.clientAvgHourlyRate!.toStringAsFixed(0)}/h',
-                  icon: Icons.speed_rounded,
-                ),
-              if (job.clientRating != null)
-                _MetaPill(
-                  label: 'Rating ${job.clientRating!.toStringAsFixed(1)}',
-                  icon: Icons.star_rounded,
-                ),
-              if (job.clientTotalSpent != null)
-                _MetaPill(
-                  label: 'Spent \$${job.clientTotalSpent!.toStringAsFixed(0)}',
-                  icon: Icons.account_balance_wallet_rounded,
-                ),
-              if (job.questions.isNotEmpty)
-                _MetaPill(
-                  label: '${job.questions.length} screening questions',
-                  icon: Icons.quiz_rounded,
-                ),
-              _MetaPill(
-                label: job.allowedApplicantCountries.isEmpty
-                    ? 'Applicants not restricted'
-                    : '${job.allowedApplicantCountries.length} allowed countries',
-                icon: Icons.flag_rounded,
-              ),
-            ],
-          ),
+          _JobDetailsTable(rows: detailRows, compact: compact),
           if (job.tags.isNotEmpty) ...[
             const SizedBox(height: 16.0),
             Wrap(
@@ -469,6 +449,347 @@ class _MetaPill extends StatelessWidget {
   }
 }
 
+class _RatingSummary extends StatelessWidget {
+  const _RatingSummary({required this.rating});
+
+  final double? rating;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasRating = rating != null;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20.0),
+        color: Colors.white.withValues(alpha: 0.04),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.22),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Client rating',
+            style: theme.textTheme.labelMedium?.copyWith(
+              color: Colors.white.withValues(alpha: 0.62),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 8.0),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _StarRatingBar(rating: rating),
+              const SizedBox(width: 10.0),
+              Text(
+                hasRating ? rating!.toStringAsFixed(1) : '-',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: hasRating
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.56),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StarRatingBar extends StatelessWidget {
+  const _StarRatingBar({required this.rating});
+
+  final double? rating;
+
+  static const _starCount = 5;
+  static const _starSize = 16.0;
+  static const _starSpacing = 2.0;
+
+  @override
+  Widget build(BuildContext context) {
+    final clampedRating = (rating ?? 0.0).clamp(0.0, _starCount.toDouble());
+    final fillFraction = clampedRating / _starCount;
+    final totalWidth =
+        (_starSize * _starCount) + (_starSpacing * (_starCount - 1));
+
+    return SizedBox(
+      width: totalWidth,
+      height: _starSize,
+      child: Stack(
+        children: [
+          _buildStars(Colors.white.withValues(alpha: 0.12)),
+          ClipRect(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              widthFactor: fillFraction,
+              child: _buildStars(const Color(0xFFFFC94A)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStars(Color color) {
+    return Row(
+      children: [
+        for (var index = 0; index < _starCount; index++) ...[
+          Icon(Icons.star_rounded, size: _starSize, color: color),
+          if (index != _starCount - 1) const SizedBox(width: _starSpacing),
+        ],
+      ],
+    );
+  }
+}
+
+class _JobDetailsTable extends StatelessWidget {
+  const _JobDetailsTable({required this.rows, required this.compact});
+
+  final List<_JobTableRowData> rows;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final labelColumnWidth = compact ? 108.0 : 152.0;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(24.0),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24.0),
+          color: Colors.white.withValues(alpha: 0.025),
+          border: Border.all(
+            color: theme.colorScheme.outline.withValues(alpha: 0.18),
+          ),
+        ),
+        child: Table(
+          columnWidths: {
+            0: const FixedColumnWidth(44.0),
+            1: FixedColumnWidth(labelColumnWidth),
+            2: const FlexColumnWidth(),
+          },
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: [
+            for (var index = 0; index < rows.length; index++)
+              TableRow(
+                decoration: BoxDecoration(
+                  color: index.isEven
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.white.withValues(alpha: 0.015),
+                  border: index == rows.length - 1
+                      ? null
+                      : Border(
+                          bottom: BorderSide(
+                            color: theme.colorScheme.outline.withValues(
+                              alpha: 0.12,
+                            ),
+                          ),
+                        ),
+                ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(14.0, 14.0, 10.0, 14.0),
+                    child: Icon(
+                      rows[index].icon,
+                      size: 18.0,
+                      color: theme.colorScheme.secondary,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0.0, 14.0, 12.0, 14.0),
+                    child: Text(
+                      rows[index].label,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white.withValues(alpha: 0.64),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(0.0, 14.0, 16.0, 14.0),
+                    child: _JobTableValue(row: rows[index], compact: compact),
+                  ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _JobTableValue extends StatelessWidget {
+  const _JobTableValue({required this.row, required this.compact});
+
+  final _JobTableRowData row;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final valueStyle = theme.textTheme.bodyMedium?.copyWith(
+      height: compact ? 1.4 : 1.5,
+      color: Colors.white.withValues(alpha: 0.88),
+      fontFamily: row.monospace ? 'monospace' : null,
+    );
+    final values = row.values;
+
+    if (values.isNotEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (var index = 0; index < values.length; index++)
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: index == values.length - 1 ? 0 : 6,
+              ),
+              child: Text(values[index], style: valueStyle),
+            ),
+        ],
+      );
+    }
+
+    return Text(row.value ?? '-', style: valueStyle);
+  }
+}
+
+class _JobTableRowData {
+  const _JobTableRowData({
+    required this.icon,
+    required this.label,
+    this.value,
+    this.values = const [],
+    this.monospace = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String? value;
+  final List<String> values;
+  final bool monospace;
+}
+
+List<_JobTableRowData> _buildJobDetailRows(JobInfo job) {
+  final sortedQuestions = [...job.questions]
+    ..sort((left, right) => left.positionIndex.compareTo(right.positionIndex));
+
+  return [
+    _JobTableRowData(
+      icon: Icons.fingerprint_rounded,
+      label: 'Job ID',
+      value: _textOrDash(job.id),
+      monospace: true,
+    ),
+    _JobTableRowData(
+      icon: Icons.tag_rounded,
+      label: 'Sub ID',
+      value: _textOrDash(job.subId),
+      monospace: true,
+    ),
+    _JobTableRowData(
+      icon: Icons.schedule_send_rounded,
+      label: 'Relative date',
+      value: _textOrDash(job.relativeDate),
+    ),
+    _JobTableRowData(
+      icon: Icons.event_rounded,
+      label: 'Absolute date',
+      value: _textOrDash(job.absoluteDate),
+    ),
+    _JobTableRowData(
+      icon: Icons.work_history_rounded,
+      label: 'Job type',
+      value: _jobTypeLabel(job.jobType),
+    ),
+    _JobTableRowData(
+      icon: Icons.trending_up_rounded,
+      label: 'Experience',
+      value: _experienceLevelLabel(job.experienceLevel),
+    ),
+    _JobTableRowData(
+      icon: Icons.attach_money_rounded,
+      label: 'Budget',
+      value: _textOrDash(job.budget),
+    ),
+    _JobTableRowData(
+      icon: Icons.verified_user_rounded,
+      label: 'Payment',
+      value: _paymentStatusLabel(job.paymentVerifiedStatus),
+    ),
+    _JobTableRowData(
+      icon: Icons.person_outline_rounded,
+      label: 'Client name',
+      value: _textOrDash(job.clientName),
+    ),
+    _JobTableRowData(
+      icon: Icons.fact_check_rounded,
+      label: 'Name confidence',
+      value: _formatPercent(job.clientNameConfidencePercent),
+    ),
+    _JobTableRowData(
+      icon: Icons.public_rounded,
+      label: 'Client location',
+      value: job.clientLocation == null
+          ? '-'
+          : _clientLocationLabel(job.clientLocation!),
+    ),
+    _JobTableRowData(
+      icon: Icons.person_search_rounded,
+      label: 'Hire history',
+      value: job.hasHired ? 'Client has hired' : 'No hires yet',
+    ),
+    _JobTableRowData(
+      icon: Icons.percent_rounded,
+      label: 'Hire rate',
+      value: _formatPercent(job.clientHireRatePercent),
+    ),
+    _JobTableRowData(
+      icon: Icons.speed_rounded,
+      label: 'Avg hourly rate',
+      value: _formatCurrency(job.clientAvgHourlyRate, suffix: '/h'),
+    ),
+    _JobTableRowData(
+      icon: Icons.star_rounded,
+      label: 'Client rating',
+      value: _formatDecimal(job.clientRating, fractionDigits: 1),
+    ),
+    _JobTableRowData(
+      icon: Icons.account_balance_wallet_rounded,
+      label: 'Total spent',
+      value: _formatCurrency(job.clientTotalSpent),
+    ),
+    _JobTableRowData(
+      icon: Icons.flag_rounded,
+      label: 'Allowed countries',
+      value: job.allowedApplicantCountries.isEmpty
+          ? 'Applicants not restricted'
+          : job.allowedApplicantCountries
+                .map((country) => _humanizeEnumName(country.name))
+                .join(', '),
+    ),
+    _JobTableRowData(
+      icon: Icons.quiz_rounded,
+      label: 'Questions',
+      values: [
+        for (var index = 0; index < sortedQuestions.length; index++)
+          '${index + 1}. ${sortedQuestions[index].question}',
+      ],
+    ),
+    _JobTableRowData(
+      icon: Icons.link_rounded,
+      label: 'Upwork URL',
+      value: _textOrDash(job.url),
+      monospace: true,
+    ),
+  ];
+}
+
 String _buildClientLine(JobInfo job) {
   final parts = <String>[
     if (job.clientName != null && job.clientName!.trim().isNotEmpty)
@@ -481,6 +802,43 @@ String _buildClientLine(JobInfo job) {
   }
 
   return parts.join(' · ');
+}
+
+String _textOrDash(String? value) {
+  if (value == null) {
+    return '-';
+  }
+
+  final trimmed = value.trim();
+  return trimmed.isEmpty ? '-' : trimmed;
+}
+
+String _formatDecimal(double? value, {int fractionDigits = 0}) {
+  if (value == null) {
+    return '-';
+  }
+
+  return value.toStringAsFixed(fractionDigits);
+}
+
+String _formatPercent(double? value) {
+  if (value == null) {
+    return '-';
+  }
+
+  return '${value.toStringAsFixed(1)}%';
+}
+
+String _formatCurrency(double? value, {String suffix = ''}) {
+  if (value == null) {
+    return '-';
+  }
+
+  final formatted = value == value.roundToDouble()
+      ? value.toStringAsFixed(0)
+      : value.toStringAsFixed(2);
+
+  return '\$$formatted$suffix';
 }
 
 String _formatPostedAge(Duration duration) {

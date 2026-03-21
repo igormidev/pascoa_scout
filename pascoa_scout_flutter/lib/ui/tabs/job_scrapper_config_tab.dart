@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:pascoa_scout/interactor/job_filter/apify_curl_builder.dart';
 import 'package:pascoa_scout/interactor/job_filter/current_filter_state.dart';
 import 'package:pascoa_scout/interactor/job_filter/filter_panel_mode_provider.dart';
 import 'package:pascoa_scout/interactor/job_filter/job_filter_providers.dart';
@@ -170,16 +171,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
         return;
       }
 
-      AwesomeDialog(
-        context: context,
-        dialogType: DialogType.error,
-        animType: AnimType.scale,
-        title: 'Complete the warnings',
-        desc:
-            'The filter still has invalid or empty required fields. Fix the highlighted inputs before saving.',
-        btnOkText: 'Review form',
-        btnOkOnPress: () {},
-      ).show();
+      _showInvalidFormDialog(actionLabel: 'saving');
       return;
     }
 
@@ -190,16 +182,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
         return;
       }
 
-      AwesomeDialog(
-        context: context,
-        dialogType: DialogType.error,
-        animType: AnimType.scale,
-        title: 'Unable to save filter',
-        desc:
-            'The filter could not be stored in local preferences. Try saving again.',
-        btnOkText: 'Close',
-        btnOkOnPress: () {},
-      ).show();
+      _showUnableToSaveDialog();
       return;
     }
 
@@ -240,6 +223,96 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
     if (ref.read(currentFilterNotifier.notifier).currentFilter != null) {
       ref.read(filterPanelModeProvider.notifier).showSummary();
     }
+  }
+
+  Future<void> _handleCopyCurlFromEditor() async {
+    FocusScope.of(context).unfocus();
+
+    final isValid = _formKey.currentState?.validate() ?? false;
+    if (!isValid) {
+      if (!mounted) {
+        return;
+      }
+
+      _showInvalidFormDialog(actionLabel: 'copying the cURL');
+      return;
+    }
+
+    await _copyCurl(_buildFilter());
+  }
+
+  Future<void> _copyCurl(JobFilter filter) async {
+    final curl = buildPollingCurlForFilter(filter);
+    if (curl == null) {
+      if (!mounted) {
+        return;
+      }
+
+      AwesomeDialog(
+        context: context,
+        dialogType: DialogType.error,
+        animType: AnimType.scale,
+        title: 'Missing Apify token',
+        desc:
+            'PASCOA_APIFY_TOKEN is not configured in the Flutter dart-define, so the exact authenticated cURL cannot be generated.',
+        btnOkText: 'Close',
+        btnOkOnPress: () {},
+      ).show();
+      return;
+    }
+
+    await Clipboard.setData(ClipboardData(text: curl));
+    if (!mounted) {
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(
+              Icons.content_copy_rounded,
+              color: Colors.greenAccent.shade400,
+            ),
+            const SizedBox(width: 12.0),
+            Text(
+              'Exact Apify cURL copied to clipboard.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+          ],
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+      ),
+    );
+  }
+
+  void _showInvalidFormDialog({required String actionLabel}) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.error,
+      animType: AnimType.scale,
+      title: 'Complete the warnings',
+      desc:
+          'The filter still has invalid or empty required fields. Fix the highlighted inputs before $actionLabel.',
+      btnOkText: 'Review form',
+      btnOkOnPress: () {},
+    ).show();
+  }
+
+  void _showUnableToSaveDialog() {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.error,
+      animType: AnimType.scale,
+      title: 'Unable to save filter',
+      desc:
+          'The filter could not be stored in local preferences. Try saving again.',
+      btnOkText: 'Close',
+      btnOkOnPress: () {},
+    ).show();
   }
 
   JobFilter _buildFilter() {
@@ -469,6 +542,9 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
                           .read(jobSyncControllerProvider.notifier)
                           .setIntervalMinutes(syncState.intervalMinutes + 1);
                     },
+              onCopyCurl: () {
+                _copyCurl(currentFilter);
+              },
               summaryText: _buildFilterSummary(currentFilter),
             ),
     );
@@ -546,7 +622,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
               _SectionCard(
                 title: 'Actions',
                 description:
-                    'Save stores the current filter in local preferences and Riverpod. Discard restores the last saved snapshot.',
+                    'Copy Apify cURL mirrors the exact polling request. Save stores the current filter in local preferences and Riverpod, and Discard restores the last saved snapshot.',
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final useColumn = constraints.maxWidth < 560.0;
@@ -554,6 +630,11 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
                       onPressed: _handleDiscard,
                       icon: const Icon(Icons.restore_rounded),
                       label: const Text('Discard changes'),
+                    );
+                    final copyCurlButton = OutlinedButton.icon(
+                      onPressed: _handleCopyCurlFromEditor,
+                      icon: const Icon(Icons.content_copy_rounded),
+                      label: const Text('Copy Apify cURL'),
                     );
                     final saveButton = ElevatedButton.icon(
                       onPressed: _handleSave,
@@ -570,12 +651,16 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
                                 children: [
                                   discardButton,
                                   const SizedBox(height: 14.0),
+                                  copyCurlButton,
+                                  const SizedBox(height: 14.0),
                                   saveButton,
                                 ],
                               )
                             : Row(
                                 children: [
                                   Expanded(child: discardButton),
+                                  const SizedBox(width: 14.0),
+                                  Expanded(child: copyCurlButton),
                                   const SizedBox(width: 14.0),
                                   Expanded(child: saveButton),
                                 ],
@@ -1278,6 +1363,7 @@ class _CompactFilterRunTab extends ConsumerWidget {
     required this.syncState,
     required this.summaryText,
     required this.onChangeFilters,
+    required this.onCopyCurl,
     required this.onToggleSync,
     required this.onDecreaseInterval,
     required this.onIncreaseInterval,
@@ -1286,6 +1372,7 @@ class _CompactFilterRunTab extends ConsumerWidget {
   final JobSyncState syncState;
   final String summaryText;
   final VoidCallback? onChangeFilters;
+  final VoidCallback onCopyCurl;
   final VoidCallback onToggleSync;
   final VoidCallback? onDecreaseInterval;
   final VoidCallback? onIncreaseInterval;
@@ -1333,13 +1420,39 @@ class _CompactFilterRunTab extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 18.0),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: onChangeFilters,
-                    icon: const Icon(Icons.tune_rounded),
-                    label: const Text('Change filter settings'),
-                  ),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final useColumn = constraints.maxWidth < 460.0;
+                    final changeFiltersButton = OutlinedButton.icon(
+                      onPressed: onChangeFilters,
+                      icon: const Icon(Icons.tune_rounded),
+                      label: const Text('Change filter settings'),
+                    );
+                    final copyCurlButton = OutlinedButton.icon(
+                      onPressed: onCopyCurl,
+                      icon: const Icon(Icons.content_copy_rounded),
+                      label: const Text('Copy Apify cURL'),
+                    );
+
+                    if (useColumn) {
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          changeFiltersButton,
+                          const SizedBox(height: 12.0),
+                          copyCurlButton,
+                        ],
+                      );
+                    }
+
+                    return Row(
+                      children: [
+                        Expanded(child: changeFiltersButton),
+                        const SizedBox(width: 12.0),
+                        Expanded(child: copyCurlButton),
+                      ],
+                    );
+                  },
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20.0),

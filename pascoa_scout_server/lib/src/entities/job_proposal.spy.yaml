@@ -1,0 +1,6 @@
+class: JobProposal
+table: job_proposal
+fields:
+  jobAnalysis: JobAnalysis
+  aiGeneratedCoverLetterText: String
+  questionsAndAnswers: List<JobProposalAnswerToQuestion>

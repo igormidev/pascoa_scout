@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:pascoa_scout_client/pascoa_scout_client.dart'
+    show buildUpworkApifyRequestBody, buildUpworkApifyRunUri;
 import 'package:pascoa_scout_server/src/core/pascoa_result.dart';
 import 'package:result_dart/result_dart.dart';
 
@@ -13,9 +15,6 @@ abstract class IGetUpworkJobsRepository {
 }
 
 class GetUpworkJobRepositoryApifyImpl implements IGetUpworkJobsRepository {
-  static const String _actorRunEndpoint =
-      'https://api.apify.com/v2/acts/neatrat~upwork-job-scraper/run-sync-get-dataset-items';
-
   GetUpworkJobRepositoryApifyImpl({
     required this.apifyToken,
     Dio? dio,
@@ -29,19 +28,15 @@ class GetUpworkJobRepositoryApifyImpl implements IGetUpworkJobsRepository {
     required JobFilter filter,
     required Pagination pagination,
   }) async {
-    final requestBody = <String, dynamic>{
-      ...filter.toApifyJson,
-      ...pagination.toApifyJson,
-    };
+    final requestBody = buildUpworkApifyRequestBody(
+      filterJson: filter.toJson(),
+      paginationJson: pagination.toJson(),
+    );
 
     try {
       final response = await dio.post<dynamic>(
-        _actorRunEndpoint,
+        buildUpworkApifyRunUri().toString(),
         data: requestBody,
-        queryParameters: <String, dynamic>{
-          'format': 'json',
-          'clean': true,
-        },
         options: Options(
           headers: <String, dynamic>{'Authorization': 'Bearer $apifyToken'},
           contentType: Headers.jsonContentType,

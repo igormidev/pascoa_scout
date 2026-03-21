@@ -10,6 +10,8 @@ resolution: workspace
 
 dependencies:
   dio: ^5.9.2
+  pascoa_scout_client:
+    path: ../pascoa_scout_client
   result_dart: ^2.2.0
   serverpod: 3.4.4
   serverpod_auth_idp_server: 3.4.4

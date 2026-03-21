@@ -1,0 +1,4 @@
+class: JobAnalysisPagination
+fields:
+  items: List<JobAnalysisState>
+  paginationMetadata: PaginationMetadata

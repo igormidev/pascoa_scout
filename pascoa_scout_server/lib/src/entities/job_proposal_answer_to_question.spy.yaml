@@ -1,0 +1,5 @@
+class: JobProposalAnswerToQuestion
+table: job_proposal_answer_to_question
+fields:
+  relatedQuestion: Question
+  aiGeneratedAnswerText: String
