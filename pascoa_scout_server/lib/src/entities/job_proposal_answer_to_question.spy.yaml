@@ -1,5 +1,13 @@
 class: JobProposalAnswerToQuestion
 table: job_proposal_answer_to_question
 fields:
-  relatedQuestion: Question
+  jobProposal: JobProposal?, relation(name=job_proposal_answers)
+  relatedQuestionId: int
+  relatedQuestion: Question?, relation(name=question_proposal_answer, field=relatedQuestionId)
   aiGeneratedAnswerText: String
+indexes:
+  job_proposal_answer_job_proposal_id_idx:
+    fields: jobProposalId
+  job_proposal_answer_related_question_unique_idx:
+    fields: relatedQuestionId
+    unique: true

@@ -1,0 +1,9 @@
+enum: JobAutomationStep
+serialized: byName
+values:
+  - idle
+  - fetchingJobs
+  - generatingScores
+  - generatingProposals
+  - pausedWaiting
+  - error

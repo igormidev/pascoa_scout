@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/interactor/job_filter/current_filter_state.dart';
 import 'package:pascoa_scout/interactor/job_filter/job_filter_providers.dart';
+import 'package:pascoa_scout/interactor/job_knowledge/job_knowledge_providers.dart';
+import 'package:pascoa_scout/ui/job_knowledge_onboarding_flow.dart';
 import 'package:pascoa_scout/ui/tabs/job_listage_tab.dart';
 import 'package:pascoa_scout/ui/tabs/job_scrapper_config_tab.dart';
 
@@ -15,6 +17,7 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final knowledgeSummaryAsync = ref.watch(jobKnowledgeSummaryProvider);
     final hasSavedFilter = ref.watch(
       currentFilterNotifier.select(
         (state) =>
@@ -27,47 +30,99 @@ class DashboardPage extends ConsumerWidget {
         children: [
           const _ConfigBackground(),
           SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isSplitLayout =
-                    hasSavedFilter &&
-                    constraints.maxWidth >= _splitLayoutMinWidth;
-                final splitConfigWidth = (constraints.maxWidth * 0.42)
-                    .clamp(460.0, _splitConfigMaxWidth)
-                    .toDouble();
-
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 420),
-                  switchInCurve: Curves.easeOutCubic,
-                  switchOutCurve: Curves.easeInCubic,
-                  transitionBuilder: (child, animation) {
-                    final slideAnimation = Tween<Offset>(
-                      begin: const Offset(0.0, 0.03),
-                      end: Offset.zero,
-                    ).animate(animation);
-
-                    return FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: slideAnimation,
-                        child: child,
+            child: knowledgeSummaryAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) => Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(28),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.error_outline_rounded,
+                            size: 44,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Unable to load app state',
+                            style: Theme.of(context).textTheme.headlineMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            error.toString(),
+                            style: Theme.of(context).textTheme.bodyMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 18),
+                          ElevatedButton.icon(
+                            onPressed: () =>
+                                ref.invalidate(jobKnowledgeSummaryProvider),
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Retry'),
+                          ),
+                        ],
                       ),
+                    ),
+                  ),
+                ),
+              ),
+              data: (summary) {
+                final needsOnboarding =
+                    !summary.hasCurriculum ||
+                    !summary.hasProposalStylePreference ||
+                    !summary.hasOpportunityPreference;
+                if (needsOnboarding) {
+                  return const JobKnowledgeOnboardingFlow();
+                }
+
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isSplitLayout =
+                        hasSavedFilter &&
+                        constraints.maxWidth >= _splitLayoutMinWidth;
+                    final splitConfigWidth = (constraints.maxWidth * 0.42)
+                        .clamp(460.0, _splitConfigMaxWidth)
+                        .toDouble();
+
+                    return AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 420),
+                      switchInCurve: Curves.easeOutCubic,
+                      switchOutCurve: Curves.easeInCubic,
+                      transitionBuilder: (child, animation) {
+                        final slideAnimation = Tween<Offset>(
+                          begin: const Offset(0.0, 0.03),
+                          end: Offset.zero,
+                        ).animate(animation);
+
+                        return FadeTransition(
+                          opacity: animation,
+                          child: SlideTransition(
+                            position: slideAnimation,
+                            child: child,
+                          ),
+                        );
+                      },
+                      child: isSplitLayout
+                          ? _SplitDashboardLayout(
+                              key: const ValueKey('dashboard-split-layout'),
+                              configWidth: splitConfigWidth,
+                            )
+                          : _StackedDashboardLayout(
+                              key: ValueKey(
+                                hasSavedFilter
+                                    ? 'dashboard-stacked-layout'
+                                    : 'dashboard-centered-layout',
+                              ),
+                              showJobs: hasSavedFilter,
+                              centerConfig: !hasSavedFilter,
+                            ),
                     );
                   },
-                  child: isSplitLayout
-                      ? _SplitDashboardLayout(
-                          key: const ValueKey('dashboard-split-layout'),
-                          configWidth: splitConfigWidth,
-                        )
-                      : _StackedDashboardLayout(
-                          key: ValueKey(
-                            hasSavedFilter
-                                ? 'dashboard-stacked-layout'
-                                : 'dashboard-centered-layout',
-                          ),
-                          showJobs: hasSavedFilter,
-                          centerConfig: !hasSavedFilter,
-                        ),
                 );
               },
             ),

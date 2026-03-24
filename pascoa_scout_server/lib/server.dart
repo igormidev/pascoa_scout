@@ -4,6 +4,9 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 
+import 'src/future_calls/job_automation_proposal_future_call.dart';
+import 'src/future_calls/job_automation_score_future_call.dart';
+import 'src/future_calls/job_automation_sync_future_call.dart';
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
 
@@ -57,6 +60,20 @@ void run(List<String> args) async {
       '/app/**',
     );
   }
+
+  // Register background automation future calls.
+  pod.registerFutureCall(
+    JobAutomationSyncFutureCall(),
+    'jobAutomationSyncFutureCall',
+  );
+  pod.registerFutureCall(
+    JobAutomationScoreFutureCall(),
+    'jobAutomationScoreFutureCall',
+  );
+  pod.registerFutureCall(
+    JobAutomationProposalFutureCall(),
+    'jobAutomationProposalFutureCall',
+  );
 
   // Start the server.
   await pod.start();

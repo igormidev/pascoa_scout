@@ -1,0 +1,9 @@
+enum: JobAnalysisFilterMode
+serialized: byName
+values:
+  - all
+  - withoutScore
+  - withScore
+  - withoutProposal
+  - withProposal
+  - completed

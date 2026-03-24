@@ -1,13 +1,19 @@
 class: JobInfo
+table: job_info
 fields:
-  id: String
+  upworkId: String
   subId: String?
   title: String
   description: String
   url: String
   relativeDate: String?
+  relativeDateMinutes: int?
   absoluteDate: String?
+  absoluteDateTime: DateTime?
   budget: String?
+  fixedPriceAmount: double?
+  hourlyMinRate: double?
+  hourlyMaxRate: double?
   jobType: JobType
   experienceLevel: ExperienceLevel
   clientLocation: ClientLocation?
@@ -21,4 +27,29 @@ fields:
   clientTotalSpent: double?
   tags: List<String>
   hasHired: bool
-  questions: List<Question>
+  analysisState: JobAnalysisState?, relation(name=job_info_analysis_state)
+  questions: List<Question>?, relation(name=job_info_questions)
+indexes:
+  job_info_upwork_id_unique_idx:
+    fields: upworkId
+    unique: true
+  job_info_absolute_date_time_idx:
+    fields: absoluteDateTime
+  job_info_relative_date_minutes_idx:
+    fields: relativeDateMinutes
+  job_info_fixed_price_amount_idx:
+    fields: fixedPriceAmount
+  job_info_hourly_min_rate_idx:
+    fields: hourlyMinRate
+  job_info_hourly_max_rate_idx:
+    fields: hourlyMaxRate
+  job_info_client_avg_hourly_rate_idx:
+    fields: clientAvgHourlyRate
+  job_info_client_rating_idx:
+    fields: clientRating
+  job_info_client_hire_rate_idx:
+    fields: clientHireRatePercent
+  job_info_client_name_confidence_idx:
+    fields: clientNameConfidencePercent
+  job_info_client_total_spent_idx:
+    fields: clientTotalSpent

@@ -1,0 +1,16 @@
+class: JobAutomationRuntime
+table: job_automation_runtime
+fields:
+  singletonKey: String
+  currentStep: JobAutomationStep
+  currentStepStartedAt: DateTime
+  updatedAt: DateTime
+  lastSuccessfulJobSyncAt: DateTime?
+  lastSuccessfulScoringAt: DateTime?
+  lastSuccessfulProposalGenerationAt: DateTime?
+  lastErrorMessage: String?
+  lastErrorAt: DateTime?
+indexes:
+  job_automation_runtime_singleton_key_unique_idx:
+    fields: singletonKey
+    unique: true

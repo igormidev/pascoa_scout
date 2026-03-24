@@ -1,0 +1,10 @@
+class: JobCurriculumProfile
+table: job_curriculum_profile
+fields:
+  singletonKey: String
+  markdownText: String
+  updatedAt: DateTime
+indexes:
+  job_curriculum_profile_singleton_key_unique_idx:
+    fields: singletonKey
+    unique: true

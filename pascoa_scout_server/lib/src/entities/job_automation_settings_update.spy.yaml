@@ -1,0 +1,8 @@
+class: JobAutomationSettingsUpdate
+fields:
+  jobFilter: JobFilter
+  scoreBatchSize: int
+  proposalBatchSize: int
+  upworkSyncResultsPerPage: int
+  proposalMinimumScorePercentage: int
+  loopDelayMinutes: int

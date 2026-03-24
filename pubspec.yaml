@@ -5,6 +5,7 @@ environment:
   sdk: '^3.8.0'
 
 workspace:
+  - codex_cli_interface
   - pascoa_scout_client
   - pascoa_scout_server
   - pascoa_scout_flutter

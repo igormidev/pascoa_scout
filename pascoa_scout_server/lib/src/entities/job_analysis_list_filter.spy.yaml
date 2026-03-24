@@ -1,0 +1,14 @@
+class: JobAnalysisListFilter
+fields:
+  page: int
+  pageSize: int
+  analysisFilter: JobAnalysisFilterMode
+  orderBy: JobAnalysisOrderBy
+  referencePaginationHourStamp: DateTime?
+  searchTerm: String?
+  hasQuestions: bool?
+  minimumScorePercentage: int?
+  maximumScorePercentage: int?
+  maxAgeJobInfoHours: int?
+  maxAgeScoringHours: int?
+  maxAgeAiResponsesHours: int?

@@ -37,6 +37,8 @@ coverage/
 **/Pods/
 **/xcuserdata/
 **/dgph
+**/.codex_runs/
+.bg-shell/
 
 # Symbolication related
 app.*.symbols
@@ -48,3 +50,24 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# ── GSD baseline (auto-generated) ──
+.gsd
+Thumbs.db
+*.swo
+*~
+.vscode/
+*.code-workspace
+.env
+.env.*
+!.env.example
+node_modules/
+.next/
+dist/
+__pycache__/
+.venv/
+venv/
+target/
+vendor/
+.cache/
+tmp/

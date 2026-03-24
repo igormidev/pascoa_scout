@@ -14,12 +14,30 @@
 import 'package:serverpod_test/serverpod_test.dart' as _i1;
 import 'package:serverpod/serverpod.dart' as _i2;
 import 'dart:async' as _i3;
-import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_info.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_analysis_pagination.dart'
     as _i4;
-import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_filter.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_analysis_list_filter.dart'
     as _i5;
-import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/pagination.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_analysis_state.dart'
     as _i6;
+import 'package:pascoa_scout_server/src/generated/entities/job_automation_overview.dart'
+    as _i7;
+import 'package:pascoa_scout_server/src/generated/entities/job_automation_settings_update.dart'
+    as _i8;
+import 'package:pascoa_scout_server/src/generated/entities/job_knowledge_summary.dart'
+    as _i9;
+import 'package:pascoa_scout_server/src/generated/entities/job_curriculum_profile.dart'
+    as _i10;
+import 'package:pascoa_scout_server/src/generated/entities/job_proposal_style_preference.dart'
+    as _i11;
+import 'package:pascoa_scout_server/src/generated/entities/job_opportunity_preference.dart'
+    as _i12;
+import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_info.dart'
+    as _i13;
+import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_filter.dart'
+    as _i14;
+import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/pagination.dart'
+    as _i15;
 import 'package:pascoa_scout_server/src/generated/protocol.dart';
 import 'package:pascoa_scout_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -127,6 +145,12 @@ void withServerpod(
 }
 
 class TestEndpoints {
+  late final _JobAnalysisEndpoint jobAnalysis;
+
+  late final _JobAutomationEndpoint jobAutomation;
+
+  late final _JobKnowledgeEndpoint jobKnowledge;
+
   late final _UpworkJobsEndpoint upworkJobs;
 }
 
@@ -137,10 +161,366 @@ class _InternalTestEndpoints extends TestEndpoints
     _i2.SerializationManager serializationManager,
     _i2.EndpointDispatch endpoints,
   ) {
+    jobAnalysis = _JobAnalysisEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    jobAutomation = _JobAutomationEndpoint(
+      endpoints,
+      serializationManager,
+    );
+    jobKnowledge = _JobKnowledgeEndpoint(
+      endpoints,
+      serializationManager,
+    );
     upworkJobs = _UpworkJobsEndpoint(
       endpoints,
       serializationManager,
     );
+  }
+}
+
+class _JobAnalysisEndpoint {
+  _JobAnalysisEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i4.JobAnalysisPagination> getPage(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required _i5.JobAnalysisListFilter filter,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobAnalysis',
+            method: 'getPage',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobAnalysis',
+          methodName: 'getPage',
+          parameters: _i1.testObjectToJson({'filter': filter}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i4.JobAnalysisPagination>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i6.JobAnalysisState> refreshCard(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int jobAnalysisStateId,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobAnalysis',
+            method: 'refreshCard',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobAnalysis',
+          methodName: 'refreshCard',
+          parameters: _i1.testObjectToJson({
+            'jobAnalysisStateId': jobAnalysisStateId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.JobAnalysisState>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _JobAutomationEndpoint {
+  _JobAutomationEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i7.JobAutomationOverview> getOverview(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobAutomation',
+            method: 'getOverview',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobAutomation',
+          methodName: 'getOverview',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i7.JobAutomationOverview>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Stream<_i7.JobAutomationOverview> watchOverview(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) {
+    var _localTestStreamManager =
+        _i1.TestStreamManager<_i7.JobAutomationOverview>();
+    _i1.callStreamFunctionAndHandleExceptions(
+      () async {
+        var _localUniqueSession =
+            (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+              endpoint: 'jobAutomation',
+              method: 'watchOverview',
+            );
+        var _localCallContext = await _endpointDispatch
+            .getMethodStreamCallContext(
+              createSessionCallback: (_) => _localUniqueSession,
+              endpointPath: 'jobAutomation',
+              methodName: 'watchOverview',
+              arguments: {},
+              requestedInputStreams: [],
+              serializationManager: _serializationManager,
+            );
+        await _localTestStreamManager.callStreamMethod(
+          _localCallContext,
+          _localUniqueSession,
+          {},
+        );
+      },
+      _localTestStreamManager.outputStreamController,
+    );
+    return _localTestStreamManager.outputStreamController.stream;
+  }
+
+  _i3.Future<_i7.JobAutomationOverview> updateSettings(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required _i8.JobAutomationSettingsUpdate update,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobAutomation',
+            method: 'updateSettings',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobAutomation',
+          methodName: 'updateSettings',
+          parameters: _i1.testObjectToJson({'update': update}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i7.JobAutomationOverview>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i7.JobAutomationOverview> setJobFetchingPaused(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required bool isPaused,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobAutomation',
+            method: 'setJobFetchingPaused',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobAutomation',
+          methodName: 'setJobFetchingPaused',
+          parameters: _i1.testObjectToJson({'isPaused': isPaused}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i7.JobAutomationOverview>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+}
+
+class _JobKnowledgeEndpoint {
+  _JobKnowledgeEndpoint(
+    this._endpointDispatch,
+    this._serializationManager,
+  );
+
+  final _i2.EndpointDispatch _endpointDispatch;
+
+  final _i2.SerializationManager _serializationManager;
+
+  _i3.Future<_i9.JobKnowledgeSummary> getSummary(
+    _i1.TestSessionBuilder sessionBuilder,
+  ) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobKnowledge',
+            method: 'getSummary',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobKnowledge',
+          methodName: 'getSummary',
+          parameters: _i1.testObjectToJson({}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i9.JobKnowledgeSummary>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i10.JobCurriculumProfile> saveCurriculum(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String markdownText,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobKnowledge',
+            method: 'saveCurriculum',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobKnowledge',
+          methodName: 'saveCurriculum',
+          parameters: _i1.testObjectToJson({'markdownText': markdownText}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i10.JobCurriculumProfile>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i11.JobProposalStylePreference> saveProposalStylePreference(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String markdownText,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobKnowledge',
+            method: 'saveProposalStylePreference',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobKnowledge',
+          methodName: 'saveProposalStylePreference',
+          parameters: _i1.testObjectToJson({'markdownText': markdownText}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i11.JobProposalStylePreference>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i12.JobOpportunityPreference> saveOpportunityPreference(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required String markdownText,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobKnowledge',
+            method: 'saveOpportunityPreference',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobKnowledge',
+          methodName: 'saveOpportunityPreference',
+          parameters: _i1.testObjectToJson({'markdownText': markdownText}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i12.JobOpportunityPreference>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
   }
 }
 
@@ -154,10 +534,10 @@ class _UpworkJobsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i4.JobInfo>> getJobs(
+  _i3.Future<List<_i13.JobInfo>> getJobs(
     _i1.TestSessionBuilder sessionBuilder, {
-    required _i5.JobFilter filter,
-    required _i6.Pagination? pagination,
+    required _i14.JobFilter filter,
+    required _i15.Pagination? pagination,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -181,7 +561,7 @@ class _UpworkJobsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i4.JobInfo>>);
+                as _i3.Future<List<_i13.JobInfo>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

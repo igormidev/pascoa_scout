@@ -1,0 +1,5 @@
+class: JobKnowledgeSummary
+fields:
+  hasCurriculum: bool
+  hasProposalStylePreference: bool
+  hasOpportunityPreference: bool

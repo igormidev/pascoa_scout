@@ -1,2 +1,15 @@
+jobAnalysis:
+  - getPage:
+  - refreshCard:
+jobAutomation:
+  - getOverview:
+  - watchOverview:
+  - updateSettings:
+  - setJobFetchingPaused:
+jobKnowledge:
+  - getSummary:
+  - saveCurriculum:
+  - saveProposalStylePreference:
+  - saveOpportunityPreference:
 upworkJobs:
   - getJobs:

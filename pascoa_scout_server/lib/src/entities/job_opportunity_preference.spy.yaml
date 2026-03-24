@@ -1,0 +1,10 @@
+class: JobOpportunityPreference
+table: job_opportunity_preference
+fields:
+  singletonKey: String
+  markdownText: String
+  updatedAt: DateTime
+indexes:
+  job_opportunity_preference_singleton_key_unique_idx:
+    fields: singletonKey
+    unique: true

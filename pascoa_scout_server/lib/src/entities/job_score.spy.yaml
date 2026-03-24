@@ -1,6 +1,13 @@
 class: JobScore
 table: job_score
 fields:
-  jobAnalysis: JobAnalysis
-  scorePercentage: int # 0 to 100
-  aiScoreJustificationtext: String
+  jobAnalysisStateId: int
+  jobAnalysisState: JobAnalysisState?, relation(name=job_analysis_state_score, field=jobAnalysisStateId)
+  scorePercentage: int
+  aiScoreJustificationText: String
+indexes:
+  job_score_job_analysis_state_unique_idx:
+    fields: jobAnalysisStateId
+    unique: true
+  job_score_score_percentage_idx:
+    fields: scorePercentage

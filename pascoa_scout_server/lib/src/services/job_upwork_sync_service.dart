@@ -1,0 +1,228 @@
+import 'package:result_dart/result_dart.dart';
+import 'package:serverpod/serverpod.dart';
+
+import '../core/pascoa_result.dart';
+import '../generated/protocol.dart';
+import '../repository/get_upwork_jobs_repository.dart';
+
+class JobUpworkSyncService {
+  const JobUpworkSyncService({
+    IGetUpworkJobsRepository? repository,
+  }) : _repository = repository;
+
+  final IGetUpworkJobsRepository? _repository;
+
+  Future<PascoaResult<int>> syncLatestJobs(
+    Session session, {
+    required JobFilter filter,
+    required int resultsPerPage,
+  }) async {
+    try {
+      final apifyToken = Serverpod.instance.getPassword('apifyToken');
+      if (apifyToken == null || apifyToken.isEmpty) {
+        return Failure(
+          PascoaException(
+            message: 'Missing Apify token',
+            description:
+                'Add apifyToken to pascoa_scout_server/config/passwords.yaml before running the automation loop.',
+          ),
+        );
+      }
+
+      final repository =
+          _repository ??
+          GetUpworkJobRepositoryApifyImpl(apifyToken: apifyToken);
+      final result = await repository.getJobs(
+        filter: filter,
+        pagination: Pagination(
+          pageNumber: 1,
+          pagesToScrape: 1,
+          resultsPerPage: resultsPerPage,
+          searchSortOrder: SearchSortOrder.newest,
+        ),
+      );
+
+      return await result.fold(
+        (jobs) async {
+          var processedCount = 0;
+          for (final job in jobs) {
+            await _upsertJob(session, job);
+            processedCount += 1;
+          }
+
+          return Success(processedCount);
+        },
+        Failure.new,
+      );
+    } catch (error, stackTrace) {
+      return Failure(
+        PascoaException(
+          message: 'Unable to synchronize Upwork jobs',
+          description:
+              'The automation loop could not fetch and persist the latest jobs from Apify.',
+          error: error.toString(),
+          stackTrace: stackTrace.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<void> _upsertJob(Session session, JobInfo incomingJob) async {
+    await session.db.transaction((transaction) async {
+      final existingJob = await JobInfo.db.findFirstRow(
+        session,
+        where: (table) => table.upworkId.equals(incomingJob.upworkId),
+        include: JobInfo.include(
+          analysisState: JobAnalysisState.include(),
+          questions: Question.includeList(
+            orderBy: (table) => table.positionIndex,
+          ),
+        ),
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+
+      if (existingJob == null) {
+        await _insertNewJob(session, incomingJob, transaction);
+        return;
+      }
+
+      await _updateExistingJob(
+        session,
+        existingJob: existingJob,
+        incomingJob: incomingJob,
+        transaction: transaction,
+      );
+    });
+  }
+
+  Future<void> _insertNewJob(
+    Session session,
+    JobInfo incomingJob,
+    Transaction transaction,
+  ) async {
+    final insertedJob = await JobInfo.db.insertRow(
+      session,
+      incomingJob.copyWith(
+        questions: null,
+        analysisState: null,
+      ),
+      transaction: transaction,
+    );
+
+    final analysisState = await JobAnalysisState.db.insertRow(
+      session,
+      JobAnalysisState(
+        jobInfoId: insertedJob.id!,
+        createdJobInfoAt: DateTime.now().toUtc(),
+      ),
+      transaction: transaction,
+    );
+
+    if ((incomingJob.questions?.isNotEmpty ?? false)) {
+      final insertedQuestions = await Question.db.insert(
+        session,
+        [
+          for (final question in incomingJob.questions ?? const <Question>[])
+            question,
+        ],
+        transaction: transaction,
+      );
+      await JobInfo.db.attach.questions(
+        session,
+        insertedJob,
+        insertedQuestions,
+        transaction: transaction,
+      );
+    }
+
+    await JobInfo.db.attachRow.analysisState(
+      session,
+      insertedJob,
+      analysisState,
+      transaction: transaction,
+    );
+  }
+
+  Future<void> _updateExistingJob(
+    Session session, {
+    required JobInfo existingJob,
+    required JobInfo incomingJob,
+    required Transaction transaction,
+  }) async {
+    final updatedJob = existingJob.copyWith(
+      upworkId: incomingJob.upworkId,
+      subId: incomingJob.subId,
+      title: incomingJob.title,
+      description: incomingJob.description,
+      url: incomingJob.url,
+      relativeDate: incomingJob.relativeDate,
+      relativeDateMinutes: incomingJob.relativeDateMinutes,
+      absoluteDate: incomingJob.absoluteDate,
+      absoluteDateTime: incomingJob.absoluteDateTime,
+      budget: incomingJob.budget,
+      fixedPriceAmount: incomingJob.fixedPriceAmount,
+      hourlyMinRate: incomingJob.hourlyMinRate,
+      hourlyMaxRate: incomingJob.hourlyMaxRate,
+      jobType: incomingJob.jobType,
+      experienceLevel: incomingJob.experienceLevel,
+      clientLocation: incomingJob.clientLocation,
+      paymentVerifiedStatus: incomingJob.paymentVerifiedStatus,
+      allowedApplicantCountries: incomingJob.allowedApplicantCountries,
+      clientName: incomingJob.clientName,
+      clientNameConfidencePercent: incomingJob.clientNameConfidencePercent,
+      clientAvgHourlyRate: incomingJob.clientAvgHourlyRate,
+      clientRating: incomingJob.clientRating,
+      clientHireRatePercent: incomingJob.clientHireRatePercent,
+      clientTotalSpent: incomingJob.clientTotalSpent,
+      tags: incomingJob.tags,
+      hasHired: incomingJob.hasHired,
+    );
+
+    await JobInfo.db.updateRow(
+      session,
+      updatedJob,
+      transaction: transaction,
+    );
+
+    await Question.db.deleteWhere(
+      session,
+      where: (table) => table.jobInfoId.equals(existingJob.id),
+      transaction: transaction,
+    );
+
+    if ((incomingJob.questions?.isNotEmpty ?? false)) {
+      final insertedQuestions = await Question.db.insert(
+        session,
+        [
+          for (final question in incomingJob.questions ?? const <Question>[])
+            question,
+        ],
+        transaction: transaction,
+      );
+      await JobInfo.db.attach.questions(
+        session,
+        existingJob,
+        insertedQuestions,
+        transaction: transaction,
+      );
+    }
+
+    if (existingJob.analysisState == null) {
+      final analysisState = await JobAnalysisState.db.insertRow(
+        session,
+        JobAnalysisState(
+          jobInfoId: existingJob.id!,
+          createdJobInfoAt: DateTime.now().toUtc(),
+        ),
+        transaction: transaction,
+      );
+      await JobInfo.db.attachRow.analysisState(
+        session,
+        existingJob,
+        analysisState,
+        transaction: transaction,
+      );
+    }
+  }
+}

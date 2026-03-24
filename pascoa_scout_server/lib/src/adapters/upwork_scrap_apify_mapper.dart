@@ -184,16 +184,32 @@ Pagination buildInitialPagination() {
 
 JobInfo jobInfoFromApify(Map<String, dynamic> json) {
   final questionsRaw = (json['questions'] as List<dynamic>? ?? const []);
+  final relativeDate = _emptyStringToNull(
+    _nullableString(json['relativeDate']),
+  );
+  final absoluteDate = _emptyStringToNull(
+    _nullableString(json['absoluteDate']),
+  );
+  final budget = _emptyStringToNull(_nullableString(json['budget']));
+  final parsedBudget = _parseBudgetRange(
+    budget: budget,
+    jobType: _jobTypeFromApify(json['jobType']),
+  );
 
   return JobInfo(
-    id: _requiredString(json, 'id'),
+    upworkId: _requiredString(json, 'id'),
     subId: _nullableString(json['subId']),
     title: _requiredString(json, 'title'),
     description: _requiredString(json, 'description'),
     url: _requiredString(json, 'url'),
-    relativeDate: _emptyStringToNull(_nullableString(json['relativeDate'])),
-    absoluteDate: _emptyStringToNull(_nullableString(json['absoluteDate'])),
-    budget: _emptyStringToNull(_nullableString(json['budget'])),
+    relativeDate: relativeDate,
+    relativeDateMinutes: _parseRelativeDateMinutes(relativeDate),
+    absoluteDate: absoluteDate,
+    absoluteDateTime: _parseDateTime(absoluteDate),
+    budget: budget,
+    fixedPriceAmount: parsedBudget.fixedPriceAmount,
+    hourlyMinRate: parsedBudget.hourlyMinRate,
+    hourlyMaxRate: parsedBudget.hourlyMaxRate,
     jobType: _jobTypeFromApify(json['jobType']),
     experienceLevel: _experienceLevelFromApify(json['experienceLevel']),
     clientLocation: _clientLocationFromDisplayName(
@@ -233,6 +249,7 @@ Question _questionFromApify(dynamic rawValue, int fallbackIndex) {
   return Question(
     question: _requiredString(json, 'question'),
     positionIndex: _parseNullableInt(json['position']) ?? fallbackIndex,
+    jobInfoId: null,
   );
 }
 
@@ -332,6 +349,87 @@ double? _normalizePercent(dynamic rawValue) {
   }
 
   return value.clamp(0, 100).toDouble();
+}
+
+({double? fixedPriceAmount, double? hourlyMinRate, double? hourlyMaxRate})
+_parseBudgetRange({
+  required String? budget,
+  required JobType jobType,
+}) {
+  if (budget == null || budget.trim().isEmpty) {
+    return (fixedPriceAmount: null, hourlyMinRate: null, hourlyMaxRate: null);
+  }
+
+  final matches = RegExp(r'-?\d+(?:\.\d+)?').allMatches(budget);
+  final values = [
+    for (final match in matches)
+      double.tryParse(match.group(0) ?? '') ?? double.nan,
+  ].where((value) => !value.isNaN).toList(growable: false);
+
+  if (values.isEmpty) {
+    return (fixedPriceAmount: null, hourlyMinRate: null, hourlyMaxRate: null);
+  }
+
+  return switch (jobType) {
+    JobType.fixed => (
+      fixedPriceAmount: values.first,
+      hourlyMinRate: null,
+      hourlyMaxRate: null,
+    ),
+    JobType.hourly => (
+      fixedPriceAmount: null,
+      hourlyMinRate: values.first,
+      hourlyMaxRate: values.length > 1 ? values.last : values.first,
+    ),
+  };
+}
+
+int? _parseRelativeDateMinutes(String? relativeDate) {
+  if (relativeDate == null || relativeDate.trim().isEmpty) {
+    return null;
+  }
+
+  final normalized = relativeDate.trim().toLowerCase();
+  if (normalized == 'just now') {
+    return 0;
+  }
+
+  final match = RegExp(r'(\d+)\s+([a-z]+)').firstMatch(normalized);
+  if (match == null) {
+    return null;
+  }
+
+  final value = int.tryParse(match.group(1) ?? '');
+  final unit = match.group(2) ?? '';
+  if (value == null) {
+    return null;
+  }
+
+  if (unit.startsWith('sec')) {
+    return (value / 60).ceil();
+  }
+  if (unit.startsWith('min')) {
+    return value;
+  }
+  if (unit.startsWith('hour') || unit == 'hr' || unit == 'hrs') {
+    return value * 60;
+  }
+  if (unit.startsWith('day')) {
+    return value * 60 * 24;
+  }
+  if (unit.startsWith('week')) {
+    return value * 60 * 24 * 7;
+  }
+
+  return null;
+}
+
+DateTime? _parseDateTime(String? rawValue) {
+  if (rawValue == null || rawValue.trim().isEmpty) {
+    return null;
+  }
+
+  return DateTime.tryParse(rawValue)?.toUtc();
 }
 
 double? _parseNullableDouble(dynamic rawValue) {

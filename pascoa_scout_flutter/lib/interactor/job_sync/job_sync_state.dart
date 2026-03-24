@@ -2,67 +2,63 @@ import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
 class JobSyncState {
   const JobSyncState({
-    required this.isRunning,
-    required this.isPulling,
-    required this.intervalMinutes,
-    required this.nextPullAt,
-    required this.lastPullStartedAt,
-    required this.lastPullSucceededAt,
+    required this.isBusy,
+    required this.overview,
     required this.successBanner,
     required this.errors,
     required this.jobs,
   });
 
-  factory JobSyncState.initial({required int intervalMinutes}) {
-    return JobSyncState(
-      isRunning: false,
-      isPulling: false,
-      intervalMinutes: intervalMinutes,
-      nextPullAt: null,
-      lastPullStartedAt: null,
-      lastPullSucceededAt: null,
+  factory JobSyncState.initial() {
+    return const JobSyncState(
+      isBusy: true,
+      overview: null,
       successBanner: null,
-      errors: const <JobSyncErrorLog>[],
-      jobs: const <TrackedJob>[],
+      errors: <JobSyncErrorLog>[],
+      jobs: <TrackedJob>[],
     );
   }
 
-  final bool isRunning;
-  final bool isPulling;
-  final int intervalMinutes;
-  final DateTime? nextPullAt;
-  final DateTime? lastPullStartedAt;
-  final DateTime? lastPullSucceededAt;
+  final bool isBusy;
+  final JobAutomationOverview? overview;
   final JobSyncSuccessBanner? successBanner;
   final List<JobSyncErrorLog> errors;
   final List<TrackedJob> jobs;
 
-  bool get isLocked => isRunning || isPulling;
+  JobAutomationSettings? get settings => overview?.settings;
+  JobAutomationRuntime? get runtime => overview?.runtime;
+
+  bool get isRunning => !(settings?.isJobFetchingPaused ?? true);
+  bool get isPulling => currentStep == JobAutomationStep.fetchingJobs;
+  bool get isLocked => isBusy;
+
+  int get intervalMinutes => settings?.loopDelayMinutes ?? 5;
+  int get scoreBatchSize => settings?.scoreBatchSize ?? 20;
+  int get proposalBatchSize => settings?.proposalBatchSize ?? 20;
+  int get upworkSyncResultsPerPage => settings?.upworkSyncResultsPerPage ?? 20;
+  int get proposalMinimumScorePercentage =>
+      settings?.proposalMinimumScorePercentage ?? 70;
+
+  JobAutomationStep get currentStep =>
+      runtime?.currentStep ?? JobAutomationStep.idle;
+  DateTime? get currentStepStartedAt => runtime?.currentStepStartedAt;
+  DateTime? get nextPullAt => null;
+  DateTime? get lastPullStartedAt =>
+      isPulling ? runtime?.currentStepStartedAt : null;
+  DateTime? get lastPullSucceededAt => runtime?.lastSuccessfulJobSyncAt;
 
   JobSyncState copyWith({
-    bool? isRunning,
-    bool? isPulling,
-    int? intervalMinutes,
-    Object? nextPullAt = _sentinel,
-    Object? lastPullStartedAt = _sentinel,
-    Object? lastPullSucceededAt = _sentinel,
+    bool? isBusy,
+    Object? overview = _sentinel,
     Object? successBanner = _sentinel,
     List<JobSyncErrorLog>? errors,
     List<TrackedJob>? jobs,
   }) {
     return JobSyncState(
-      isRunning: isRunning ?? this.isRunning,
-      isPulling: isPulling ?? this.isPulling,
-      intervalMinutes: intervalMinutes ?? this.intervalMinutes,
-      nextPullAt: nextPullAt == _sentinel
-          ? this.nextPullAt
-          : nextPullAt as DateTime?,
-      lastPullStartedAt: lastPullStartedAt == _sentinel
-          ? this.lastPullStartedAt
-          : lastPullStartedAt as DateTime?,
-      lastPullSucceededAt: lastPullSucceededAt == _sentinel
-          ? this.lastPullSucceededAt
-          : lastPullSucceededAt as DateTime?,
+      isBusy: isBusy ?? this.isBusy,
+      overview: overview == _sentinel
+          ? this.overview
+          : overview as JobAutomationOverview?,
       successBanner: successBanner == _sentinel
           ? this.successBanner
           : successBanner as JobSyncSuccessBanner?,
@@ -106,15 +102,11 @@ class TrackedJob {
   final DateTime estimatedPostedAt;
   final DateTime lastSeenAt;
 
-  String get uniqueKey => '${job.id}::${job.subId ?? ''}';
+  String get uniqueKey => '${job.upworkId}::${job.subId ?? ''}';
 
   Duration ageAt(DateTime now) {
     final duration = now.difference(estimatedPostedAt);
-    if (duration.isNegative) {
-      return Duration.zero;
-    }
-
-    return duration;
+    return duration.isNegative ? Duration.zero : duration;
   }
 
   TrackedJob copyWith({

@@ -175,8 +175,13 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
       return;
     }
 
+    final filter = _buildFilter();
+
     try {
-      await ref.read(currentFilterNotifier.notifier).saveFilter(_buildFilter());
+      await ref.read(currentFilterNotifier.notifier).saveFilter(filter);
+      await ref
+          .read(jobSyncControllerProvider.notifier)
+          .syncFilterToServer(filter);
     } catch (_) {
       if (!mounted) {
         return;
@@ -524,9 +529,13 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
                   : () {
                       ref.read(filterPanelModeProvider.notifier).showEditor();
                     },
-              onToggleSync: syncState.isRunning
-                  ? ref.read(jobSyncControllerProvider.notifier).stopSync
-                  : ref.read(jobSyncControllerProvider.notifier).startSync,
+              onToggleSync: () {
+                if (syncState.isRunning) {
+                  ref.read(jobSyncControllerProvider.notifier).stopSync();
+                } else {
+                  ref.read(jobSyncControllerProvider.notifier).startSync();
+                }
+              },
               onDecreaseInterval:
                   syncState.isLocked || syncState.intervalMinutes <= 1
                   ? null
@@ -541,6 +550,81 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
                       ref
                           .read(jobSyncControllerProvider.notifier)
                           .setIntervalMinutes(syncState.intervalMinutes + 1);
+                    },
+              onDecreaseScoreBatch:
+                  syncState.isLocked || syncState.scoreBatchSize <= 1
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setScoreBatchSize(syncState.scoreBatchSize - 1);
+                    },
+              onIncreaseScoreBatch: syncState.isLocked
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setScoreBatchSize(syncState.scoreBatchSize + 1);
+                    },
+              onDecreaseProposalBatch:
+                  syncState.isLocked || syncState.proposalBatchSize <= 1
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setProposalBatchSize(
+                            syncState.proposalBatchSize - 1,
+                          );
+                    },
+              onIncreaseProposalBatch: syncState.isLocked
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setProposalBatchSize(
+                            syncState.proposalBatchSize + 1,
+                          );
+                    },
+              onDecreaseSyncResults:
+                  syncState.isLocked || syncState.upworkSyncResultsPerPage <= 1
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setUpworkSyncResultsPerPage(
+                            syncState.upworkSyncResultsPerPage - 1,
+                          );
+                    },
+              onIncreaseSyncResults: syncState.isLocked
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setUpworkSyncResultsPerPage(
+                            syncState.upworkSyncResultsPerPage + 1,
+                          );
+                    },
+              onDecreaseMinimumScore:
+                  syncState.isLocked ||
+                      syncState.proposalMinimumScorePercentage <= 0
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setProposalMinimumScorePercentage(
+                            syncState.proposalMinimumScorePercentage - 5,
+                          );
+                    },
+              onIncreaseMinimumScore:
+                  syncState.isLocked ||
+                      syncState.proposalMinimumScorePercentage >= 100
+                  ? null
+                  : () {
+                      ref
+                          .read(jobSyncControllerProvider.notifier)
+                          .setProposalMinimumScorePercentage(
+                            syncState.proposalMinimumScorePercentage + 5,
+                          );
                     },
               onCopyCurl: () {
                 _copyCurl(currentFilter);
@@ -1367,6 +1451,14 @@ class _CompactFilterRunTab extends ConsumerWidget {
     required this.onToggleSync,
     required this.onDecreaseInterval,
     required this.onIncreaseInterval,
+    required this.onDecreaseScoreBatch,
+    required this.onIncreaseScoreBatch,
+    required this.onDecreaseProposalBatch,
+    required this.onIncreaseProposalBatch,
+    required this.onDecreaseSyncResults,
+    required this.onIncreaseSyncResults,
+    required this.onDecreaseMinimumScore,
+    required this.onIncreaseMinimumScore,
   });
 
   final JobSyncState syncState;
@@ -1376,6 +1468,14 @@ class _CompactFilterRunTab extends ConsumerWidget {
   final VoidCallback onToggleSync;
   final VoidCallback? onDecreaseInterval;
   final VoidCallback? onIncreaseInterval;
+  final VoidCallback? onDecreaseScoreBatch;
+  final VoidCallback? onIncreaseScoreBatch;
+  final VoidCallback? onDecreaseProposalBatch;
+  final VoidCallback? onIncreaseProposalBatch;
+  final VoidCallback? onDecreaseSyncResults;
+  final VoidCallback? onIncreaseSyncResults;
+  final VoidCallback? onDecreaseMinimumScore;
+  final VoidCallback? onIncreaseMinimumScore;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1384,13 +1484,26 @@ class _CompactFilterRunTab extends ConsumerWidget {
         .watch(jobSyncClockProvider)
         .maybeWhen(data: (value) => value, orElse: DateTime.now);
 
-    final statusText = syncState.isPulling
-        ? 'Pulling the most recent 10 jobs from Apify.'
-        : syncState.isRunning && syncState.nextPullAt != null
-        ? 'Next pull in ${_formatDuration(syncState.nextPullAt!.difference(now))}.'
-        : syncState.lastPullSucceededAt != null
-        ? 'Polling paused. Last successful pull was ${_formatDuration(now.difference(syncState.lastPullSucceededAt!))} ago.'
-        : 'Polling is paused. Start it when you want the right panel to begin filling.';
+    final stepCopy = switch (syncState.currentStep) {
+      JobAutomationStep.idle =>
+        'Automation is idle until you resume job fetching.',
+      JobAutomationStep.fetchingJobs => 'Getting more jobs from Upwork.',
+      JobAutomationStep.generatingScores =>
+        'Generating compatibility scores for jobs without an AI score yet.',
+      JobAutomationStep.generatingProposals =>
+        'Generating cover letters and question answers for the strongest matches.',
+      JobAutomationStep.pausedWaiting =>
+        'Job fetching is paused. The loop will keep cycling and skip the Upwork sync step.',
+      JobAutomationStep.error =>
+        'Automation hit an error. The latest failure is shown below.',
+    };
+
+    final elapsedText = syncState.currentStepStartedAt == null
+        ? null
+        : _formatDuration(now.difference(syncState.currentStepStartedAt!));
+    final statusText = elapsedText == null
+        ? stepCopy
+        : '$stepCopy Current step elapsed time: $elapsedText.';
 
     return ListView(
       key: const ValueKey('compact-filter-run-view'),
@@ -1458,18 +1571,57 @@ class _CompactFilterRunTab extends ConsumerWidget {
                   padding: EdgeInsets.symmetric(vertical: 20.0),
                   child: Divider(height: 1.0),
                 ),
-                _IntervalStepper(
+                _NumericStepperCard(
+                  title: 'Loop step delay',
+                  description:
+                      '${syncState.intervalMinutes} minute${syncState.intervalMinutes == 1 ? '' : 's'} between scheduled loop stages.',
                   value: syncState.intervalMinutes,
                   onDecrease: onDecreaseInterval,
                   onIncrease: onIncreaseInterval,
+                ),
+                const SizedBox(height: 12),
+                _NumericStepperCard(
+                  title: 'Upwork sync batch',
+                  description:
+                      '${syncState.upworkSyncResultsPerPage} jobs fetched per Upwork sync step.',
+                  value: syncState.upworkSyncResultsPerPage,
+                  onDecrease: onDecreaseSyncResults,
+                  onIncrease: onIncreaseSyncResults,
+                ),
+                const SizedBox(height: 12),
+                _NumericStepperCard(
+                  title: 'Score batch size',
+                  description:
+                      '${syncState.scoreBatchSize} job analyses scored per scoring step.',
+                  value: syncState.scoreBatchSize,
+                  onDecrease: onDecreaseScoreBatch,
+                  onIncrease: onIncreaseScoreBatch,
+                ),
+                const SizedBox(height: 12),
+                _NumericStepperCard(
+                  title: 'Proposal batch size',
+                  description:
+                      '${syncState.proposalBatchSize} proposals generated per proposal step.',
+                  value: syncState.proposalBatchSize,
+                  onDecrease: onDecreaseProposalBatch,
+                  onIncrease: onIncreaseProposalBatch,
+                ),
+                const SizedBox(height: 12),
+                _NumericStepperCard(
+                  title: 'Minimum score for proposals',
+                  description:
+                      '${syncState.proposalMinimumScorePercentage}% minimum compatibility before AI proposal generation starts.',
+                  value: syncState.proposalMinimumScorePercentage,
+                  onDecrease: onDecreaseMinimumScore,
+                  onIncrease: onIncreaseMinimumScore,
                 ),
                 const SizedBox(height: 14.0),
                 _CompactInfoCard(
                   icon: syncState.isPulling
                       ? Icons.sync_rounded
-                      : Icons.timer_outlined,
+                      : Icons.route_rounded,
                   message: statusText,
-                  trailing: syncState.isPulling
+                  trailing: syncState.isBusy
                       ? SizedBox(
                           width: 18.0,
                           height: 18.0,
@@ -1492,8 +1644,8 @@ class _CompactFilterRunTab extends ConsumerWidget {
                     ),
                     label: Text(
                       syncState.isRunning
-                          ? 'Pause synchronization'
-                          : 'Start synchronization',
+                          ? 'Pause job fetching'
+                          : 'Resume job fetching',
                     ),
                   ),
                 ),
@@ -1535,13 +1687,17 @@ class _CompactFilterRunTab extends ConsumerWidget {
   }
 }
 
-class _IntervalStepper extends StatelessWidget {
-  const _IntervalStepper({
+class _NumericStepperCard extends StatelessWidget {
+  const _NumericStepperCard({
+    required this.title,
+    required this.description,
     required this.value,
     required this.onDecrease,
     required this.onIncrease,
   });
 
+  final String title;
+  final String description;
   final int value;
   final VoidCallback? onDecrease;
   final VoidCallback? onIncrease;
@@ -1566,10 +1722,10 @@ class _IntervalStepper extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Polling interval', style: theme.textTheme.titleMedium),
+                Text(title, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 4.0),
                 Text(
-                  '$value minute${value == 1 ? '' : 's'} between pulls',
+                  description,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: Colors.white.withValues(alpha: 0.7),
                   ),

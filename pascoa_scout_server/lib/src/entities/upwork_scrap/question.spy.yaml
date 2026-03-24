@@ -1,4 +1,13 @@
 class: Question
+table: question
 fields:
   question: String
   positionIndex: int
+  jobInfo: JobInfo?, relation(name=job_info_questions, optional)
+  proposalAnswer: JobProposalAnswerToQuestion?, relation(name=question_proposal_answer)
+indexes:
+  question_job_info_id_idx:
+    fields: jobInfoId
+  question_job_info_position_unique_idx:
+    fields: jobInfoId, positionIndex
+    unique: true

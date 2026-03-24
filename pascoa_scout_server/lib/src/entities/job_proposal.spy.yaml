@@ -1,6 +1,11 @@
 class: JobProposal
 table: job_proposal
 fields:
-  jobAnalysis: JobAnalysis
+  jobAnalysisStateId: int
+  jobAnalysisState: JobAnalysisState?, relation(name=job_analysis_state_proposal, field=jobAnalysisStateId)
   aiGeneratedCoverLetterText: String
-  questionsAndAnswers: List<JobProposalAnswerToQuestion>
+  answers: List<JobProposalAnswerToQuestion>?, relation(name=job_proposal_answers)
+indexes:
+  job_proposal_job_analysis_state_unique_idx:
+    fields: jobAnalysisStateId
+    unique: true

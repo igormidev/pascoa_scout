@@ -1,0 +1,16 @@
+class: JobAutomationSettings
+table: job_automation_settings
+fields:
+  singletonKey: String
+  jobFilter: JobFilter
+  isJobFetchingPaused: bool
+  scoreBatchSize: int
+  proposalBatchSize: int
+  upworkSyncResultsPerPage: int
+  proposalMinimumScorePercentage: int
+  loopDelayMinutes: int
+  updatedAt: DateTime
+indexes:
+  job_automation_settings_singleton_key_unique_idx:
+    fields: singletonKey
+    unique: true

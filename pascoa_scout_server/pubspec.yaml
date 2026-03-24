@@ -9,7 +9,10 @@ environment:
 resolution: workspace
 
 dependencies:
+  codex_cli_interface:
+    path: ../codex_cli_interface
   dio: ^5.9.2
+  executor: ^2.2.5
   pascoa_scout_client:
     path: ../pascoa_scout_client
   result_dart: ^2.2.0

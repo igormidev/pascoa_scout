@@ -1,0 +1,17 @@
+enum: JobAnalysisOrderBy
+serialized: byName
+values:
+  - highestHourlyRate
+  - lowestHourlyRate
+  - highestFixedPrice
+  - lowestFixedPrice
+  - newestRelativeDate
+  - newestAbsoluteDate
+  - mostRecentJobInfoCreatedAt
+  - mostRecentScoringCreatedAt
+  - mostRecentAiResponsesCreatedAt
+  - highestClientHireRate
+  - highestClientAverageHourlyRate
+  - highestClientNameConfidence
+  - highestClientRating
+  - highestClientTotalSpent

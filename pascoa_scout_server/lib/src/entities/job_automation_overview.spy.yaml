@@ -1,0 +1,4 @@
+class: JobAutomationOverview
+fields:
+  settings: JobAutomationSettings
+  runtime: JobAutomationRuntime
