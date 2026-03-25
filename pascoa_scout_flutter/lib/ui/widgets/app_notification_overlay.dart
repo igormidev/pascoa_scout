@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../interactor/app_notification/app_notification_providers.dart';
+import 'app_notification_animated_entry.dart';
 
 class AppNotificationOverlay extends ConsumerStatefulWidget {
   const AppNotificationOverlay({super.key});
@@ -52,7 +53,10 @@ class _AppNotificationOverlayState
                 initialItemCount: _entries.length,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, index, animation) {
-                  return _buildAnimatedEntry(_entries[index], animation);
+                  return AppNotificationAnimatedEntry(
+                    animation: animation,
+                    child: AppNotificationCard(entry: _entries[index]),
+                  );
                 },
               ),
             ),
@@ -74,8 +78,11 @@ class _AppNotificationOverlayState
       final removedEntry = _entries.removeAt(index);
       _listKey.currentState?.removeItem(
         index,
-        (context, animation) =>
-            _buildAnimatedEntry(removedEntry, animation, isRemoving: true),
+        (context, animation) => AppNotificationAnimatedEntry(
+          animation: animation,
+          isRemoving: true,
+          child: AppNotificationCard(entry: removedEntry),
+        ),
         duration: _animationDuration,
       );
     }
@@ -98,36 +105,6 @@ class _AppNotificationOverlayState
     if (mounted) {
       setState(() {});
     }
-  }
-
-  Widget _buildAnimatedEntry(
-    AppNotificationEntry entry,
-    Animation<double> animation, {
-    bool isRemoving = false,
-  }) {
-    final curvedAnimation = CurvedAnimation(
-      parent: animation,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
-    );
-
-    return SizeTransition(
-      sizeFactor: curvedAnimation,
-      axisAlignment: 1,
-      child: FadeTransition(
-        opacity: curvedAnimation,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 0.24),
-            end: Offset.zero,
-          ).animate(curvedAnimation),
-          child: Padding(
-            padding: EdgeInsets.only(bottom: isRemoving ? 0 : 10),
-            child: AppNotificationCard(entry: entry),
-          ),
-        ),
-      ),
-    );
   }
 }
 

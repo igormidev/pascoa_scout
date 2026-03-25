@@ -6,7 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
-import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_card.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_listage_results_view.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_listage_toolbar.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
 const _jobAnalysisListPreferencesKey = 'job_analysis_list_preferences';
@@ -57,7 +58,19 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
             ),
           ),
           const SizedBox(height: 20),
-          _buildToolbar(context),
+          JobListageToolbar(
+            searchController: _searchController,
+            currentOrderBy: _filters.orderBy,
+            onRefresh: () => _loadPage(resetReference: true, page: 1),
+            onSearchSubmitted: _applySearch,
+            onClearSearch: () {
+              _searchController.clear();
+              _applySearch();
+            },
+            onOpenFilters: _openFiltersDialog,
+            onOrderBySelected: (orderBy) => unawaited(_updateOrderBy(orderBy)),
+            orderByLabelBuilder: (orderBy) => _orderByLabel(context, orderBy),
+          ),
           const SizedBox(height: 12),
           if (_buildAppliedFilterChips().isNotEmpty)
             Wrap(
@@ -66,161 +79,22 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
               children: _buildAppliedFilterChips(),
             ),
           const SizedBox(height: 18),
-          Expanded(child: _buildBody(context)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildToolbar(BuildContext context) {
-    return Row(
-      children: [
-        IconButton.filledTonal(
-          tooltip: 'Refresh current filters',
-          onPressed: () => _loadPage(resetReference: true, page: 1),
-          icon: const Icon(Icons.refresh_rounded),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-              child: Row(
-                children: [
-                  const Icon(Icons.search_rounded),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: _searchController,
-                      decoration: const InputDecoration(
-                        hintText:
-                            'Search job titles, descriptions, or client names',
-                        border: InputBorder.none,
-                      ),
-                      onSubmitted: (_) => _applySearch(),
-                    ),
-                  ),
-                  if (_searchController.text.isNotEmpty)
-                    IconButton(
-                      onPressed: () {
-                        _searchController.clear();
-                        _applySearch();
-                      },
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                ],
-              ),
+          Expanded(
+            child: JobListageResultsView(
+              isLoading: _isLoading,
+              loadError: _loadError,
+              pageData: _pageData,
+              visiblePagesBuilder: _buildVisiblePages,
+              refreshingCards: _refreshingCards,
+              onRetry: () => _loadPage(resetReference: true),
+              onRefreshEmptyState: () =>
+                  _loadPage(resetReference: true, page: 1),
+              onLoadPage: (page) => _loadPage(page: page),
+              onRefreshCard: _refreshCard,
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        OutlinedButton.icon(
-          onPressed: _openFiltersDialog,
-          icon: const Icon(Icons.filter_alt_rounded),
-          label: const Text('Filters'),
-        ),
-        const SizedBox(width: 12),
-        _OrderByMenu(
-          current: _filters.orderBy,
-          onSelected: (orderBy) => unawaited(_updateOrderBy(orderBy)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBody(BuildContext context) {
-    if (_isLoading && _pageData == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (_loadError != null && _pageData == null) {
-      return Center(
-        child: _StateCard(
-          icon: Icons.error_outline_rounded,
-          title: 'Unable to load job analyses',
-          description: _loadError.toString(),
-          actionLabel: 'Retry',
-          onAction: () => _loadPage(resetReference: true),
-        ),
-      );
-    }
-
-    final pageData = _pageData;
-    if (pageData == null || pageData.items.isEmpty) {
-      return Center(
-        child: _StateCard(
-          icon: Icons.search_off_rounded,
-          title: 'No job analyses match the current filters',
-          description:
-              'Try clearing some filters or refreshing the dataset to capture a new pagination reference.',
-          actionLabel: 'Refresh',
-          onAction: () => _loadPage(resetReference: true, page: 1),
-        ),
-      );
-    }
-
-    final metadata = pageData.paginationMetadata;
-    final pageNumbers = _buildVisiblePages(
-      metadata.currentPage,
-      metadata.totalPages,
-    );
-
-    return ListView.builder(
-      itemCount: pageData.items.length + 1,
-      itemBuilder: (context, index) {
-        if (index == pageData.items.length) {
-          return Column(
-            children: [
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    onPressed: metadata.hasPreviousPage
-                        ? () => _loadPage(page: metadata.currentPage - 1)
-                        : null,
-                    icon: const Icon(Icons.chevron_left_rounded),
-                  ),
-                  for (final page in pageNumbers)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: ChoiceChip(
-                        label: Text('$page'),
-                        selected: page == metadata.currentPage,
-                        onSelected: (_) => _loadPage(page: page),
-                      ),
-                    ),
-                  IconButton(
-                    onPressed: metadata.hasNextPage
-                        ? () => _loadPage(page: metadata.currentPage + 1)
-                        : null,
-                    icon: const Icon(Icons.chevron_right_rounded),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (metadata.hasNextPage)
-                Align(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _loadPage(page: metadata.currentPage + 1),
-                    icon: const Icon(Icons.expand_more_rounded),
-                    label: const Text('Load more'),
-                  ),
-                ),
-            ],
-          );
-        }
-
-        final analysis = pageData.items[index];
-
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: JobAnalysisCard(
-            analysis: analysis,
-            isRefreshing: _refreshingCards.contains(analysis.id),
-            onRefresh: analysis.id == null ? null : _refreshCard,
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -658,48 +532,6 @@ class _AgeSlider extends StatelessWidget {
   }
 }
 
-class _OrderByMenu extends StatelessWidget {
-  const _OrderByMenu({required this.current, required this.onSelected});
-
-  final JobAnalysisOrderBy current;
-  final ValueChanged<JobAnalysisOrderBy> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<JobAnalysisOrderBy>(
-      onSelected: onSelected,
-      itemBuilder: (context) => [
-        for (final option in JobAnalysisOrderBy.values)
-          PopupMenuItem(
-            value: option,
-            child: Text(_orderByLabel(context, option)),
-          ),
-      ],
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-          border: Border.all(
-            color: Theme.of(
-              context,
-            ).colorScheme.outline.withValues(alpha: 0.28),
-          ),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.swap_vert_rounded),
-            const SizedBox(width: 10),
-            Text(_orderByLabel(context, current)),
-            const SizedBox(width: 6),
-            const Icon(Icons.keyboard_arrow_down_rounded),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 class _AppliedFilterChip extends StatelessWidget {
   const _AppliedFilterChip({required this.label});
 
@@ -708,64 +540,6 @@ class _AppliedFilterChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Chip(label: Text(label));
-  }
-}
-
-class _StateCard extends StatelessWidget {
-  const _StateCard({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.actionLabel,
-    required this.onAction,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-  final String actionLabel;
-  final VoidCallback onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 560),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 44,
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-              const SizedBox(height: 18),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.headlineMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 10),
-              Text(
-                description,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.72),
-                ),
-              ),
-              const SizedBox(height: 18),
-              ElevatedButton.icon(
-                onPressed: onAction,
-                icon: const Icon(Icons.refresh_rounded),
-                label: Text(actionLabel),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
   }
 }
 
