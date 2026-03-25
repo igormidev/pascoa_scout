@@ -31,45 +31,36 @@ class JobListageToolbar extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 2,
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.search_rounded),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: TextField(
-                          controller: searchController,
-                          decoration: const InputDecoration(
-                            hintText:
-                                'Search job titles, descriptions, or client names',
-                            border: InputBorder.none,
-                          ),
-                          onSubmitted: (_) => onSearchSubmitted(),
-                        ),
-                      ),
-                      ListenableBuilder(
-                        listenable: searchController,
-                        builder: (context, _) {
-                          if (searchController.text.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
+              child: Expanded(
+                child: TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText:
+                        'Search job titles, descriptions, or client names',
+                    border: InputBorder.none,
+                    prefixIcon: Padding(
+                      padding: EdgeInsets.only(left: 12.0),
+                      child: Icon(Icons.search_rounded),
+                    ),
+                    suffixIcon: ListenableBuilder(
+                      listenable: searchController,
+                      builder: (context, _) {
+                        if (searchController.text.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
 
-                          return IconButton(
-                            onPressed: onClearSearch,
-                            icon: const Icon(Icons.close_rounded),
-                          );
-                        },
-                      ),
-                    ],
+                        return IconButton(
+                          onPressed: onClearSearch,
+                          icon: const Icon(Icons.close_rounded),
+                        );
+                      },
+                    ),
                   ),
+                  onSubmitted: (_) => onSearchSubmitted(),
                 ),
               ),
             ),
+
             const SizedBox(width: 12),
             IconButton.filledTonal(
               tooltip: 'Refresh current filters',

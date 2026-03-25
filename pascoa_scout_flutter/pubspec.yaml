@@ -38,7 +38,7 @@ dependencies:
   intl: ^0.20.2
   pascoa_scout_client:
     path: ../pascoa_scout_client
-  serverpod_flutter: 3.4.4
+  serverpod_flutter: 3.4.5
   riverpod: ^3.2.1
   flutter_riverpod: ^3.3.1
   flutter_animate: ^4.5.2

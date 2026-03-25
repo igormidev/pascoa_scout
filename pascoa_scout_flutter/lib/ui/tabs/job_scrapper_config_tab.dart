@@ -16,8 +16,8 @@ import 'package:pascoa_scout/interactor/job_sync/job_sync_providers.dart';
 import 'package:pascoa_scout/interactor/job_sync/job_sync_state.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
-part 'widgets/job_scrapper_config_editor_view.dart';
 part 'widgets/job_scrapper_advanced_sections_view.dart';
+part 'widgets/job_scrapper_config_editor_view.dart';
 
 class JobScrapperConfigTab extends ConsumerStatefulWidget {
   const JobScrapperConfigTab({super.key});
@@ -845,55 +845,74 @@ class _CompactFilterRunTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ListView(
-      key: const ValueKey('compact-filter-run-view'),
+    return Padding(
+      // padding: EdgeInsets.zero,
       padding: const EdgeInsets.fromLTRB(20.0, 28.0, 10.0, 28.0),
-      children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(22.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Text('🗿', style: TextStyle(fontSize: 82.0, height: 1.0)),
-                const SizedBox(height: 10.0),
-                Text(
-                  'Pascoa Scout',
-                  style: theme.textTheme.headlineMedium,
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 12.0),
-                Text(
-                  summaryText,
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.78),
+      child: ListView(
+        key: const ValueKey('compact-filter-run-view'),
+        // crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Center(
+          //   child: const Text(
+          //     '🗿',
+          //     style: TextStyle(fontSize: 82.0, height: 1.0),
+          //   ),
+          // ),
+          // const SizedBox(height: 10.0),
+          // Text(
+          //   'Pascoa Scout',
+          //   style: theme.textTheme.headlineMedium,
+          //   textAlign: TextAlign.center,
+          // ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('🗿', style: TextStyle(fontSize: 90.0, height: 1.1)),
+              const SizedBox(width: 10.0),
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Pascoa Scout',
+                    style: theme.textTheme.headlineLarge,
+                    textAlign: TextAlign.start,
                   ),
-                ),
-                const SizedBox(height: 18.0),
-                _CompactFilterRunActions(
-                  onChangeFilters: onChangeFilters,
-                  onCopyCurl: onCopyCurl,
-                ),
-                const _CompactFilterLockHint(),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20.0),
-                  child: Divider(height: 1.0),
-                ),
-                const _CompactAutomationSettingsColumn(),
-                const SizedBox(height: 14.0),
-                const _CompactAutomationStatusCard(),
-                const SizedBox(height: 14.0),
-                const _CompactAutomationToggleButton(),
-                const _CompactErrorsSection(),
-              ],
-            ),
+                  const SizedBox(height: 2.0),
+                  Text(
+                    'Filters summary: $summaryText',
+                    maxLines: 5,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.78),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ).animate().fadeIn(duration: 280.ms).slideX(begin: -0.08),
-      ],
-    );
+
+          const SizedBox(height: 18.0),
+          _CompactFilterRunActions(
+            onChangeFilters: onChangeFilters,
+            onCopyCurl: onCopyCurl,
+          ),
+          const _CompactFilterLockHint(),
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20.0),
+            child: Divider(height: 1.0),
+          ),
+          const _CompactAutomationSettingsColumn(),
+          const SizedBox(height: 14.0),
+          const _CompactAutomationStatusCard(),
+          const SizedBox(height: 14.0),
+          const _CompactAutomationToggleButton(),
+          const _CompactErrorsSection(),
+        ],
+      ),
+    ).animate().fadeIn(duration: 280.ms).slideX(begin: -0.08);
   }
 }
 
