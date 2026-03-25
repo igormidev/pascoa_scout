@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_listage_applied_filters.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_results_view.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_toolbar.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
@@ -43,111 +44,67 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final appliedFilterLabels = <String>[
+      if (_filters.searchTerm?.isNotEmpty ?? false)
+        'Search: ${_filters.searchTerm}',
+      if (_filters.analysisFilter != JobAnalysisFilterMode.all)
+        _analysisFilterLabel(_filters.analysisFilter),
+      if (_filters.hasQuestions != null)
+        _filters.hasQuestions! ? 'Has questions' : 'No questions',
+      if (_filters.useScoreRange)
+        'Score ${_filters.minimumScorePercentage}-${_filters.maximumScorePercentage}%',
+      if (_filters.maxAgeJobInfoHours != null)
+        'Job ≤ ${_filters.maxAgeJobInfoHours}h old',
+      if (_filters.maxAgeScoringHours != null)
+        'Scoring ≤ ${_filters.maxAgeScoringHours}h old',
+      if (_filters.maxAgeAiResponsesHours != null)
+        'AI responses ≤ ${_filters.maxAgeAiResponsesHours}h old',
+      _orderByLabel(context, _filters.orderBy),
+    ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 28),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Job matches', style: theme.textTheme.headlineMedium),
-          const SizedBox(height: 8),
-          Text(
-            'Search persisted analyses, inspect scores and AI-generated responses, and refresh only the rows that are still incomplete.',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.72),
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+      child: JobListageResultsView(
+        header: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Job matches', style: theme.textTheme.headlineMedium),
+            const SizedBox(height: 8),
+            Text(
+              'Search persisted analyses, inspect scores and AI-generated responses, and refresh only the rows that are still incomplete.',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: Colors.white.withValues(alpha: 0.72),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
-          JobListageToolbar(
-            searchController: _searchController,
-            currentOrderBy: _filters.orderBy,
-            onRefresh: () => _loadPage(resetReference: true, page: 1),
-            onSearchSubmitted: _applySearch,
-            onClearSearch: () {
-              _searchController.clear();
-              _applySearch();
-            },
-            onOpenFilters: _openFiltersDialog,
-            onOrderBySelected: (orderBy) => unawaited(_updateOrderBy(orderBy)),
-            orderByLabelBuilder: (orderBy) => _orderByLabel(context, orderBy),
-          ),
-          const SizedBox(height: 12),
-          if (_buildAppliedFilterChips().isNotEmpty)
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _buildAppliedFilterChips(),
-            ),
-          const SizedBox(height: 18),
-          Expanded(
-            child: JobListageResultsView(
-              isLoading: _isLoading,
-              loadError: _loadError,
-              pageData: _pageData,
-              visiblePagesBuilder: _buildVisiblePages,
-              refreshingCards: _refreshingCards,
-              onRetry: () => _loadPage(resetReference: true),
-              onRefreshEmptyState: () =>
-                  _loadPage(resetReference: true, page: 1),
-              onLoadPage: (page) => _loadPage(page: page),
-              onRefreshCard: _refreshCard,
-            ),
-          ),
-        ],
+            const SizedBox(height: 20),
+          ],
+        ),
+        toolbar: JobListageToolbar(
+          searchController: _searchController,
+          currentOrderBy: _filters.orderBy,
+          onRefresh: () => _loadPage(resetReference: true, page: 1),
+          onSearchSubmitted: _applySearch,
+          onClearSearch: () {
+            _searchController.clear();
+            _applySearch();
+          },
+          onOpenFilters: _openFiltersDialog,
+          onOrderBySelected: (orderBy) => unawaited(_updateOrderBy(orderBy)),
+          orderByLabelBuilder: (orderBy) => _orderByLabel(context, orderBy),
+        ),
+        appliedFilters: JobListageAppliedFilters(labels: appliedFilterLabels),
+        hasAppliedFilters: appliedFilterLabels.isNotEmpty,
+        isLoading: _isLoading,
+        loadError: _loadError,
+        pageData: _pageData,
+        visiblePagesBuilder: _buildVisiblePages,
+        refreshingCards: _refreshingCards,
+        onRetry: () => _loadPage(resetReference: true),
+        onRefreshEmptyState: () => _loadPage(resetReference: true, page: 1),
+        onLoadPage: (page) => _loadPage(page: page),
+        onRefreshCard: _refreshCard,
       ),
     );
-  }
-
-  List<Widget> _buildAppliedFilterChips() {
-    final chips = <Widget>[];
-    if (_filters.searchTerm?.isNotEmpty ?? false) {
-      chips.add(_AppliedFilterChip(label: 'Search: ${_filters.searchTerm}'));
-    }
-    if (_filters.analysisFilter != JobAnalysisFilterMode.all) {
-      chips.add(
-        _AppliedFilterChip(
-          label: _analysisFilterLabel(_filters.analysisFilter),
-        ),
-      );
-    }
-    if (_filters.hasQuestions != null) {
-      chips.add(
-        _AppliedFilterChip(
-          label: _filters.hasQuestions! ? 'Has questions' : 'No questions',
-        ),
-      );
-    }
-    if (_filters.useScoreRange) {
-      chips.add(
-        _AppliedFilterChip(
-          label:
-              'Score ${_filters.minimumScorePercentage}-${_filters.maximumScorePercentage}%',
-        ),
-      );
-    }
-    if (_filters.maxAgeJobInfoHours != null) {
-      chips.add(
-        _AppliedFilterChip(label: 'Job ≤ ${_filters.maxAgeJobInfoHours}h old'),
-      );
-    }
-    if (_filters.maxAgeScoringHours != null) {
-      chips.add(
-        _AppliedFilterChip(
-          label: 'Scoring ≤ ${_filters.maxAgeScoringHours}h old',
-        ),
-      );
-    }
-    if (_filters.maxAgeAiResponsesHours != null) {
-      chips.add(
-        _AppliedFilterChip(
-          label: 'AI responses ≤ ${_filters.maxAgeAiResponsesHours}h old',
-        ),
-      );
-    }
-    chips.add(
-      _AppliedFilterChip(label: _orderByLabel(context, _filters.orderBy)),
-    );
-    return chips;
   }
 
   List<int> _buildVisiblePages(int currentPage, int totalPages) {
@@ -529,17 +486,6 @@ class _AgeSlider extends StatelessWidget {
           ),
       ],
     );
-  }
-}
-
-class _AppliedFilterChip extends StatelessWidget {
-  const _AppliedFilterChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Chip(label: Text(label));
   }
 }
 

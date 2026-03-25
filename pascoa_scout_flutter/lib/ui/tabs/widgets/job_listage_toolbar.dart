@@ -52,11 +52,19 @@ class JobListageToolbar extends StatelessWidget {
                       onSubmitted: (_) => onSearchSubmitted(),
                     ),
                   ),
-                  if (searchController.text.isNotEmpty)
-                    IconButton(
-                      onPressed: onClearSearch,
-                      icon: const Icon(Icons.close_rounded),
-                    ),
+                  ListenableBuilder(
+                    listenable: searchController,
+                    builder: (context, _) {
+                      if (searchController.text.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return IconButton(
+                        onPressed: onClearSearch,
+                        icon: const Icon(Icons.close_rounded),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),

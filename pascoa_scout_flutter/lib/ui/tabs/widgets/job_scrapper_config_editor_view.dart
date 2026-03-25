@@ -8,7 +8,7 @@ class _JobScrapperConfigEditorView extends StatelessWidget {
     required this.queryController,
     required this.queryValidator,
     required this.showAdvancedFilters,
-    required this.advancedSections,
+    required this.advancedSectionsView,
     required this.onDiscard,
     required this.onCopyCurl,
     required this.onSave,
@@ -20,7 +20,7 @@ class _JobScrapperConfigEditorView extends StatelessWidget {
   final TextEditingController queryController;
   final FormFieldValidator<String>? queryValidator;
   final bool showAdvancedFilters;
-  final List<Widget> advancedSections;
+  final Widget advancedSectionsView;
   final VoidCallback onDiscard;
   final Future<void> Function() onCopyCurl;
   final Future<void> Function() onSave;
@@ -85,10 +85,7 @@ class _JobScrapperConfigEditorView extends StatelessWidget {
                 switchInCurve: Curves.easeOutCubic,
                 switchOutCurve: Curves.easeInCubic,
                 child: showAdvancedFilters
-                    ? _AdvancedFiltersView(
-                        key: const ValueKey('advanced-filters'),
-                        sections: advancedSections,
-                      )
+                    ? advancedSectionsView
                     : const _LockedFiltersCard(key: ValueKey('locked-filters')),
               ),
               const SizedBox(height: 20.0),
