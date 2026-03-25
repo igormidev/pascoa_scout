@@ -164,53 +164,63 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
       metadata.totalPages,
     );
 
-    return ListView(
-      children: [
-        for (final analysis in pageData.items) ...[
-          JobAnalysisCard(
+    return ListView.builder(
+      itemCount: pageData.items.length + 1,
+      itemBuilder: (context, index) {
+        if (index == pageData.items.length) {
+          return Column(
+            children: [
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    onPressed: metadata.hasPreviousPage
+                        ? () => _loadPage(page: metadata.currentPage - 1)
+                        : null,
+                    icon: const Icon(Icons.chevron_left_rounded),
+                  ),
+                  for (final page in pageNumbers)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ChoiceChip(
+                        label: Text('$page'),
+                        selected: page == metadata.currentPage,
+                        onSelected: (_) => _loadPage(page: page),
+                      ),
+                    ),
+                  IconButton(
+                    onPressed: metadata.hasNextPage
+                        ? () => _loadPage(page: metadata.currentPage + 1)
+                        : null,
+                    icon: const Icon(Icons.chevron_right_rounded),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (metadata.hasNextPage)
+                Align(
+                  child: OutlinedButton.icon(
+                    onPressed: () => _loadPage(page: metadata.currentPage + 1),
+                    icon: const Icon(Icons.expand_more_rounded),
+                    label: const Text('Load more'),
+                  ),
+                ),
+            ],
+          );
+        }
+
+        final analysis = pageData.items[index];
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: JobAnalysisCard(
             analysis: analysis,
             isRefreshing: _refreshingCards.contains(analysis.id),
             onRefresh: analysis.id == null ? null : _refreshCard,
           ),
-          const SizedBox(height: 16),
-        ],
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              onPressed: metadata.hasPreviousPage
-                  ? () => _loadPage(page: metadata.currentPage - 1)
-                  : null,
-              icon: const Icon(Icons.chevron_left_rounded),
-            ),
-            for (final page in pageNumbers)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4),
-                child: ChoiceChip(
-                  label: Text('$page'),
-                  selected: page == metadata.currentPage,
-                  onSelected: (_) => _loadPage(page: page),
-                ),
-              ),
-            IconButton(
-              onPressed: metadata.hasNextPage
-                  ? () => _loadPage(page: metadata.currentPage + 1)
-                  : null,
-              icon: const Icon(Icons.chevron_right_rounded),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        if (metadata.hasNextPage)
-          Align(
-            child: OutlinedButton.icon(
-              onPressed: () => _loadPage(page: metadata.currentPage + 1),
-              icon: const Icon(Icons.expand_more_rounded),
-              label: const Text('Load more'),
-            ),
-          ),
-      ],
+        );
+      },
     );
   }
 
