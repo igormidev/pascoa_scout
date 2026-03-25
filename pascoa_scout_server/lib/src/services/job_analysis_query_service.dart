@@ -26,15 +26,19 @@ class JobAnalysisQueryService {
         session,
         where: (_) => where,
       );
-
-      final items = await JobAnalysisState.db.find(
+      final sortedIds = await _loadSortedRowIds(
         session,
-        where: (_) => where,
-        orderBy: _buildOrderBy(filter.orderBy),
-        orderDescending: _isDescending(filter.orderBy),
-        limit: filter.pageSize,
-        offset: (filter.page - 1) * filter.pageSize,
-        include: buildJobAnalysisStateInclude(),
+        where: where,
+        orderBy: filter.orderBy,
+      );
+      final pageIds = _slicePageIds(
+        ids: sortedIds,
+        page: filter.page,
+        pageSize: filter.pageSize,
+      );
+      final items = await _loadPageItems(
+        session,
+        pageIds: pageIds,
       );
 
       final totalPages = totalCount == 0
@@ -227,58 +231,176 @@ class JobAnalysisQueryService {
     return where;
   }
 
-  OrderByBuilder<JobAnalysisStateTable> _buildOrderBy(
-    JobAnalysisOrderBy orderBy,
-  ) {
-    return switch (orderBy) {
-      JobAnalysisOrderBy.highestHourlyRate =>
-        (table) => table.jobInfo.hourlyMaxRate,
-      JobAnalysisOrderBy.lowestHourlyRate =>
-        (table) => table.jobInfo.hourlyMinRate,
-      JobAnalysisOrderBy.highestFixedPrice =>
-        (table) => table.jobInfo.fixedPriceAmount,
-      JobAnalysisOrderBy.lowestFixedPrice =>
-        (table) => table.jobInfo.fixedPriceAmount,
-      JobAnalysisOrderBy.newestRelativeDate =>
-        (table) => table.jobInfo.relativeDateMinutes,
-      JobAnalysisOrderBy.newestAbsoluteDate =>
-        (table) => table.jobInfo.absoluteDateTime,
-      JobAnalysisOrderBy.mostRecentJobInfoCreatedAt =>
-        (table) => table.createdJobInfoAt,
-      JobAnalysisOrderBy.mostRecentScoringCreatedAt =>
-        (table) => table.createdJobScoringAt,
-      JobAnalysisOrderBy.mostRecentAiResponsesCreatedAt =>
-        (table) => table.createdJobAiResponsesAt,
-      JobAnalysisOrderBy.highestClientHireRate =>
-        (table) => table.jobInfo.clientHireRatePercent,
-      JobAnalysisOrderBy.highestClientAverageHourlyRate =>
-        (table) => table.jobInfo.clientAvgHourlyRate,
-      JobAnalysisOrderBy.highestClientNameConfidence =>
-        (table) => table.jobInfo.clientNameConfidencePercent,
-      JobAnalysisOrderBy.highestClientRating =>
-        (table) => table.jobInfo.clientRating,
-      JobAnalysisOrderBy.highestClientTotalSpent =>
-        (table) => table.jobInfo.clientTotalSpent,
-    };
+  Future<List<int>> _loadSortedRowIds(
+    Session session, {
+    required Expression where,
+    required JobAnalysisOrderBy orderBy,
+  }) async {
+    final rows = await JobAnalysisState.db.find(
+      session,
+      where: (_) => where,
+      include: JobAnalysisState.include(
+        jobInfo: JobInfo.include(),
+        score: JobScore.include(),
+      ),
+    );
+
+    rows.sort((left, right) => _compareRows(left, right, orderBy));
+    return rows.map((row) => row.id!).toList(growable: false);
   }
 
-  bool _isDescending(JobAnalysisOrderBy orderBy) {
-    return switch (orderBy) {
-      JobAnalysisOrderBy.highestHourlyRate ||
-      JobAnalysisOrderBy.highestFixedPrice ||
-      JobAnalysisOrderBy.newestAbsoluteDate ||
-      JobAnalysisOrderBy.mostRecentJobInfoCreatedAt ||
-      JobAnalysisOrderBy.mostRecentScoringCreatedAt ||
-      JobAnalysisOrderBy.mostRecentAiResponsesCreatedAt ||
-      JobAnalysisOrderBy.highestClientHireRate ||
-      JobAnalysisOrderBy.highestClientAverageHourlyRate ||
-      JobAnalysisOrderBy.highestClientNameConfidence ||
-      JobAnalysisOrderBy.highestClientRating ||
-      JobAnalysisOrderBy.highestClientTotalSpent => true,
-      JobAnalysisOrderBy.lowestHourlyRate ||
-      JobAnalysisOrderBy.lowestFixedPrice ||
-      JobAnalysisOrderBy.newestRelativeDate => false,
+  List<int> _slicePageIds({
+    required List<int> ids,
+    required int page,
+    required int pageSize,
+  }) {
+    final start = (page - 1) * pageSize;
+    if (start >= ids.length) {
+      return const [];
+    }
+
+    final end = (start + pageSize).clamp(0, ids.length);
+    return ids.sublist(start, end);
+  }
+
+  Future<List<JobAnalysisState>> _loadPageItems(
+    Session session, {
+    required List<int> pageIds,
+  }) async {
+    if (pageIds.isEmpty) {
+      return const [];
+    }
+
+    final rows = await JobAnalysisState.db.find(
+      session,
+      where: (table) => table.id.inSet(pageIds.toSet()),
+      include: buildJobAnalysisStateInclude(),
+    );
+    final rowsById = {
+      for (final row in rows)
+        if (row.id != null) row.id!: _normalizeAnalysisState(row),
     };
+
+    return pageIds
+        .map((id) => rowsById[id])
+        .whereType<JobAnalysisState>()
+        .toList(growable: false);
+  }
+
+  int _compareRows(
+    JobAnalysisState left,
+    JobAnalysisState right,
+    JobAnalysisOrderBy orderBy,
+  ) {
+    final primary = switch (orderBy) {
+      JobAnalysisOrderBy.highestScore => _compareNullable(
+        left.score?.scorePercentage,
+        right.score?.scorePercentage,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.highestHourlyRate => _compareNullable(
+        left.jobInfo?.hourlyMaxRate,
+        right.jobInfo?.hourlyMaxRate,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.lowestHourlyRate => _compareNullable(
+        left.jobInfo?.hourlyMinRate,
+        right.jobInfo?.hourlyMinRate,
+        descending: false,
+      ),
+      JobAnalysisOrderBy.highestFixedPrice => _compareNullable(
+        left.jobInfo?.fixedPriceAmount,
+        right.jobInfo?.fixedPriceAmount,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.lowestFixedPrice => _compareNullable(
+        left.jobInfo?.fixedPriceAmount,
+        right.jobInfo?.fixedPriceAmount,
+        descending: false,
+      ),
+      JobAnalysisOrderBy.newestRelativeDate => _compareNullable(
+        left.jobInfo?.relativeDateMinutes,
+        right.jobInfo?.relativeDateMinutes,
+        descending: false,
+      ),
+      JobAnalysisOrderBy.newestAbsoluteDate => _compareNullable(
+        left.jobInfo?.absoluteDateTime,
+        right.jobInfo?.absoluteDateTime,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.mostRecentJobInfoCreatedAt => _compareNullable(
+        left.createdJobInfoAt,
+        right.createdJobInfoAt,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.mostRecentScoringCreatedAt => _compareNullable(
+        left.createdJobScoringAt,
+        right.createdJobScoringAt,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.mostRecentAiResponsesCreatedAt => _compareNullable(
+        left.createdJobAiResponsesAt,
+        right.createdJobAiResponsesAt,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.highestClientHireRate => _compareNullable(
+        left.jobInfo?.clientHireRatePercent,
+        right.jobInfo?.clientHireRatePercent,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.highestClientAverageHourlyRate => _compareNullable(
+        left.jobInfo?.clientAvgHourlyRate,
+        right.jobInfo?.clientAvgHourlyRate,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.highestClientNameConfidence => _compareNullable(
+        left.jobInfo?.clientNameConfidencePercent,
+        right.jobInfo?.clientNameConfidencePercent,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.highestClientRating => _compareNullable(
+        left.jobInfo?.clientRating,
+        right.jobInfo?.clientRating,
+        descending: true,
+      ),
+      JobAnalysisOrderBy.highestClientTotalSpent => _compareNullable(
+        left.jobInfo?.clientTotalSpent,
+        right.jobInfo?.clientTotalSpent,
+        descending: true,
+      ),
+    };
+    if (primary != 0) {
+      return primary;
+    }
+
+    final createdAtTieBreak = _compareNullable(
+      left.createdJobInfoAt,
+      right.createdJobInfoAt,
+      descending: true,
+    );
+    if (createdAtTieBreak != 0) {
+      return createdAtTieBreak;
+    }
+
+    return _compareNullable(left.id, right.id, descending: true);
+  }
+
+  int _compareNullable<T extends Comparable<dynamic>>(
+    T? left,
+    T? right, {
+    required bool descending,
+  }) {
+    if (left == null && right == null) {
+      return 0;
+    }
+    if (left == null) {
+      return 1;
+    }
+    if (right == null) {
+      return -1;
+    }
+
+    return descending ? right.compareTo(left) : left.compareTo(right);
   }
 
   JobAnalysisState _normalizeAnalysisState(JobAnalysisState row) {

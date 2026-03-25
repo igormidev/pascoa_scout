@@ -1,0 +1,18 @@
+{
+  "@@locale": "pt",
+  "jobListOrderByHighestScore": "Maior pontuação",
+  "jobListOrderByHighestHourlyRate": "Maior valor por hora",
+  "jobListOrderByLowestHourlyRate": "Menor valor por hora",
+  "jobListOrderByHighestFixedPrice": "Maior preço fixo",
+  "jobListOrderByLowestFixedPrice": "Menor preço fixo",
+  "jobListOrderByNewestRelativeDate": "Data relativa mais recente",
+  "jobListOrderByNewestAbsoluteDate": "Data absoluta mais recente",
+  "jobListOrderByNewestPersistedJobs": "Vagas persistidas mais recentes",
+  "jobListOrderByNewestGeneratedScores": "Pontuações geradas mais recentes",
+  "jobListOrderByNewestAiResponses": "Respostas de IA mais recentes",
+  "jobListOrderByHighestClientHireRate": "Maior taxa de contratação do cliente",
+  "jobListOrderByHighestClientAverageHourlyRate": "Maior média por hora do cliente",
+  "jobListOrderByHighestClientNameConfidence": "Maior confiança no nome do cliente",
+  "jobListOrderByHighestClientRating": "Maior avaliação do cliente",
+  "jobListOrderByHighestClientTotalSpent": "Maior total gasto pelo cliente"
+}

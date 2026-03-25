@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/ui/dashboard_page.dart';
 import 'package:pascoa_scout/ui/widgets/app_notification_overlay.dart';
@@ -52,6 +53,8 @@ class PascoaScoutApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Pascoa Scout',
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: ThemeData(
         useMaterial3: true,
         brightness: Brightness.dark,

@@ -1,9 +1,15 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
+import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_card.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
+
+const _jobAnalysisListPreferencesKey = 'job_analysis_list_preferences';
 
 class JobListageTab extends ConsumerStatefulWidget {
   const JobListageTab({super.key});
@@ -23,6 +29,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
   @override
   void initState() {
     super.initState();
+    _filters = _restorePersistedFilters();
     _loadPage(resetReference: true);
   }
 
@@ -115,12 +122,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         const SizedBox(width: 12),
         _OrderByMenu(
           current: _filters.orderBy,
-          onSelected: (orderBy) {
-            setState(() {
-              _filters = _filters.copyWith(orderBy: orderBy);
-            });
-            _loadPage(resetReference: true, page: 1);
-          },
+          onSelected: (orderBy) => unawaited(_updateOrderBy(orderBy)),
         ),
       ],
     );
@@ -258,7 +260,9 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         ),
       );
     }
-    chips.add(_AppliedFilterChip(label: _orderByLabel(_filters.orderBy)));
+    chips.add(
+      _AppliedFilterChip(label: _orderByLabel(context, _filters.orderBy)),
+    );
     return chips;
   }
 
@@ -283,13 +287,29 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
       context: context,
       builder: (context) => _FiltersDialog(initialFilters: _filters),
     );
-    if (nextFilters == null) {
+    if (!mounted || nextFilters == null) {
       return;
     }
 
     setState(() {
       _filters = nextFilters;
     });
+    await _persistFilters(nextFilters);
+    if (!mounted) {
+      return;
+    }
+    await _loadPage(resetReference: true, page: 1);
+  }
+
+  Future<void> _updateOrderBy(JobAnalysisOrderBy orderBy) async {
+    final nextFilters = _filters.copyWith(orderBy: orderBy);
+    setState(() {
+      _filters = nextFilters;
+    });
+    await _persistFilters(nextFilters);
+    if (!mounted) {
+      return;
+    }
     await _loadPage(resetReference: true, page: 1);
   }
 
@@ -381,6 +401,46 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
           _refreshingCards.remove(id);
         });
       }
+    }
+  }
+
+  Future<void> _persistFilters(_LocalJobAnalysisFilters filters) async {
+    final preferences = ref.read(sharedPreferencesProvider);
+    final didPersist = await preferences.setString(
+      _jobAnalysisListPreferencesKey,
+      jsonEncode(filters.toPersistenceMap()),
+    );
+    if (!didPersist) {
+      debugPrint('Unable to persist the job analysis list preferences.');
+    }
+  }
+
+  _LocalJobAnalysisFilters _restorePersistedFilters() {
+    final preferences = ref.read(sharedPreferencesProvider);
+    final persistedValue = preferences.getString(
+      _jobAnalysisListPreferencesKey,
+    );
+    if (persistedValue == null || persistedValue.isEmpty) {
+      return const _LocalJobAnalysisFilters();
+    }
+
+    try {
+      final decodedValue = jsonDecode(persistedValue);
+      if (decodedValue is! Map) {
+        unawaited(preferences.remove(_jobAnalysisListPreferencesKey));
+        return const _LocalJobAnalysisFilters();
+      }
+
+      return _LocalJobAnalysisFilters.fromPersistenceMap(
+        Map<String, dynamic>.from(decodedValue),
+      );
+    } catch (error, stackTrace) {
+      debugPrint(
+        'Failed to restore the saved job analysis list preferences: '
+        '$error\n$stackTrace',
+      );
+      unawaited(preferences.remove(_jobAnalysisListPreferencesKey));
+      return const _LocalJobAnalysisFilters();
     }
   }
 }
@@ -600,7 +660,10 @@ class _OrderByMenu extends StatelessWidget {
       onSelected: onSelected,
       itemBuilder: (context) => [
         for (final option in JobAnalysisOrderBy.values)
-          PopupMenuItem(value: option, child: Text(_orderByLabel(option))),
+          PopupMenuItem(
+            value: option,
+            child: Text(_orderByLabel(context, option)),
+          ),
       ],
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
@@ -617,7 +680,7 @@ class _OrderByMenu extends StatelessWidget {
           children: [
             const Icon(Icons.swap_vert_rounded),
             const SizedBox(width: 10),
-            Text(_orderByLabel(current)),
+            Text(_orderByLabel(context, current)),
             const SizedBox(width: 6),
             const Icon(Icons.keyboard_arrow_down_rounded),
           ],
@@ -700,7 +763,7 @@ class _LocalJobAnalysisFilters {
   const _LocalJobAnalysisFilters({
     this.searchTerm,
     this.analysisFilter = JobAnalysisFilterMode.all,
-    this.orderBy = JobAnalysisOrderBy.mostRecentJobInfoCreatedAt,
+    this.orderBy = JobAnalysisOrderBy.highestScore,
     this.hasQuestions,
     this.useScoreRange = false,
     this.minimumScorePercentage = 0,
@@ -720,6 +783,40 @@ class _LocalJobAnalysisFilters {
   final int? maxAgeJobInfoHours;
   final int? maxAgeScoringHours;
   final int? maxAgeAiResponsesHours;
+
+  Map<String, Object?> toPersistenceMap() {
+    return {
+      'analysisFilter': analysisFilter.toJson(),
+      'orderBy': orderBy.toJson(),
+      'hasQuestions': hasQuestions,
+      'useScoreRange': useScoreRange,
+      'minimumScorePercentage': minimumScorePercentage,
+      'maximumScorePercentage': maximumScorePercentage,
+      'maxAgeJobInfoHours': maxAgeJobInfoHours,
+      'maxAgeScoringHours': maxAgeScoringHours,
+      'maxAgeAiResponsesHours': maxAgeAiResponsesHours,
+    };
+  }
+
+  factory _LocalJobAnalysisFilters.fromPersistenceMap(
+    Map<String, dynamic> json,
+  ) {
+    return _LocalJobAnalysisFilters(
+      analysisFilter: _jobAnalysisFilterModeFromJsonValue(
+        json['analysisFilter'],
+      ),
+      orderBy: _jobAnalysisOrderByFromJsonValue(json['orderBy']),
+      hasQuestions: json['hasQuestions'] as bool?,
+      useScoreRange: json['useScoreRange'] as bool? ?? false,
+      minimumScorePercentage:
+          (json['minimumScorePercentage'] as num?)?.round() ?? 0,
+      maximumScorePercentage:
+          (json['maximumScorePercentage'] as num?)?.round() ?? 100,
+      maxAgeJobInfoHours: (json['maxAgeJobInfoHours'] as num?)?.round(),
+      maxAgeScoringHours: (json['maxAgeScoringHours'] as num?)?.round(),
+      maxAgeAiResponsesHours: (json['maxAgeAiResponsesHours'] as num?)?.round(),
+    );
+  }
 
   _LocalJobAnalysisFilters copyWith({
     String? searchTerm,
@@ -791,6 +888,30 @@ class _LocalJobAnalysisFilters {
   );
 }
 
+JobAnalysisFilterMode _jobAnalysisFilterModeFromJsonValue(Object? value) {
+  if (value is String) {
+    try {
+      return JobAnalysisFilterMode.fromJson(value);
+    } on ArgumentError {
+      return JobAnalysisFilterMode.all;
+    }
+  }
+
+  return JobAnalysisFilterMode.all;
+}
+
+JobAnalysisOrderBy _jobAnalysisOrderByFromJsonValue(Object? value) {
+  if (value is String) {
+    try {
+      return JobAnalysisOrderBy.fromJson(value);
+    } on ArgumentError {
+      return JobAnalysisOrderBy.highestScore;
+    }
+  }
+
+  return JobAnalysisOrderBy.highestScore;
+}
+
 String _analysisFilterLabel(JobAnalysisFilterMode mode) {
   return switch (mode) {
     JobAnalysisFilterMode.all => 'All',
@@ -802,23 +923,36 @@ String _analysisFilterLabel(JobAnalysisFilterMode mode) {
   };
 }
 
-String _orderByLabel(JobAnalysisOrderBy orderBy) {
+String _orderByLabel(BuildContext context, JobAnalysisOrderBy orderBy) {
+  final l10n = AppLocalizations.of(context);
+
   return switch (orderBy) {
-    JobAnalysisOrderBy.highestHourlyRate => 'Highest hourly rate',
-    JobAnalysisOrderBy.lowestHourlyRate => 'Lowest hourly rate',
-    JobAnalysisOrderBy.highestFixedPrice => 'Highest fixed price',
-    JobAnalysisOrderBy.lowestFixedPrice => 'Lowest fixed price',
-    JobAnalysisOrderBy.newestRelativeDate => 'Newest relative date',
-    JobAnalysisOrderBy.newestAbsoluteDate => 'Newest absolute date',
-    JobAnalysisOrderBy.mostRecentJobInfoCreatedAt => 'Newest persisted jobs',
-    JobAnalysisOrderBy.mostRecentScoringCreatedAt => 'Newest generated scores',
-    JobAnalysisOrderBy.mostRecentAiResponsesCreatedAt => 'Newest AI responses',
-    JobAnalysisOrderBy.highestClientHireRate => 'Highest client hire rate',
+    JobAnalysisOrderBy.highestScore => l10n.jobListOrderByHighestScore,
+    JobAnalysisOrderBy.highestHourlyRate =>
+      l10n.jobListOrderByHighestHourlyRate,
+    JobAnalysisOrderBy.lowestHourlyRate => l10n.jobListOrderByLowestHourlyRate,
+    JobAnalysisOrderBy.highestFixedPrice =>
+      l10n.jobListOrderByHighestFixedPrice,
+    JobAnalysisOrderBy.lowestFixedPrice => l10n.jobListOrderByLowestFixedPrice,
+    JobAnalysisOrderBy.newestRelativeDate =>
+      l10n.jobListOrderByNewestRelativeDate,
+    JobAnalysisOrderBy.newestAbsoluteDate =>
+      l10n.jobListOrderByNewestAbsoluteDate,
+    JobAnalysisOrderBy.mostRecentJobInfoCreatedAt =>
+      l10n.jobListOrderByNewestPersistedJobs,
+    JobAnalysisOrderBy.mostRecentScoringCreatedAt =>
+      l10n.jobListOrderByNewestGeneratedScores,
+    JobAnalysisOrderBy.mostRecentAiResponsesCreatedAt =>
+      l10n.jobListOrderByNewestAiResponses,
+    JobAnalysisOrderBy.highestClientHireRate =>
+      l10n.jobListOrderByHighestClientHireRate,
     JobAnalysisOrderBy.highestClientAverageHourlyRate =>
-      'Highest client avg hourly rate',
+      l10n.jobListOrderByHighestClientAverageHourlyRate,
     JobAnalysisOrderBy.highestClientNameConfidence =>
-      'Highest client name confidence',
-    JobAnalysisOrderBy.highestClientRating => 'Highest client rating',
-    JobAnalysisOrderBy.highestClientTotalSpent => 'Highest client total spent',
+      l10n.jobListOrderByHighestClientNameConfidence,
+    JobAnalysisOrderBy.highestClientRating =>
+      l10n.jobListOrderByHighestClientRating,
+    JobAnalysisOrderBy.highestClientTotalSpent =>
+      l10n.jobListOrderByHighestClientTotalSpent,
   };
 }

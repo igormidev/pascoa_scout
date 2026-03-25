@@ -13,6 +13,7 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 enum JobAnalysisOrderBy implements _i1.SerializableModel {
+  highestScore,
   highestHourlyRate,
   lowestHourlyRate,
   highestFixedPrice,
@@ -30,6 +31,8 @@ enum JobAnalysisOrderBy implements _i1.SerializableModel {
 
   static JobAnalysisOrderBy fromJson(String name) {
     switch (name) {
+      case 'highestScore':
+        return JobAnalysisOrderBy.highestScore;
       case 'highestHourlyRate':
         return JobAnalysisOrderBy.highestHourlyRate;
       case 'lowestHourlyRate':

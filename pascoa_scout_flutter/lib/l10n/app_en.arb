@@ -1,0 +1,63 @@
+{
+  "@@locale": "en",
+  "jobListOrderByHighestScore": "Highest score",
+  "@jobListOrderByHighestScore": {
+    "description": "Order-by label for showing the highest scored job analyses first."
+  },
+  "jobListOrderByHighestHourlyRate": "Highest hourly rate",
+  "@jobListOrderByHighestHourlyRate": {
+    "description": "Order-by label for sorting jobs by the highest hourly rate."
+  },
+  "jobListOrderByLowestHourlyRate": "Lowest hourly rate",
+  "@jobListOrderByLowestHourlyRate": {
+    "description": "Order-by label for sorting jobs by the lowest hourly rate."
+  },
+  "jobListOrderByHighestFixedPrice": "Highest fixed price",
+  "@jobListOrderByHighestFixedPrice": {
+    "description": "Order-by label for sorting jobs by the highest fixed price."
+  },
+  "jobListOrderByLowestFixedPrice": "Lowest fixed price",
+  "@jobListOrderByLowestFixedPrice": {
+    "description": "Order-by label for sorting jobs by the lowest fixed price."
+  },
+  "jobListOrderByNewestRelativeDate": "Newest relative date",
+  "@jobListOrderByNewestRelativeDate": {
+    "description": "Order-by label for sorting jobs by the newest relative date."
+  },
+  "jobListOrderByNewestAbsoluteDate": "Newest absolute date",
+  "@jobListOrderByNewestAbsoluteDate": {
+    "description": "Order-by label for sorting jobs by the newest absolute date."
+  },
+  "jobListOrderByNewestPersistedJobs": "Newest persisted jobs",
+  "@jobListOrderByNewestPersistedJobs": {
+    "description": "Order-by label for sorting jobs by the newest persisted job info rows."
+  },
+  "jobListOrderByNewestGeneratedScores": "Newest generated scores",
+  "@jobListOrderByNewestGeneratedScores": {
+    "description": "Order-by label for sorting jobs by the newest generated scores."
+  },
+  "jobListOrderByNewestAiResponses": "Newest AI responses",
+  "@jobListOrderByNewestAiResponses": {
+    "description": "Order-by label for sorting jobs by the newest AI responses."
+  },
+  "jobListOrderByHighestClientHireRate": "Highest client hire rate",
+  "@jobListOrderByHighestClientHireRate": {
+    "description": "Order-by label for sorting jobs by the highest client hire rate."
+  },
+  "jobListOrderByHighestClientAverageHourlyRate": "Highest client avg hourly rate",
+  "@jobListOrderByHighestClientAverageHourlyRate": {
+    "description": "Order-by label for sorting jobs by the highest client average hourly rate."
+  },
+  "jobListOrderByHighestClientNameConfidence": "Highest client name confidence",
+  "@jobListOrderByHighestClientNameConfidence": {
+    "description": "Order-by label for sorting jobs by the highest client name confidence."
+  },
+  "jobListOrderByHighestClientRating": "Highest client rating",
+  "@jobListOrderByHighestClientRating": {
+    "description": "Order-by label for sorting jobs by the highest client rating."
+  },
+  "jobListOrderByHighestClientTotalSpent": "Highest client total spent",
+  "@jobListOrderByHighestClientTotalSpent": {
+    "description": "Order-by label for sorting jobs by the highest client total spent."
+  }
+}

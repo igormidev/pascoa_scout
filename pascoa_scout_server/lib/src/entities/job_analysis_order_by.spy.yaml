@@ -1,6 +1,7 @@
 enum: JobAnalysisOrderBy
 serialized: byName
 values:
+  - highestScore
   - highestHourlyRate
   - lowestHourlyRate
   - highestFixedPrice
