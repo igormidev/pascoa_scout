@@ -3,7 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_card.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
-const _jobListageToolbarExtent = 72.0;
+const _jobListageToolbarExtent = 118.0;
 const _jobListagePaginationSpacerHeight = 92.0;
 
 class JobListageResultsView extends StatefulWidget {
