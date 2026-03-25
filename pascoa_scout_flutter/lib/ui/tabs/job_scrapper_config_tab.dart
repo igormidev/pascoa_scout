@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
@@ -473,7 +475,6 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
       ),
     );
     final isEditing = ref.watch(filterPanelModeProvider);
-    final syncState = ref.watch(jobSyncControllerProvider);
     final showEditor = currentFilter == null || isEditing;
 
     return AnimatedSwitcher(
@@ -481,133 +482,40 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
       child: showEditor
-          ? _buildEditorView(isDesktop: isDesktop, syncState: syncState)
+          ? Consumer(
+              builder: (context, ref, _) {
+                final isLocked = ref.watch(
+                  jobSyncControllerProvider.select((state) => state.isLocked),
+                );
+                return _buildEditorView(
+                  isDesktop: isDesktop,
+                  isLocked: isLocked,
+                );
+              },
+            )
           : _CompactFilterRunTab(
               key: const ValueKey('compact-filter-run-tab'),
-              syncState: syncState,
-              onChangeFilters: syncState.isLocked
-                  ? null
-                  : () {
-                      ref.read(filterPanelModeProvider.notifier).showEditor();
-                    },
-              onToggleSync: () {
-                if (syncState.isRunning) {
-                  ref.read(jobSyncControllerProvider.notifier).stopSync();
-                } else {
-                  ref.read(jobSyncControllerProvider.notifier).startSync();
-                }
+              summaryText: _buildFilterSummary(currentFilter),
+              onChangeFilters: () {
+                ref.read(filterPanelModeProvider.notifier).showEditor();
               },
-              onDecreaseInterval:
-                  syncState.isLocked || syncState.intervalMinutes <= 1
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setIntervalMinutes(syncState.intervalMinutes - 1);
-                    },
-              onIncreaseInterval: syncState.isLocked
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setIntervalMinutes(syncState.intervalMinutes + 1);
-                    },
-              onDecreaseScoreBatch:
-                  syncState.isLocked || syncState.scoreBatchSize <= 1
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setScoreBatchSize(syncState.scoreBatchSize - 1);
-                    },
-              onIncreaseScoreBatch: syncState.isLocked
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setScoreBatchSize(syncState.scoreBatchSize + 1);
-                    },
-              onDecreaseProposalBatch:
-                  syncState.isLocked || syncState.proposalBatchSize <= 1
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setProposalBatchSize(
-                            syncState.proposalBatchSize - 1,
-                          );
-                    },
-              onIncreaseProposalBatch: syncState.isLocked
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setProposalBatchSize(
-                            syncState.proposalBatchSize + 1,
-                          );
-                    },
-              onDecreaseSyncResults:
-                  syncState.isLocked || syncState.upworkSyncResultsPerPage <= 1
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setUpworkSyncResultsPerPage(
-                            syncState.upworkSyncResultsPerPage - 1,
-                          );
-                    },
-              onIncreaseSyncResults: syncState.isLocked
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setUpworkSyncResultsPerPage(
-                            syncState.upworkSyncResultsPerPage + 1,
-                          );
-                    },
-              onDecreaseMinimumScore:
-                  syncState.isLocked ||
-                      syncState.proposalMinimumScorePercentage <= 0
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setProposalMinimumScorePercentage(
-                            syncState.proposalMinimumScorePercentage - 5,
-                          );
-                    },
-              onIncreaseMinimumScore:
-                  syncState.isLocked ||
-                      syncState.proposalMinimumScorePercentage >= 100
-                  ? null
-                  : () {
-                      ref
-                          .read(jobSyncControllerProvider.notifier)
-                          .setProposalMinimumScorePercentage(
-                            syncState.proposalMinimumScorePercentage + 5,
-                          );
-                    },
               onCopyCurl: () {
                 _copyCurl(currentFilter);
               },
-              summaryText: _buildFilterSummary(currentFilter),
             ),
     );
   }
 
-  Widget _buildEditorView({
-    required bool isDesktop,
-    required JobSyncState syncState,
-  }) {
+  Widget _buildEditorView({required bool isDesktop, required bool isLocked}) {
     final theme = Theme.of(context);
 
     return Form(
       key: _formKey,
       child: IgnorePointer(
-        ignoring: syncState.isLocked,
+        ignoring: isLocked,
         child: AnimatedOpacity(
           duration: 220.ms,
-          opacity: syncState.isLocked ? 0.72 : 1.0,
+          opacity: isLocked ? 0.72 : 1.0,
           child: ListView(
             key: const ValueKey('filter-editor-view'),
             padding: const EdgeInsets.fromLTRB(20.0, 28.0, 20.0, 28.0),
@@ -640,7 +548,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
                         color: Colors.white.withValues(alpha: 0.64),
                       ),
                     ),
-                    if (syncState.isLocked) ...[
+                    if (isLocked) ...[
                       const SizedBox(height: 12.0),
                       const _CompactInfoCard(
                         icon: Icons.lock_clock_rounded,
@@ -1402,71 +1310,21 @@ class _AdvancedFiltersView extends StatelessWidget {
   }
 }
 
-class _CompactFilterRunTab extends ConsumerWidget {
+class _CompactFilterRunTab extends StatelessWidget {
   const _CompactFilterRunTab({
     super.key,
-    required this.syncState,
     required this.summaryText,
     required this.onChangeFilters,
     required this.onCopyCurl,
-    required this.onToggleSync,
-    required this.onDecreaseInterval,
-    required this.onIncreaseInterval,
-    required this.onDecreaseScoreBatch,
-    required this.onIncreaseScoreBatch,
-    required this.onDecreaseProposalBatch,
-    required this.onIncreaseProposalBatch,
-    required this.onDecreaseSyncResults,
-    required this.onIncreaseSyncResults,
-    required this.onDecreaseMinimumScore,
-    required this.onIncreaseMinimumScore,
   });
 
-  final JobSyncState syncState;
   final String summaryText;
-  final VoidCallback? onChangeFilters;
+  final VoidCallback onChangeFilters;
   final VoidCallback onCopyCurl;
-  final VoidCallback onToggleSync;
-  final VoidCallback? onDecreaseInterval;
-  final VoidCallback? onIncreaseInterval;
-  final VoidCallback? onDecreaseScoreBatch;
-  final VoidCallback? onIncreaseScoreBatch;
-  final VoidCallback? onDecreaseProposalBatch;
-  final VoidCallback? onIncreaseProposalBatch;
-  final VoidCallback? onDecreaseSyncResults;
-  final VoidCallback? onIncreaseSyncResults;
-  final VoidCallback? onDecreaseMinimumScore;
-  final VoidCallback? onIncreaseMinimumScore;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final now = ref
-        .watch(jobSyncClockProvider)
-        .maybeWhen(data: (value) => value, orElse: DateTime.now);
-
-    final stepCopy = switch (syncState.currentStep) {
-      JobAutomationStep.idle =>
-        'Automation is idle until you resume job fetching.',
-      JobAutomationStep.fetchingJobs => 'Getting more jobs from Upwork.',
-      JobAutomationStep.generatingScores =>
-        'Generating compatibility scores for jobs without an AI score yet.',
-      JobAutomationStep.generatingProposals =>
-        'Generating cover letters and question answers for the strongest matches.',
-      JobAutomationStep.pausedWaiting =>
-        'Automation is paused. Resume job fetching to queue the next loop cycle.',
-      JobAutomationStep.error =>
-        'Automation hit an error. The latest failure is shown below.',
-    };
-
-    final elapsedText = syncState.currentStepStartedAt == null
-        ? null
-        : _formatDuration(now.difference(syncState.currentStepStartedAt!));
-    final statusText = elapsedText == null
-        ? stepCopy
-        : '$stepCopy Current step elapsed time: $elapsedText.';
-
-    final areFilterControlsLocked = syncState.isLocked;
 
     return ListView(
       key: const ValueKey('compact-filter-run-view'),
@@ -1496,158 +1354,21 @@ class _CompactFilterRunTab extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 18.0),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final useColumn = constraints.maxWidth < 460.0;
-                    final changeFiltersButton = AnimatedOpacity(
-                      duration: 220.ms,
-                      opacity: areFilterControlsLocked ? 0.48 : 1.0,
-                      child: OutlinedButton.icon(
-                        onPressed: onChangeFilters,
-                        icon: const Icon(Icons.tune_rounded),
-                        label: const Text('Change filter settings'),
-                      ),
-                    );
-                    final copyCurlButton = OutlinedButton.icon(
-                      onPressed: onCopyCurl,
-                      icon: const Icon(Icons.content_copy_rounded),
-                      label: const Text('Copy Apify cURL'),
-                    );
-
-                    if (useColumn) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          changeFiltersButton,
-                          const SizedBox(height: 12.0),
-                          copyCurlButton,
-                        ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        Expanded(child: changeFiltersButton),
-                        const SizedBox(width: 12.0),
-                        Expanded(child: copyCurlButton),
-                      ],
-                    );
-                  },
+                _CompactFilterRunActions(
+                  onChangeFilters: onChangeFilters,
+                  onCopyCurl: onCopyCurl,
                 ),
-                if (areFilterControlsLocked) ...[
-                  const SizedBox(height: 14.0),
-                  _CompactInfoCard(
-                    icon: Icons.lock_clock_rounded,
-                    message: syncState.isRunning
-                        ? 'Pause job fetching before changing filter settings or automation limits.'
-                        : 'Automation settings are updating. Controls will unlock in a moment.',
-                  ),
-                ],
+                const _CompactFilterLockHint(),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20.0),
                   child: Divider(height: 1.0),
                 ),
-                AnimatedOpacity(
-                  duration: 220.ms,
-                  opacity: areFilterControlsLocked ? 0.48 : 1.0,
-                  child: Column(
-                    children: [
-                      _NumericStepperCard(
-                        title: 'Loop step delay',
-                        description:
-                            '${syncState.intervalMinutes} minute${syncState.intervalMinutes == 1 ? '' : 's'} between scheduled loop stages.',
-                        value: syncState.intervalMinutes,
-                        onDecrease: onDecreaseInterval,
-                        onIncrease: onIncreaseInterval,
-                      ),
-                      const SizedBox(height: 12),
-                      _NumericStepperCard(
-                        title: 'Upwork sync batch',
-                        description:
-                            '${syncState.upworkSyncResultsPerPage} jobs fetched per Upwork sync step.',
-                        value: syncState.upworkSyncResultsPerPage,
-                        onDecrease: onDecreaseSyncResults,
-                        onIncrease: onIncreaseSyncResults,
-                      ),
-                      const SizedBox(height: 12),
-                      _NumericStepperCard(
-                        title: 'Score batch size',
-                        description:
-                            '${syncState.scoreBatchSize} job analyses scored per scoring step.',
-                        value: syncState.scoreBatchSize,
-                        onDecrease: onDecreaseScoreBatch,
-                        onIncrease: onIncreaseScoreBatch,
-                      ),
-                      const SizedBox(height: 12),
-                      _NumericStepperCard(
-                        title: 'Proposal batch size',
-                        description:
-                            '${syncState.proposalBatchSize} proposals generated per proposal step.',
-                        value: syncState.proposalBatchSize,
-                        onDecrease: onDecreaseProposalBatch,
-                        onIncrease: onIncreaseProposalBatch,
-                      ),
-                      const SizedBox(height: 12),
-                      _NumericStepperCard(
-                        title: 'Minimum score for proposals',
-                        description:
-                            '${syncState.proposalMinimumScorePercentage}% minimum compatibility before AI proposal generation starts.',
-                        value: syncState.proposalMinimumScorePercentage,
-                        onDecrease: onDecreaseMinimumScore,
-                        onIncrease: onIncreaseMinimumScore,
-                      ),
-                    ],
-                  ),
-                ),
+                const _CompactAutomationSettingsColumn(),
                 const SizedBox(height: 14.0),
-                _CompactInfoCard(
-                  icon: syncState.isPulling
-                      ? Icons.sync_rounded
-                      : Icons.route_rounded,
-                  message: statusText,
-                  trailing: syncState.isBusy
-                      ? SizedBox(
-                          width: 18.0,
-                          height: 18.0,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.2,
-                            color: theme.colorScheme.primary,
-                          ),
-                        )
-                      : null,
-                ),
+                const _CompactAutomationStatusCard(),
                 const SizedBox(height: 14.0),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: onToggleSync,
-                    icon: Icon(
-                      syncState.isRunning
-                          ? Icons.pause_circle_rounded
-                          : Icons.play_circle_fill_rounded,
-                    ),
-                    label: Text(
-                      syncState.isRunning
-                          ? 'Pause job fetching'
-                          : 'Resume job fetching',
-                    ),
-                  ),
-                ),
-                if (syncState.errors.isNotEmpty) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 18.0),
-                    child: Divider(height: 1.0),
-                  ),
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text('Errors', style: theme.textTheme.titleLarge),
-                  ),
-                  const SizedBox(height: 10.0),
-                  for (final error in syncState.errors) ...[
-                    _ErrorLogCard(error: error),
-                    const SizedBox(height: 10.0),
-                  ],
-                ],
+                const _CompactAutomationToggleButton(),
+                const _CompactErrorsSection(),
               ],
             ),
           ),
@@ -1656,6 +1377,394 @@ class _CompactFilterRunTab extends ConsumerWidget {
     );
   }
 }
+
+class _CompactFilterRunActions extends ConsumerWidget {
+  const _CompactFilterRunActions({
+    required this.onChangeFilters,
+    required this.onCopyCurl,
+  });
+
+  final VoidCallback onChangeFilters;
+  final VoidCallback onCopyCurl;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLocked = ref.watch(
+      jobSyncControllerProvider.select((state) => state.isLocked),
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useColumn = constraints.maxWidth < 460.0;
+        final changeFiltersButton = AnimatedOpacity(
+          duration: 220.ms,
+          opacity: isLocked ? 0.48 : 1.0,
+          child: OutlinedButton.icon(
+            onPressed: isLocked ? null : onChangeFilters,
+            icon: const Icon(Icons.tune_rounded),
+            label: const Text('Change filter settings'),
+          ),
+        );
+        final copyCurlButton = OutlinedButton.icon(
+          onPressed: onCopyCurl,
+          icon: const Icon(Icons.content_copy_rounded),
+          label: const Text('Copy Apify cURL'),
+        );
+
+        if (useColumn) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              changeFiltersButton,
+              const SizedBox(height: 12.0),
+              copyCurlButton,
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(child: changeFiltersButton),
+            const SizedBox(width: 12.0),
+            Expanded(child: copyCurlButton),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _CompactFilterLockHint extends ConsumerWidget {
+  const _CompactFilterLockHint();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final snapshot = ref.watch(
+      jobSyncControllerProvider.select(
+        (state) => (isLocked: state.isLocked, isRunning: state.isRunning),
+      ),
+    );
+
+    if (!snapshot.isLocked) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14.0),
+      child: _CompactInfoCard(
+        icon: Icons.lock_clock_rounded,
+        message: snapshot.isRunning
+            ? 'Pause job fetching before changing filter settings or automation limits.'
+            : 'Automation settings are updating. Controls will unlock in a moment.',
+      ),
+    );
+  }
+}
+
+class _CompactAutomationSettingsColumn extends ConsumerWidget {
+  const _CompactAutomationSettingsColumn();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLocked = ref.watch(
+      jobSyncControllerProvider.select((state) => state.isLocked),
+    );
+
+    return AnimatedOpacity(
+      duration: 220.ms,
+      opacity: isLocked ? 0.48 : 1.0,
+      child: Column(
+        children: const [
+          _CompactAutomationSettingCard(
+            title: 'Loop step delay',
+            valueSelector: _selectIntervalMinutes,
+            descriptionBuilder: _buildIntervalDescription,
+            canDecrease: _isGreaterThanOne,
+            canIncrease: _alwaysAllowed,
+            onDecrease: _decreaseIntervalMinutes,
+            onIncrease: _increaseIntervalMinutes,
+          ),
+          SizedBox(height: 12),
+          _CompactAutomationSettingCard(
+            title: 'Upwork sync batch',
+            valueSelector: _selectSyncResults,
+            descriptionBuilder: _buildSyncResultsDescription,
+            canDecrease: _isGreaterThanOne,
+            canIncrease: _alwaysAllowed,
+            onDecrease: _decreaseSyncResults,
+            onIncrease: _increaseSyncResults,
+          ),
+          SizedBox(height: 12),
+          _CompactAutomationSettingCard(
+            title: 'Score batch size',
+            valueSelector: _selectScoreBatchSize,
+            descriptionBuilder: _buildScoreBatchDescription,
+            canDecrease: _isGreaterThanOne,
+            canIncrease: _alwaysAllowed,
+            onDecrease: _decreaseScoreBatch,
+            onIncrease: _increaseScoreBatch,
+          ),
+          SizedBox(height: 12),
+          _CompactAutomationSettingCard(
+            title: 'Proposal batch size',
+            valueSelector: _selectProposalBatchSize,
+            descriptionBuilder: _buildProposalBatchDescription,
+            canDecrease: _isGreaterThanOne,
+            canIncrease: _alwaysAllowed,
+            onDecrease: _decreaseProposalBatch,
+            onIncrease: _increaseProposalBatch,
+          ),
+          SizedBox(height: 12),
+          _CompactAutomationSettingCard(
+            title: 'Minimum score for proposals',
+            valueSelector: _selectMinimumProposalScore,
+            descriptionBuilder: _buildMinimumProposalScoreDescription,
+            canDecrease: _isAboveZero,
+            canIncrease: _isBelowOneHundred,
+            onDecrease: _decreaseMinimumProposalScore,
+            onIncrease: _increaseMinimumProposalScore,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactAutomationSettingCard extends ConsumerWidget {
+  const _CompactAutomationSettingCard({
+    required this.title,
+    required this.valueSelector,
+    required this.descriptionBuilder,
+    required this.canDecrease,
+    required this.canIncrease,
+    required this.onDecrease,
+    required this.onIncrease,
+  });
+
+  final String title;
+  final int Function(JobSyncState state) valueSelector;
+  final String Function(int value) descriptionBuilder;
+  final bool Function(int value) canDecrease;
+  final bool Function(int value) canIncrease;
+  final Future<void> Function(JobSyncController controller, int value)
+  onDecrease;
+  final Future<void> Function(JobSyncController controller, int value)
+  onIncrease;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final snapshot = ref.watch(
+      jobSyncControllerProvider.select(
+        (state) => (isLocked: state.isLocked, value: valueSelector(state)),
+      ),
+    );
+    final controller = ref.read(jobSyncControllerProvider.notifier);
+    final value = snapshot.value;
+
+    return _NumericStepperCard(
+      title: title,
+      description: descriptionBuilder(value),
+      value: value,
+      onDecrease: snapshot.isLocked || !canDecrease(value)
+          ? null
+          : () => unawaited(onDecrease(controller, value)),
+      onIncrease: snapshot.isLocked || !canIncrease(value)
+          ? null
+          : () => unawaited(onIncrease(controller, value)),
+    );
+  }
+}
+
+class _CompactAutomationStatusCard extends ConsumerWidget {
+  const _CompactAutomationStatusCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final now = ref
+        .watch(jobSyncClockProvider)
+        .maybeWhen(data: (value) => value, orElse: () => DateTime.now());
+    final syncState = ref.watch(
+      jobSyncControllerProvider.select(
+        (state) => (
+          currentStep: state.currentStep,
+          currentStepStartedAt: state.currentStepStartedAt,
+          isPulling: state.isPulling,
+          isBusy: state.isBusy,
+        ),
+      ),
+    );
+
+    final stepCopy = switch (syncState.currentStep) {
+      JobAutomationStep.idle =>
+        'Automation is idle until you resume job fetching.',
+      JobAutomationStep.fetchingJobs => 'Getting more jobs from Upwork.',
+      JobAutomationStep.generatingScores =>
+        'Generating compatibility scores for jobs without an AI score yet.',
+      JobAutomationStep.generatingProposals =>
+        'Generating cover letters and question answers for the strongest matches.',
+      JobAutomationStep.pausedWaiting =>
+        'Automation is paused. Resume job fetching to queue the next loop cycle.',
+      JobAutomationStep.error =>
+        'Automation hit an error. The latest failure is shown below.',
+    };
+
+    final elapsedText = syncState.currentStepStartedAt == null
+        ? null
+        : _formatDuration(now.difference(syncState.currentStepStartedAt!));
+    final statusText = elapsedText == null
+        ? stepCopy
+        : '$stepCopy Current step elapsed time: $elapsedText.';
+
+    return _CompactInfoCard(
+      icon: syncState.isPulling ? Icons.sync_rounded : Icons.route_rounded,
+      message: statusText,
+      trailing: syncState.isBusy
+          ? SizedBox(
+              width: 18.0,
+              height: 18.0,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.2,
+                color: theme.colorScheme.primary,
+              ),
+            )
+          : null,
+    );
+  }
+}
+
+class _CompactAutomationToggleButton extends ConsumerWidget {
+  const _CompactAutomationToggleButton();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final snapshot = ref.watch(
+      jobSyncControllerProvider.select(
+        (state) => (isRunning: state.isRunning, isBusy: state.isBusy),
+      ),
+    );
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: snapshot.isBusy
+            ? null
+            : () {
+                if (snapshot.isRunning) {
+                  ref.read(jobSyncControllerProvider.notifier).stopSync();
+                } else {
+                  ref.read(jobSyncControllerProvider.notifier).startSync();
+                }
+              },
+        icon: Icon(
+          snapshot.isRunning
+              ? Icons.pause_circle_rounded
+              : Icons.play_circle_fill_rounded,
+        ),
+        label: Text(
+          snapshot.isRunning ? 'Pause job fetching' : 'Resume job fetching',
+        ),
+      ),
+    );
+  }
+}
+
+class _CompactErrorsSection extends ConsumerWidget {
+  const _CompactErrorsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final errors = ref.watch(
+      jobSyncControllerProvider.select((state) => state.errors),
+    );
+
+    if (errors.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      children: [
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 18.0),
+          child: Divider(height: 1.0),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text('Errors', style: Theme.of(context).textTheme.titleLarge),
+        ),
+        const SizedBox(height: 10.0),
+        for (final error in errors) ...[
+          _ErrorLogCard(error: error),
+          const SizedBox(height: 10.0),
+        ],
+      ],
+    );
+  }
+}
+
+int _selectIntervalMinutes(JobSyncState state) => state.intervalMinutes;
+int _selectSyncResults(JobSyncState state) => state.upworkSyncResultsPerPage;
+int _selectScoreBatchSize(JobSyncState state) => state.scoreBatchSize;
+int _selectProposalBatchSize(JobSyncState state) => state.proposalBatchSize;
+int _selectMinimumProposalScore(JobSyncState state) =>
+    state.proposalMinimumScorePercentage;
+
+String _buildIntervalDescription(int value) =>
+    '$value minute${value == 1 ? '' : 's'} between scheduled loop stages.';
+String _buildSyncResultsDescription(int value) =>
+    '$value jobs fetched per Upwork sync step.';
+String _buildScoreBatchDescription(int value) =>
+    '$value job analyses scored per scoring step.';
+String _buildProposalBatchDescription(int value) =>
+    '$value proposals generated per proposal step.';
+String _buildMinimumProposalScoreDescription(int value) =>
+    '$value% minimum compatibility before AI proposal generation starts.';
+
+bool _alwaysAllowed(int value) => true;
+bool _isGreaterThanOne(int value) => value > 1;
+bool _isAboveZero(int value) => value > 0;
+bool _isBelowOneHundred(int value) => value < 100;
+
+Future<void> _decreaseIntervalMinutes(
+  JobSyncController controller,
+  int value,
+) async => controller.setIntervalMinutes(value - 1);
+Future<void> _increaseIntervalMinutes(
+  JobSyncController controller,
+  int value,
+) async => controller.setIntervalMinutes(value + 1);
+Future<void> _decreaseSyncResults(
+  JobSyncController controller,
+  int value,
+) async => controller.setUpworkSyncResultsPerPage(value - 1);
+Future<void> _increaseSyncResults(
+  JobSyncController controller,
+  int value,
+) async => controller.setUpworkSyncResultsPerPage(value + 1);
+Future<void> _decreaseScoreBatch(
+  JobSyncController controller,
+  int value,
+) async => controller.setScoreBatchSize(value - 1);
+Future<void> _increaseScoreBatch(
+  JobSyncController controller,
+  int value,
+) async => controller.setScoreBatchSize(value + 1);
+Future<void> _decreaseProposalBatch(
+  JobSyncController controller,
+  int value,
+) async => controller.setProposalBatchSize(value - 1);
+Future<void> _increaseProposalBatch(
+  JobSyncController controller,
+  int value,
+) async => controller.setProposalBatchSize(value + 1);
+Future<void> _decreaseMinimumProposalScore(
+  JobSyncController controller,
+  int value,
+) async => controller.setProposalMinimumScorePercentage(value - 5);
+Future<void> _increaseMinimumProposalScore(
+  JobSyncController controller,
+  int value,
+) async => controller.setProposalMinimumScorePercentage(value + 5);
 
 class _NumericStepperCard extends StatelessWidget {
   const _NumericStepperCard({
@@ -1790,6 +1899,30 @@ class _ErrorLogCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final copyButton = Semantics(
+      button: true,
+      label: 'Copy all',
+      child: IconButton(
+        onPressed: () async {
+          await Clipboard.setData(ClipboardData(text: _clipboardText));
+          if (!context.mounted) {
+            return;
+          }
+
+          notifySnackbarWithContext(context, message: 'Error details copied.');
+        },
+        visualDensity: VisualDensity.compact,
+        icon: const Icon(
+          Icons.content_copy_rounded,
+          color: Color(0xFFFFDAD6),
+        ),
+      ),
+    );
+    final usesDesktopPlatform = switch (theme.platform) {
+      TargetPlatform.linux || TargetPlatform.macOS || TargetPlatform.windows =>
+        true,
+      _ => false,
+    };
 
     return Container(
       width: double.infinity,
@@ -1818,29 +1951,11 @@ class _ErrorLogCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8.0),
-              Tooltip(
-                message: 'Copy all',
-                child: IconButton(
-                  onPressed: () async {
-                    await Clipboard.setData(
-                      ClipboardData(text: _clipboardText),
-                    );
-                    if (!context.mounted) {
-                      return;
-                    }
-
-                    notifySnackbarWithContext(
-                      context,
-                      message: 'Error details copied.',
-                    );
-                  },
-                  visualDensity: VisualDensity.compact,
-                  icon: const Icon(
-                    Icons.content_copy_rounded,
-                    color: Color(0xFFFFDAD6),
-                  ),
-                ),
-              ),
+              // Flutter 3.41.x has an open desktop AXTree regression involving
+              // Tooltip overlays inside scrollable semantics trees.
+              usesDesktopPlatform
+                  ? copyButton
+                  : Tooltip(message: 'Copy all', child: copyButton),
             ],
           ),
           const SizedBox(height: 10.0),

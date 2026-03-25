@@ -253,7 +253,6 @@ class JobSyncController extends Notifier<JobSyncState> {
     required int loopDelayMinutes,
     required String successMessage,
   }) async {
-    state = state.copyWith(isBusy: true);
     try {
       final overview = await ref
           .read(clientProvider)
@@ -272,7 +271,6 @@ class JobSyncController extends Notifier<JobSyncState> {
       ref.notifySnackbar(successMessage);
     } catch (error, stackTrace) {
       state = state.copyWith(
-        isBusy: false,
         errors: [
           JobSyncErrorLog(
             happenedAt: DateTime.now(),

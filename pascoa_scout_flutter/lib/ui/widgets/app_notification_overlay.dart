@@ -147,7 +147,6 @@ class AppNotificationCard extends StatelessWidget {
         color: palette.backgroundColor,
         elevation: 14,
         shadowColor: Colors.black.withValues(alpha: 0.24),
-        borderRadius: BorderRadius.circular(20),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
           side: BorderSide(color: palette.borderColor),
