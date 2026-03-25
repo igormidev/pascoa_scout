@@ -1,0 +1,5 @@
+class: JobKnowledgeDraft
+fields:
+  curriculumMarkdownText: String?
+  proposalStyleMarkdownText: String?
+  opportunityPreferenceMarkdownText: String?

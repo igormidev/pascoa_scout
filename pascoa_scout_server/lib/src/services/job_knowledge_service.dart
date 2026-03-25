@@ -46,6 +46,33 @@ class JobKnowledgeService {
     }
   }
 
+  Future<PascoaResult<JobKnowledgeDraft>> getDraft(Session session) async {
+    try {
+      final curriculum = await _findCurriculum(session);
+      final proposalStyle = await _findProposalStyle(session);
+      final opportunityPreference = await _findOpportunityPreference(session);
+
+      return Success(
+        JobKnowledgeDraft(
+          curriculumMarkdownText: curriculum?.markdownText,
+          proposalStyleMarkdownText: proposalStyle?.markdownText,
+          opportunityPreferenceMarkdownText:
+              opportunityPreference?.markdownText,
+        ),
+      );
+    } catch (error, stackTrace) {
+      return Failure(
+        _buildException(
+          message: 'Unable to load job knowledge draft',
+          description:
+              'The server could not load the existing long-form knowledge texts for onboarding edits.',
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+  }
+
   Future<PascoaResult<JobCurriculumProfile>> saveCurriculum(
     Session session,
     String markdownText,

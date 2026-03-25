@@ -27,35 +27,36 @@ import 'entities/job_automation_settings.dart' as _i12;
 import 'entities/job_automation_settings_update.dart' as _i13;
 import 'entities/job_automation_step.dart' as _i14;
 import 'entities/job_curriculum_profile.dart' as _i15;
-import 'entities/job_knowledge_summary.dart' as _i16;
-import 'entities/job_opportunity_preference.dart' as _i17;
-import 'entities/job_proposal.dart' as _i18;
-import 'entities/job_proposal_answer_to_question.dart' as _i19;
-import 'entities/job_proposal_style_preference.dart' as _i20;
-import 'entities/job_score.dart' as _i21;
-import 'entities/others/pagination_metadata.dart' as _i22;
-import 'entities/others/pascoa_exception.dart' as _i23;
-import 'entities/upwork_scrap/available_operators.dart' as _i24;
-import 'entities/upwork_scrap/available_properties.dart' as _i25;
-import 'entities/upwork_scrap/client_history.dart' as _i26;
-import 'entities/upwork_scrap/client_location.dart' as _i27;
-import 'entities/upwork_scrap/country.dart' as _i28;
-import 'entities/upwork_scrap/custom_filter.dart' as _i29;
-import 'entities/upwork_scrap/experience_level.dart' as _i30;
-import 'entities/upwork_scrap/job_age_unit.dart' as _i31;
-import 'entities/upwork_scrap/job_filter.dart' as _i32;
-import 'entities/upwork_scrap/job_info.dart' as _i33;
-import 'entities/upwork_scrap/job_type.dart' as _i34;
-import 'entities/upwork_scrap/maximum_job_age.dart' as _i35;
-import 'entities/upwork_scrap/min_max.dart' as _i36;
-import 'entities/upwork_scrap/pagination.dart' as _i37;
-import 'entities/upwork_scrap/payment_verified_status.dart' as _i38;
-import 'entities/upwork_scrap/question.dart' as _i39;
-import 'entities/upwork_scrap/region.dart' as _i40;
-import 'entities/upwork_scrap/search_sort_order.dart' as _i41;
-import 'entities/upwork_scrap/sub_region.dart' as _i42;
+import 'entities/job_knowledge_draft.dart' as _i16;
+import 'entities/job_knowledge_summary.dart' as _i17;
+import 'entities/job_opportunity_preference.dart' as _i18;
+import 'entities/job_proposal.dart' as _i19;
+import 'entities/job_proposal_answer_to_question.dart' as _i20;
+import 'entities/job_proposal_style_preference.dart' as _i21;
+import 'entities/job_score.dart' as _i22;
+import 'entities/others/pagination_metadata.dart' as _i23;
+import 'entities/others/pascoa_exception.dart' as _i24;
+import 'entities/upwork_scrap/available_operators.dart' as _i25;
+import 'entities/upwork_scrap/available_properties.dart' as _i26;
+import 'entities/upwork_scrap/client_history.dart' as _i27;
+import 'entities/upwork_scrap/client_location.dart' as _i28;
+import 'entities/upwork_scrap/country.dart' as _i29;
+import 'entities/upwork_scrap/custom_filter.dart' as _i30;
+import 'entities/upwork_scrap/experience_level.dart' as _i31;
+import 'entities/upwork_scrap/job_age_unit.dart' as _i32;
+import 'entities/upwork_scrap/job_filter.dart' as _i33;
+import 'entities/upwork_scrap/job_info.dart' as _i34;
+import 'entities/upwork_scrap/job_type.dart' as _i35;
+import 'entities/upwork_scrap/maximum_job_age.dart' as _i36;
+import 'entities/upwork_scrap/min_max.dart' as _i37;
+import 'entities/upwork_scrap/pagination.dart' as _i38;
+import 'entities/upwork_scrap/payment_verified_status.dart' as _i39;
+import 'entities/upwork_scrap/question.dart' as _i40;
+import 'entities/upwork_scrap/region.dart' as _i41;
+import 'entities/upwork_scrap/search_sort_order.dart' as _i42;
+import 'entities/upwork_scrap/sub_region.dart' as _i43;
 import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_info.dart'
-    as _i43;
+    as _i44;
 export 'entities/job_analysis_filter_mode.dart';
 export 'entities/job_analysis_list_filter.dart';
 export 'entities/job_analysis_order_by.dart';
@@ -67,6 +68,7 @@ export 'entities/job_automation_settings.dart';
 export 'entities/job_automation_settings_update.dart';
 export 'entities/job_automation_step.dart';
 export 'entities/job_curriculum_profile.dart';
+export 'entities/job_knowledge_draft.dart';
 export 'entities/job_knowledge_summary.dart';
 export 'entities/job_opportunity_preference.dart';
 export 'entities/job_proposal.dart';
@@ -1352,86 +1354,89 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == _i15.JobCurriculumProfile) {
       return _i15.JobCurriculumProfile.fromJson(data) as T;
     }
-    if (t == _i16.JobKnowledgeSummary) {
-      return _i16.JobKnowledgeSummary.fromJson(data) as T;
+    if (t == _i16.JobKnowledgeDraft) {
+      return _i16.JobKnowledgeDraft.fromJson(data) as T;
     }
-    if (t == _i17.JobOpportunityPreference) {
-      return _i17.JobOpportunityPreference.fromJson(data) as T;
+    if (t == _i17.JobKnowledgeSummary) {
+      return _i17.JobKnowledgeSummary.fromJson(data) as T;
     }
-    if (t == _i18.JobProposal) {
-      return _i18.JobProposal.fromJson(data) as T;
+    if (t == _i18.JobOpportunityPreference) {
+      return _i18.JobOpportunityPreference.fromJson(data) as T;
     }
-    if (t == _i19.JobProposalAnswerToQuestion) {
-      return _i19.JobProposalAnswerToQuestion.fromJson(data) as T;
+    if (t == _i19.JobProposal) {
+      return _i19.JobProposal.fromJson(data) as T;
     }
-    if (t == _i20.JobProposalStylePreference) {
-      return _i20.JobProposalStylePreference.fromJson(data) as T;
+    if (t == _i20.JobProposalAnswerToQuestion) {
+      return _i20.JobProposalAnswerToQuestion.fromJson(data) as T;
     }
-    if (t == _i21.JobScore) {
-      return _i21.JobScore.fromJson(data) as T;
+    if (t == _i21.JobProposalStylePreference) {
+      return _i21.JobProposalStylePreference.fromJson(data) as T;
     }
-    if (t == _i22.PaginationMetadata) {
-      return _i22.PaginationMetadata.fromJson(data) as T;
+    if (t == _i22.JobScore) {
+      return _i22.JobScore.fromJson(data) as T;
     }
-    if (t == _i23.PascoaException) {
-      return _i23.PascoaException.fromJson(data) as T;
+    if (t == _i23.PaginationMetadata) {
+      return _i23.PaginationMetadata.fromJson(data) as T;
     }
-    if (t == _i24.AvailableOperators) {
-      return _i24.AvailableOperators.fromJson(data) as T;
+    if (t == _i24.PascoaException) {
+      return _i24.PascoaException.fromJson(data) as T;
     }
-    if (t == _i25.AvailableProperties) {
-      return _i25.AvailableProperties.fromJson(data) as T;
+    if (t == _i25.AvailableOperators) {
+      return _i25.AvailableOperators.fromJson(data) as T;
     }
-    if (t == _i26.ClientHistory) {
-      return _i26.ClientHistory.fromJson(data) as T;
+    if (t == _i26.AvailableProperties) {
+      return _i26.AvailableProperties.fromJson(data) as T;
     }
-    if (t == _i27.ClientLocation) {
-      return _i27.ClientLocation.fromJson(data) as T;
+    if (t == _i27.ClientHistory) {
+      return _i27.ClientHistory.fromJson(data) as T;
     }
-    if (t == _i28.Country) {
-      return _i28.Country.fromJson(data) as T;
+    if (t == _i28.ClientLocation) {
+      return _i28.ClientLocation.fromJson(data) as T;
     }
-    if (t == _i29.CustomFilter) {
-      return _i29.CustomFilter.fromJson(data) as T;
+    if (t == _i29.Country) {
+      return _i29.Country.fromJson(data) as T;
     }
-    if (t == _i30.ExperienceLevel) {
-      return _i30.ExperienceLevel.fromJson(data) as T;
+    if (t == _i30.CustomFilter) {
+      return _i30.CustomFilter.fromJson(data) as T;
     }
-    if (t == _i31.JobAgeUnit) {
-      return _i31.JobAgeUnit.fromJson(data) as T;
+    if (t == _i31.ExperienceLevel) {
+      return _i31.ExperienceLevel.fromJson(data) as T;
     }
-    if (t == _i32.JobFilter) {
-      return _i32.JobFilter.fromJson(data) as T;
+    if (t == _i32.JobAgeUnit) {
+      return _i32.JobAgeUnit.fromJson(data) as T;
     }
-    if (t == _i33.JobInfo) {
-      return _i33.JobInfo.fromJson(data) as T;
+    if (t == _i33.JobFilter) {
+      return _i33.JobFilter.fromJson(data) as T;
     }
-    if (t == _i34.JobType) {
-      return _i34.JobType.fromJson(data) as T;
+    if (t == _i34.JobInfo) {
+      return _i34.JobInfo.fromJson(data) as T;
     }
-    if (t == _i35.MaximumJobAge) {
-      return _i35.MaximumJobAge.fromJson(data) as T;
+    if (t == _i35.JobType) {
+      return _i35.JobType.fromJson(data) as T;
     }
-    if (t == _i36.MinMax) {
-      return _i36.MinMax.fromJson(data) as T;
+    if (t == _i36.MaximumJobAge) {
+      return _i36.MaximumJobAge.fromJson(data) as T;
     }
-    if (t == _i37.Pagination) {
-      return _i37.Pagination.fromJson(data) as T;
+    if (t == _i37.MinMax) {
+      return _i37.MinMax.fromJson(data) as T;
     }
-    if (t == _i38.PaymentVerifiedStatus) {
-      return _i38.PaymentVerifiedStatus.fromJson(data) as T;
+    if (t == _i38.Pagination) {
+      return _i38.Pagination.fromJson(data) as T;
     }
-    if (t == _i39.Question) {
-      return _i39.Question.fromJson(data) as T;
+    if (t == _i39.PaymentVerifiedStatus) {
+      return _i39.PaymentVerifiedStatus.fromJson(data) as T;
     }
-    if (t == _i40.Region) {
-      return _i40.Region.fromJson(data) as T;
+    if (t == _i40.Question) {
+      return _i40.Question.fromJson(data) as T;
     }
-    if (t == _i41.SearchSortOrder) {
-      return _i41.SearchSortOrder.fromJson(data) as T;
+    if (t == _i41.Region) {
+      return _i41.Region.fromJson(data) as T;
     }
-    if (t == _i42.SubRegion) {
-      return _i42.SubRegion.fromJson(data) as T;
+    if (t == _i42.SearchSortOrder) {
+      return _i42.SearchSortOrder.fromJson(data) as T;
+    }
+    if (t == _i43.SubRegion) {
+      return _i43.SubRegion.fromJson(data) as T;
     }
     if (t == _i1.getType<_i5.JobAnalysisFilterMode?>()) {
       return (data != null ? _i5.JobAnalysisFilterMode.fromJson(data) : null)
@@ -1476,100 +1481,103 @@ class Protocol extends _i1.SerializationManagerServer {
       return (data != null ? _i15.JobCurriculumProfile.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i16.JobKnowledgeSummary?>()) {
-      return (data != null ? _i16.JobKnowledgeSummary.fromJson(data) : null)
+    if (t == _i1.getType<_i16.JobKnowledgeDraft?>()) {
+      return (data != null ? _i16.JobKnowledgeDraft.fromJson(data) : null) as T;
+    }
+    if (t == _i1.getType<_i17.JobKnowledgeSummary?>()) {
+      return (data != null ? _i17.JobKnowledgeSummary.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i17.JobOpportunityPreference?>()) {
+    if (t == _i1.getType<_i18.JobOpportunityPreference?>()) {
       return (data != null
-              ? _i17.JobOpportunityPreference.fromJson(data)
+              ? _i18.JobOpportunityPreference.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i18.JobProposal?>()) {
-      return (data != null ? _i18.JobProposal.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i19.JobProposal?>()) {
+      return (data != null ? _i19.JobProposal.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i19.JobProposalAnswerToQuestion?>()) {
+    if (t == _i1.getType<_i20.JobProposalAnswerToQuestion?>()) {
       return (data != null
-              ? _i19.JobProposalAnswerToQuestion.fromJson(data)
+              ? _i20.JobProposalAnswerToQuestion.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i20.JobProposalStylePreference?>()) {
+    if (t == _i1.getType<_i21.JobProposalStylePreference?>()) {
       return (data != null
-              ? _i20.JobProposalStylePreference.fromJson(data)
+              ? _i21.JobProposalStylePreference.fromJson(data)
               : null)
           as T;
     }
-    if (t == _i1.getType<_i21.JobScore?>()) {
-      return (data != null ? _i21.JobScore.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i22.JobScore?>()) {
+      return (data != null ? _i22.JobScore.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i22.PaginationMetadata?>()) {
-      return (data != null ? _i22.PaginationMetadata.fromJson(data) : null)
+    if (t == _i1.getType<_i23.PaginationMetadata?>()) {
+      return (data != null ? _i23.PaginationMetadata.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i23.PascoaException?>()) {
-      return (data != null ? _i23.PascoaException.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i24.PascoaException?>()) {
+      return (data != null ? _i24.PascoaException.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i24.AvailableOperators?>()) {
-      return (data != null ? _i24.AvailableOperators.fromJson(data) : null)
+    if (t == _i1.getType<_i25.AvailableOperators?>()) {
+      return (data != null ? _i25.AvailableOperators.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i25.AvailableProperties?>()) {
-      return (data != null ? _i25.AvailableProperties.fromJson(data) : null)
+    if (t == _i1.getType<_i26.AvailableProperties?>()) {
+      return (data != null ? _i26.AvailableProperties.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i26.ClientHistory?>()) {
-      return (data != null ? _i26.ClientHistory.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i27.ClientHistory?>()) {
+      return (data != null ? _i27.ClientHistory.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i27.ClientLocation?>()) {
-      return (data != null ? _i27.ClientLocation.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i28.ClientLocation?>()) {
+      return (data != null ? _i28.ClientLocation.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i28.Country?>()) {
-      return (data != null ? _i28.Country.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i29.Country?>()) {
+      return (data != null ? _i29.Country.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i29.CustomFilter?>()) {
-      return (data != null ? _i29.CustomFilter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i30.CustomFilter?>()) {
+      return (data != null ? _i30.CustomFilter.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i30.ExperienceLevel?>()) {
-      return (data != null ? _i30.ExperienceLevel.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i31.ExperienceLevel?>()) {
+      return (data != null ? _i31.ExperienceLevel.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i31.JobAgeUnit?>()) {
-      return (data != null ? _i31.JobAgeUnit.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i32.JobAgeUnit?>()) {
+      return (data != null ? _i32.JobAgeUnit.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i32.JobFilter?>()) {
-      return (data != null ? _i32.JobFilter.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i33.JobFilter?>()) {
+      return (data != null ? _i33.JobFilter.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i33.JobInfo?>()) {
-      return (data != null ? _i33.JobInfo.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i34.JobInfo?>()) {
+      return (data != null ? _i34.JobInfo.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i34.JobType?>()) {
-      return (data != null ? _i34.JobType.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i35.JobType?>()) {
+      return (data != null ? _i35.JobType.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i35.MaximumJobAge?>()) {
-      return (data != null ? _i35.MaximumJobAge.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i36.MaximumJobAge?>()) {
+      return (data != null ? _i36.MaximumJobAge.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i36.MinMax?>()) {
-      return (data != null ? _i36.MinMax.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i37.MinMax?>()) {
+      return (data != null ? _i37.MinMax.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i37.Pagination?>()) {
-      return (data != null ? _i37.Pagination.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i38.Pagination?>()) {
+      return (data != null ? _i38.Pagination.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i38.PaymentVerifiedStatus?>()) {
-      return (data != null ? _i38.PaymentVerifiedStatus.fromJson(data) : null)
+    if (t == _i1.getType<_i39.PaymentVerifiedStatus?>()) {
+      return (data != null ? _i39.PaymentVerifiedStatus.fromJson(data) : null)
           as T;
     }
-    if (t == _i1.getType<_i39.Question?>()) {
-      return (data != null ? _i39.Question.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i40.Question?>()) {
+      return (data != null ? _i40.Question.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i40.Region?>()) {
-      return (data != null ? _i40.Region.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i41.Region?>()) {
+      return (data != null ? _i41.Region.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i41.SearchSortOrder?>()) {
-      return (data != null ? _i41.SearchSortOrder.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i42.SearchSortOrder?>()) {
+      return (data != null ? _i42.SearchSortOrder.fromJson(data) : null) as T;
     }
-    if (t == _i1.getType<_i42.SubRegion?>()) {
-      return (data != null ? _i42.SubRegion.fromJson(data) : null) as T;
+    if (t == _i1.getType<_i43.SubRegion?>()) {
+      return (data != null ? _i43.SubRegion.fromJson(data) : null) as T;
     }
     if (t == List<_i9.JobAnalysisState>) {
       return (data as List)
@@ -1577,17 +1585,17 @@ class Protocol extends _i1.SerializationManagerServer {
               .toList()
           as T;
     }
-    if (t == List<_i19.JobProposalAnswerToQuestion>) {
+    if (t == List<_i20.JobProposalAnswerToQuestion>) {
       return (data as List)
-              .map((e) => deserialize<_i19.JobProposalAnswerToQuestion>(e))
+              .map((e) => deserialize<_i20.JobProposalAnswerToQuestion>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i19.JobProposalAnswerToQuestion>?>()) {
+    if (t == _i1.getType<List<_i20.JobProposalAnswerToQuestion>?>()) {
       return (data != null
               ? (data as List)
                     .map(
-                      (e) => deserialize<_i19.JobProposalAnswerToQuestion>(e),
+                      (e) => deserialize<_i20.JobProposalAnswerToQuestion>(e),
                     )
                     .toList()
               : null)
@@ -1596,104 +1604,104 @@ class Protocol extends _i1.SerializationManagerServer {
     if (t == List<String>) {
       return (data as List).map((e) => deserialize<String>(e)).toList() as T;
     }
-    if (t == List<_i30.ExperienceLevel>) {
+    if (t == List<_i31.ExperienceLevel>) {
       return (data as List)
-              .map((e) => deserialize<_i30.ExperienceLevel>(e))
+              .map((e) => deserialize<_i31.ExperienceLevel>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i30.ExperienceLevel>?>()) {
+    if (t == _i1.getType<List<_i31.ExperienceLevel>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i30.ExperienceLevel>(e))
+                    .map((e) => deserialize<_i31.ExperienceLevel>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i26.ClientHistory>) {
+    if (t == List<_i27.ClientHistory>) {
       return (data as List)
-              .map((e) => deserialize<_i26.ClientHistory>(e))
+              .map((e) => deserialize<_i27.ClientHistory>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i26.ClientHistory>?>()) {
+    if (t == _i1.getType<List<_i27.ClientHistory>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i26.ClientHistory>(e))
+                    .map((e) => deserialize<_i27.ClientHistory>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i34.JobType>) {
-      return (data as List).map((e) => deserialize<_i34.JobType>(e)).toList()
+    if (t == List<_i35.JobType>) {
+      return (data as List).map((e) => deserialize<_i35.JobType>(e)).toList()
           as T;
     }
-    if (t == _i1.getType<List<_i34.JobType>?>()) {
+    if (t == _i1.getType<List<_i35.JobType>?>()) {
       return (data != null
-              ? (data as List).map((e) => deserialize<_i34.JobType>(e)).toList()
+              ? (data as List).map((e) => deserialize<_i35.JobType>(e)).toList()
               : null)
           as T;
     }
-    if (t == List<_i28.Country>) {
-      return (data as List).map((e) => deserialize<_i28.Country>(e)).toList()
+    if (t == List<_i29.Country>) {
+      return (data as List).map((e) => deserialize<_i29.Country>(e)).toList()
           as T;
     }
-    if (t == _i1.getType<List<_i28.Country>?>()) {
+    if (t == _i1.getType<List<_i29.Country>?>()) {
       return (data != null
-              ? (data as List).map((e) => deserialize<_i28.Country>(e)).toList()
+              ? (data as List).map((e) => deserialize<_i29.Country>(e)).toList()
               : null)
           as T;
     }
-    if (t == List<_i40.Region>) {
-      return (data as List).map((e) => deserialize<_i40.Region>(e)).toList()
+    if (t == List<_i41.Region>) {
+      return (data as List).map((e) => deserialize<_i41.Region>(e)).toList()
           as T;
     }
-    if (t == _i1.getType<List<_i40.Region>?>()) {
+    if (t == _i1.getType<List<_i41.Region>?>()) {
       return (data != null
-              ? (data as List).map((e) => deserialize<_i40.Region>(e)).toList()
+              ? (data as List).map((e) => deserialize<_i41.Region>(e)).toList()
               : null)
           as T;
     }
-    if (t == List<_i42.SubRegion>) {
-      return (data as List).map((e) => deserialize<_i42.SubRegion>(e)).toList()
+    if (t == List<_i43.SubRegion>) {
+      return (data as List).map((e) => deserialize<_i43.SubRegion>(e)).toList()
           as T;
     }
-    if (t == _i1.getType<List<_i42.SubRegion>?>()) {
+    if (t == _i1.getType<List<_i43.SubRegion>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i42.SubRegion>(e))
+                    .map((e) => deserialize<_i43.SubRegion>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i29.CustomFilter>) {
+    if (t == List<_i30.CustomFilter>) {
       return (data as List)
-              .map((e) => deserialize<_i29.CustomFilter>(e))
+              .map((e) => deserialize<_i30.CustomFilter>(e))
               .toList()
           as T;
     }
-    if (t == _i1.getType<List<_i29.CustomFilter>?>()) {
+    if (t == _i1.getType<List<_i30.CustomFilter>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i29.CustomFilter>(e))
+                    .map((e) => deserialize<_i30.CustomFilter>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i39.Question>) {
-      return (data as List).map((e) => deserialize<_i39.Question>(e)).toList()
+    if (t == List<_i40.Question>) {
+      return (data as List).map((e) => deserialize<_i40.Question>(e)).toList()
           as T;
     }
-    if (t == _i1.getType<List<_i39.Question>?>()) {
+    if (t == _i1.getType<List<_i40.Question>?>()) {
       return (data != null
               ? (data as List)
-                    .map((e) => deserialize<_i39.Question>(e))
+                    .map((e) => deserialize<_i40.Question>(e))
                     .toList()
               : null)
           as T;
     }
-    if (t == List<_i43.JobInfo>) {
-      return (data as List).map((e) => deserialize<_i43.JobInfo>(e)).toList()
+    if (t == List<_i44.JobInfo>) {
+      return (data as List).map((e) => deserialize<_i44.JobInfo>(e)).toList()
           as T;
     }
     try {
@@ -1721,33 +1729,34 @@ class Protocol extends _i1.SerializationManagerServer {
       _i13.JobAutomationSettingsUpdate => 'JobAutomationSettingsUpdate',
       _i14.JobAutomationStep => 'JobAutomationStep',
       _i15.JobCurriculumProfile => 'JobCurriculumProfile',
-      _i16.JobKnowledgeSummary => 'JobKnowledgeSummary',
-      _i17.JobOpportunityPreference => 'JobOpportunityPreference',
-      _i18.JobProposal => 'JobProposal',
-      _i19.JobProposalAnswerToQuestion => 'JobProposalAnswerToQuestion',
-      _i20.JobProposalStylePreference => 'JobProposalStylePreference',
-      _i21.JobScore => 'JobScore',
-      _i22.PaginationMetadata => 'PaginationMetadata',
-      _i23.PascoaException => 'PascoaException',
-      _i24.AvailableOperators => 'AvailableOperators',
-      _i25.AvailableProperties => 'AvailableProperties',
-      _i26.ClientHistory => 'ClientHistory',
-      _i27.ClientLocation => 'ClientLocation',
-      _i28.Country => 'Country',
-      _i29.CustomFilter => 'CustomFilter',
-      _i30.ExperienceLevel => 'ExperienceLevel',
-      _i31.JobAgeUnit => 'JobAgeUnit',
-      _i32.JobFilter => 'JobFilter',
-      _i33.JobInfo => 'JobInfo',
-      _i34.JobType => 'JobType',
-      _i35.MaximumJobAge => 'MaximumJobAge',
-      _i36.MinMax => 'MinMax',
-      _i37.Pagination => 'Pagination',
-      _i38.PaymentVerifiedStatus => 'PaymentVerifiedStatus',
-      _i39.Question => 'Question',
-      _i40.Region => 'Region',
-      _i41.SearchSortOrder => 'SearchSortOrder',
-      _i42.SubRegion => 'SubRegion',
+      _i16.JobKnowledgeDraft => 'JobKnowledgeDraft',
+      _i17.JobKnowledgeSummary => 'JobKnowledgeSummary',
+      _i18.JobOpportunityPreference => 'JobOpportunityPreference',
+      _i19.JobProposal => 'JobProposal',
+      _i20.JobProposalAnswerToQuestion => 'JobProposalAnswerToQuestion',
+      _i21.JobProposalStylePreference => 'JobProposalStylePreference',
+      _i22.JobScore => 'JobScore',
+      _i23.PaginationMetadata => 'PaginationMetadata',
+      _i24.PascoaException => 'PascoaException',
+      _i25.AvailableOperators => 'AvailableOperators',
+      _i26.AvailableProperties => 'AvailableProperties',
+      _i27.ClientHistory => 'ClientHistory',
+      _i28.ClientLocation => 'ClientLocation',
+      _i29.Country => 'Country',
+      _i30.CustomFilter => 'CustomFilter',
+      _i31.ExperienceLevel => 'ExperienceLevel',
+      _i32.JobAgeUnit => 'JobAgeUnit',
+      _i33.JobFilter => 'JobFilter',
+      _i34.JobInfo => 'JobInfo',
+      _i35.JobType => 'JobType',
+      _i36.MaximumJobAge => 'MaximumJobAge',
+      _i37.MinMax => 'MinMax',
+      _i38.Pagination => 'Pagination',
+      _i39.PaymentVerifiedStatus => 'PaymentVerifiedStatus',
+      _i40.Question => 'Question',
+      _i41.Region => 'Region',
+      _i42.SearchSortOrder => 'SearchSortOrder',
+      _i43.SubRegion => 'SubRegion',
       _ => null,
     };
   }
@@ -1787,59 +1796,61 @@ class Protocol extends _i1.SerializationManagerServer {
         return 'JobAutomationStep';
       case _i15.JobCurriculumProfile():
         return 'JobCurriculumProfile';
-      case _i16.JobKnowledgeSummary():
+      case _i16.JobKnowledgeDraft():
+        return 'JobKnowledgeDraft';
+      case _i17.JobKnowledgeSummary():
         return 'JobKnowledgeSummary';
-      case _i17.JobOpportunityPreference():
+      case _i18.JobOpportunityPreference():
         return 'JobOpportunityPreference';
-      case _i18.JobProposal():
+      case _i19.JobProposal():
         return 'JobProposal';
-      case _i19.JobProposalAnswerToQuestion():
+      case _i20.JobProposalAnswerToQuestion():
         return 'JobProposalAnswerToQuestion';
-      case _i20.JobProposalStylePreference():
+      case _i21.JobProposalStylePreference():
         return 'JobProposalStylePreference';
-      case _i21.JobScore():
+      case _i22.JobScore():
         return 'JobScore';
-      case _i22.PaginationMetadata():
+      case _i23.PaginationMetadata():
         return 'PaginationMetadata';
-      case _i23.PascoaException():
+      case _i24.PascoaException():
         return 'PascoaException';
-      case _i24.AvailableOperators():
+      case _i25.AvailableOperators():
         return 'AvailableOperators';
-      case _i25.AvailableProperties():
+      case _i26.AvailableProperties():
         return 'AvailableProperties';
-      case _i26.ClientHistory():
+      case _i27.ClientHistory():
         return 'ClientHistory';
-      case _i27.ClientLocation():
+      case _i28.ClientLocation():
         return 'ClientLocation';
-      case _i28.Country():
+      case _i29.Country():
         return 'Country';
-      case _i29.CustomFilter():
+      case _i30.CustomFilter():
         return 'CustomFilter';
-      case _i30.ExperienceLevel():
+      case _i31.ExperienceLevel():
         return 'ExperienceLevel';
-      case _i31.JobAgeUnit():
+      case _i32.JobAgeUnit():
         return 'JobAgeUnit';
-      case _i32.JobFilter():
+      case _i33.JobFilter():
         return 'JobFilter';
-      case _i33.JobInfo():
+      case _i34.JobInfo():
         return 'JobInfo';
-      case _i34.JobType():
+      case _i35.JobType():
         return 'JobType';
-      case _i35.MaximumJobAge():
+      case _i36.MaximumJobAge():
         return 'MaximumJobAge';
-      case _i36.MinMax():
+      case _i37.MinMax():
         return 'MinMax';
-      case _i37.Pagination():
+      case _i38.Pagination():
         return 'Pagination';
-      case _i38.PaymentVerifiedStatus():
+      case _i39.PaymentVerifiedStatus():
         return 'PaymentVerifiedStatus';
-      case _i39.Question():
+      case _i40.Question():
         return 'Question';
-      case _i40.Region():
+      case _i41.Region():
         return 'Region';
-      case _i41.SearchSortOrder():
+      case _i42.SearchSortOrder():
         return 'SearchSortOrder';
-      case _i42.SubRegion():
+      case _i43.SubRegion():
         return 'SubRegion';
     }
     className = _i2.Protocol().getClassNameForObject(data);
@@ -1896,86 +1907,89 @@ class Protocol extends _i1.SerializationManagerServer {
     if (dataClassName == 'JobCurriculumProfile') {
       return deserialize<_i15.JobCurriculumProfile>(data['data']);
     }
+    if (dataClassName == 'JobKnowledgeDraft') {
+      return deserialize<_i16.JobKnowledgeDraft>(data['data']);
+    }
     if (dataClassName == 'JobKnowledgeSummary') {
-      return deserialize<_i16.JobKnowledgeSummary>(data['data']);
+      return deserialize<_i17.JobKnowledgeSummary>(data['data']);
     }
     if (dataClassName == 'JobOpportunityPreference') {
-      return deserialize<_i17.JobOpportunityPreference>(data['data']);
+      return deserialize<_i18.JobOpportunityPreference>(data['data']);
     }
     if (dataClassName == 'JobProposal') {
-      return deserialize<_i18.JobProposal>(data['data']);
+      return deserialize<_i19.JobProposal>(data['data']);
     }
     if (dataClassName == 'JobProposalAnswerToQuestion') {
-      return deserialize<_i19.JobProposalAnswerToQuestion>(data['data']);
+      return deserialize<_i20.JobProposalAnswerToQuestion>(data['data']);
     }
     if (dataClassName == 'JobProposalStylePreference') {
-      return deserialize<_i20.JobProposalStylePreference>(data['data']);
+      return deserialize<_i21.JobProposalStylePreference>(data['data']);
     }
     if (dataClassName == 'JobScore') {
-      return deserialize<_i21.JobScore>(data['data']);
+      return deserialize<_i22.JobScore>(data['data']);
     }
     if (dataClassName == 'PaginationMetadata') {
-      return deserialize<_i22.PaginationMetadata>(data['data']);
+      return deserialize<_i23.PaginationMetadata>(data['data']);
     }
     if (dataClassName == 'PascoaException') {
-      return deserialize<_i23.PascoaException>(data['data']);
+      return deserialize<_i24.PascoaException>(data['data']);
     }
     if (dataClassName == 'AvailableOperators') {
-      return deserialize<_i24.AvailableOperators>(data['data']);
+      return deserialize<_i25.AvailableOperators>(data['data']);
     }
     if (dataClassName == 'AvailableProperties') {
-      return deserialize<_i25.AvailableProperties>(data['data']);
+      return deserialize<_i26.AvailableProperties>(data['data']);
     }
     if (dataClassName == 'ClientHistory') {
-      return deserialize<_i26.ClientHistory>(data['data']);
+      return deserialize<_i27.ClientHistory>(data['data']);
     }
     if (dataClassName == 'ClientLocation') {
-      return deserialize<_i27.ClientLocation>(data['data']);
+      return deserialize<_i28.ClientLocation>(data['data']);
     }
     if (dataClassName == 'Country') {
-      return deserialize<_i28.Country>(data['data']);
+      return deserialize<_i29.Country>(data['data']);
     }
     if (dataClassName == 'CustomFilter') {
-      return deserialize<_i29.CustomFilter>(data['data']);
+      return deserialize<_i30.CustomFilter>(data['data']);
     }
     if (dataClassName == 'ExperienceLevel') {
-      return deserialize<_i30.ExperienceLevel>(data['data']);
+      return deserialize<_i31.ExperienceLevel>(data['data']);
     }
     if (dataClassName == 'JobAgeUnit') {
-      return deserialize<_i31.JobAgeUnit>(data['data']);
+      return deserialize<_i32.JobAgeUnit>(data['data']);
     }
     if (dataClassName == 'JobFilter') {
-      return deserialize<_i32.JobFilter>(data['data']);
+      return deserialize<_i33.JobFilter>(data['data']);
     }
     if (dataClassName == 'JobInfo') {
-      return deserialize<_i33.JobInfo>(data['data']);
+      return deserialize<_i34.JobInfo>(data['data']);
     }
     if (dataClassName == 'JobType') {
-      return deserialize<_i34.JobType>(data['data']);
+      return deserialize<_i35.JobType>(data['data']);
     }
     if (dataClassName == 'MaximumJobAge') {
-      return deserialize<_i35.MaximumJobAge>(data['data']);
+      return deserialize<_i36.MaximumJobAge>(data['data']);
     }
     if (dataClassName == 'MinMax') {
-      return deserialize<_i36.MinMax>(data['data']);
+      return deserialize<_i37.MinMax>(data['data']);
     }
     if (dataClassName == 'Pagination') {
-      return deserialize<_i37.Pagination>(data['data']);
+      return deserialize<_i38.Pagination>(data['data']);
     }
     if (dataClassName == 'PaymentVerifiedStatus') {
-      return deserialize<_i38.PaymentVerifiedStatus>(data['data']);
+      return deserialize<_i39.PaymentVerifiedStatus>(data['data']);
     }
     if (dataClassName == 'Question') {
-      return deserialize<_i39.Question>(data['data']);
+      return deserialize<_i40.Question>(data['data']);
     }
     if (dataClassName == 'Region') {
-      return deserialize<_i40.Region>(data['data']);
+      return deserialize<_i41.Region>(data['data']);
     }
     if (dataClassName == 'SearchSortOrder') {
-      return deserialize<_i41.SearchSortOrder>(data['data']);
+      return deserialize<_i42.SearchSortOrder>(data['data']);
     }
     if (dataClassName == 'SubRegion') {
-      return deserialize<_i42.SubRegion>(data['data']);
+      return deserialize<_i43.SubRegion>(data['data']);
     }
     if (dataClassName.startsWith('serverpod.')) {
       data['className'] = dataClassName.substring(10);
@@ -2021,20 +2035,20 @@ class Protocol extends _i1.SerializationManagerServer {
         return _i12.JobAutomationSettings.t;
       case _i15.JobCurriculumProfile:
         return _i15.JobCurriculumProfile.t;
-      case _i17.JobOpportunityPreference:
-        return _i17.JobOpportunityPreference.t;
-      case _i18.JobProposal:
-        return _i18.JobProposal.t;
-      case _i19.JobProposalAnswerToQuestion:
-        return _i19.JobProposalAnswerToQuestion.t;
-      case _i20.JobProposalStylePreference:
-        return _i20.JobProposalStylePreference.t;
-      case _i21.JobScore:
-        return _i21.JobScore.t;
-      case _i33.JobInfo:
-        return _i33.JobInfo.t;
-      case _i39.Question:
-        return _i39.Question.t;
+      case _i18.JobOpportunityPreference:
+        return _i18.JobOpportunityPreference.t;
+      case _i19.JobProposal:
+        return _i19.JobProposal.t;
+      case _i20.JobProposalAnswerToQuestion:
+        return _i20.JobProposalAnswerToQuestion.t;
+      case _i21.JobProposalStylePreference:
+        return _i21.JobProposalStylePreference.t;
+      case _i22.JobScore:
+        return _i22.JobScore.t;
+      case _i34.JobInfo:
+        return _i34.JobInfo.t;
+      case _i40.Question:
+        return _i40.Question.t;
     }
     return null;
   }

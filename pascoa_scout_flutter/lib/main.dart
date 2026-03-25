@@ -13,6 +13,7 @@ void main() async {
   )..connectivityMonitor = FlutterConnectivityMonitor();
 
   final pref = await SharedPreferences.getInstance();
+
   runApp(
     ProviderScope(
       overrides: [

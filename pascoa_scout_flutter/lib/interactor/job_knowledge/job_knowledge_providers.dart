@@ -7,3 +7,9 @@ final jobKnowledgeSummaryProvider = FutureProvider<JobKnowledgeSummary>((
 ) async {
   return ref.read(clientProvider).jobKnowledge.getSummary();
 });
+
+final jobKnowledgeDraftProvider = FutureProvider<JobKnowledgeDraft>((
+  ref,
+) async {
+  return ref.read(clientProvider).jobKnowledge.getDraft();
+});

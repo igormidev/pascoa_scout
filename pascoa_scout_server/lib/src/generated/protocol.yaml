@@ -8,6 +8,7 @@ jobAutomation:
   - setJobFetchingPaused:
 jobKnowledge:
   - getSummary:
+  - getDraft:
   - saveCurriculum:
   - saveProposalStylePreference:
   - saveOpportunityPreference:

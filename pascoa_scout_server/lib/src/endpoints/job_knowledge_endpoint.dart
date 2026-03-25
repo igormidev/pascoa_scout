@@ -15,6 +15,11 @@ class JobKnowledgeEndpoint extends Endpoint {
     return result.fold((summary) => summary, (error) => throw error);
   }
 
+  Future<JobKnowledgeDraft> getDraft(Session session) async {
+    final result = await _service.getDraft(session);
+    return result.fold((draft) => draft, (error) => throw error);
+  }
+
   Future<JobCurriculumProfile> saveCurriculum(
     Session session, {
     required String markdownText,

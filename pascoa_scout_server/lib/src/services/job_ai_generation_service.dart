@@ -189,11 +189,13 @@ Before responding, read these files completely and do not continue until you hav
 - @${opportunityFile.path.split('/').last}
 - @${jobFile.path.split('/').last}
 
+The job file is the canonical human-formatted overview of the opportunity. It contains the full persisted job context, not just the description. Use the whole overview when scoring.
+
 Return only structured JSON that matches the provided schema.
 Scoring rules:
 - scorePercentage must be an integer between 0 and 100 inclusive.
 - Higher means a better match for skills, experience, and opportunity quality.
-- aiScoreJustificationText must be concise, specific, and reference the strongest deciding factors.
+- aiScoreJustificationText must be concise, specific, and reference the strongest deciding factors from the job overview.
 ''';
 
       final generationResult = await _codexService.runStructuredJson(
@@ -464,58 +466,226 @@ Rules:
     required bool includeScore,
   }) async {
     final job = analysis.jobInfo!;
-    final buffer = StringBuffer()
-      ..writeln('# Job context')
-      ..writeln()
-      ..writeln('- Job analysis id: ${analysis.id}')
-      ..writeln('- Upwork id: ${job.upworkId}')
-      ..writeln('- Title: ${job.title}')
-      ..writeln('- URL: ${job.url}')
-      ..writeln('- Relative date: ${job.relativeDate ?? '-'}')
-      ..writeln('- Absolute date: ${job.absoluteDate ?? '-'}')
-      ..writeln('- Job type: ${job.jobType.name}')
-      ..writeln('- Experience level: ${job.experienceLevel.name}')
-      ..writeln('- Budget: ${job.budget ?? '-'}')
-      ..writeln('- Fixed price amount: ${job.fixedPriceAmount ?? '-'}')
-      ..writeln('- Hourly min rate: ${job.hourlyMinRate ?? '-'}')
-      ..writeln('- Hourly max rate: ${job.hourlyMaxRate ?? '-'}')
-      ..writeln('- Client name: ${job.clientName ?? '-'}')
-      ..writeln('- Client rating: ${job.clientRating ?? '-'}')
-      ..writeln(
-        '- Client hire rate percent: ${job.clientHireRatePercent ?? '-'}',
-      )
-      ..writeln('- Client avg hourly rate: ${job.clientAvgHourlyRate ?? '-'}')
-      ..writeln('- Client total spent: ${job.clientTotalSpent ?? '-'}')
-      ..writeln('- Tags: ${job.tags.join(', ')}')
-      ..writeln('- Has hired before: ${job.hasHired}')
-      ..writeln()
-      ..writeln('## Description')
-      ..writeln(job.description)
-      ..writeln();
-
-    if (includeScore && analysis.score != null) {
-      buffer
-        ..writeln('## Existing score')
-        ..writeln('- Score percentage: ${analysis.score!.scorePercentage}')
-        ..writeln(
-          '- Justification: ${analysis.score!.aiScoreJustificationText}',
-        )
-        ..writeln();
-    }
-
-    buffer.writeln('## Questions');
     final questions = [
       ...?job.questions,
     ]..sort((left, right) => left.positionIndex.compareTo(right.positionIndex));
+
+    final buffer = StringBuffer()
+      ..writeln('# Upwork job overview')
+      ..writeln()
+      ..writeln(
+        'This file is the canonical human-formatted overview of every persisted job field for this opportunity.',
+      )
+      ..writeln(
+        'Use the whole overview when scoring or writing. Do not rely only on the description section.',
+      )
+      ..writeln();
+
+    void writeField(String label, String value) {
+      buffer.writeln('- **$label:** $value');
+    }
+
+    buffer.writeln('## Identifiers');
+    writeField('Job analysis id', '${analysis.id}');
+    writeField('Database job id', '${job.id ?? 'Not available'}');
+    writeField('Upwork id', job.upworkId);
+    writeField('Sub id', _formatText(job.subId));
+    writeField('URL', job.url);
+    buffer.writeln();
+
+    buffer.writeln('## Posting timeline');
+    writeField('Relative date text', _formatText(job.relativeDate));
+    writeField(
+      'Relative date minutes',
+      job.relativeDateMinutes?.toString() ?? 'Not available',
+    );
+    writeField('Absolute date text', _formatText(job.absoluteDate));
+    writeField(
+      'Absolute date time (UTC)',
+      _formatDateTime(job.absoluteDateTime),
+    );
+    buffer.writeln();
+
+    buffer.writeln('## Compensation and contract');
+    writeField('Job type', _formatEnumValue(job.jobType));
+    writeField('Experience level', _formatEnumValue(job.experienceLevel));
+    writeField(
+      'Payment verified status',
+      _formatEnumValue(job.paymentVerifiedStatus),
+    );
+    writeField('Budget text', _formatText(job.budget));
+    writeField('Fixed price amount', _formatCurrency(job.fixedPriceAmount));
+    writeField('Hourly min rate', _formatCurrency(job.hourlyMinRate));
+    writeField('Hourly max rate', _formatCurrency(job.hourlyMaxRate));
+    writeField('Client has hired before', _formatBool(job.hasHired));
+    buffer.writeln();
+
+    buffer.writeln('## Client');
+    writeField('Client name', _formatText(job.clientName));
+    writeField(
+      'Client name confidence percent',
+      _formatPercent(job.clientNameConfidencePercent),
+    );
+    writeField('Client rating', _formatNumber(job.clientRating));
+    writeField(
+      'Client hire rate percent',
+      _formatPercent(job.clientHireRatePercent),
+    );
+    writeField(
+      'Client average hourly rate',
+      _formatCurrency(job.clientAvgHourlyRate),
+    );
+    writeField('Client total spent', _formatCurrency(job.clientTotalSpent));
+    buffer.writeln();
+
+    buffer.writeln('## Location and eligibility');
+    writeField('Client location summary', _formatClientLocation(job.clientLocation));
+    writeField(
+      'Client location country',
+      _formatEnumValue(job.clientLocation?.country),
+    );
+    writeField(
+      'Client location region',
+      _formatEnumValue(job.clientLocation?.region),
+    );
+    writeField(
+      'Client location sub-region',
+      _formatEnumValue(job.clientLocation?.subRegion),
+    );
+    writeField(
+      'Allowed applicant countries',
+      _formatAllowedCountries(job.allowedApplicantCountries),
+    );
+    buffer.writeln();
+
+    buffer.writeln('## Classification');
+    writeField(
+      'Tags',
+      job.tags.isEmpty ? 'No tags listed' : job.tags.join(', '),
+    );
+    buffer.writeln();
+
+    if (includeScore && analysis.score != null) {
+      buffer.writeln('## Existing score');
+      writeField(
+        'Score percentage',
+        analysis.score!.scorePercentage.toString(),
+      );
+      writeField(
+        'Justification',
+        analysis.score!.aiScoreJustificationText.trim(),
+      );
+      buffer.writeln();
+    }
+
+    buffer
+      ..writeln('## Description')
+      ..writeln(job.description.trim())
+      ..writeln();
+
+    buffer.writeln('## Application questions');
     if (questions.isEmpty) {
       buffer.writeln('No application questions.');
     } else {
       for (final question in questions) {
-        buffer.writeln('- [${question.id}] ${question.question}');
+        buffer.writeln(
+          '- Question ${question.positionIndex + 1} (relatedQuestionId: ${question.id ?? 'Not available'}): ${question.question.trim()}',
+        );
       }
     }
 
     return _writeFile(workDirectory, 'job.md', buffer.toString());
+  }
+
+  String _formatText(String? value) {
+    final trimmed = value?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return 'Not available';
+    }
+    return trimmed;
+  }
+
+  String _formatDateTime(DateTime? value) {
+    return value == null ? 'Not available' : value.toUtc().toIso8601String();
+  }
+
+  String _formatNumber(num? value) {
+    if (value == null) {
+      return 'Not available';
+    }
+
+    final asString = value is int ? value.toString() : value.toStringAsFixed(2);
+    return asString.replaceFirst(RegExp(r'\.00$'), '').replaceFirst(
+      RegExp(r'(\.\d*[1-9])0+$'),
+      r'$1',
+    );
+  }
+
+  String _formatCurrency(double? value) {
+    if (value == null) {
+      return 'Not available';
+    }
+    return '\$${_formatNumber(value)}';
+  }
+
+  String _formatPercent(double? value) {
+    if (value == null) {
+      return 'Not available';
+    }
+    return '${_formatNumber(value)}%';
+  }
+
+  String _formatBool(bool value) {
+    return value ? 'Yes' : 'No';
+  }
+
+  String _formatEnumValue(Object? value) {
+    if (value == null) {
+      return 'Not available';
+    }
+    if (value is Enum) {
+      return _humanizeIdentifier(value.name);
+    }
+    return _humanizeIdentifier(value.toString());
+  }
+
+  String _formatClientLocation(ClientLocation? location) {
+    if (location == null) {
+      return 'Not available';
+    }
+
+    final parts = [
+      if (location.country != null) _formatEnumValue(location.country),
+      if (location.region != null) _formatEnumValue(location.region),
+      if (location.subRegion != null) _formatEnumValue(location.subRegion),
+    ];
+    return parts.isEmpty ? 'Not available' : parts.join(' • ');
+  }
+
+  String _formatAllowedCountries(List<Country> countries) {
+    if (countries.isEmpty) {
+      return 'No restrictions listed';
+    }
+    return countries.map(_formatEnumValue).join(', ');
+  }
+
+  String _humanizeIdentifier(String value) {
+    final normalized = value
+        .replaceAll('_', ' ')
+        .replaceAllMapped(
+          RegExp(r'([a-z0-9])([A-Z])'),
+          (match) => '${match.group(1)} ${match.group(2)}',
+        )
+        .trim();
+    if (normalized.isEmpty) {
+      return value;
+    }
+
+    return normalized
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .map((part) => '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}')
+        .join(' ');
   }
 
   Future<File> _writeFile(
