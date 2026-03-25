@@ -25,62 +25,74 @@ class JobListageToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        IconButton.filledTonal(
-          tooltip: 'Refresh current filters',
-          onPressed: onRefresh,
-          icon: const Icon(Icons.refresh_rounded),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Card(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-              child: Row(
-                children: [
-                  const Icon(Icons.search_rounded),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: TextField(
-                      controller: searchController,
-                      decoration: const InputDecoration(
-                        hintText:
-                            'Search job titles, descriptions, or client names',
-                        border: InputBorder.none,
+        Row(
+          children: [
+            Expanded(
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 2,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.search_rounded),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: TextField(
+                          controller: searchController,
+                          decoration: const InputDecoration(
+                            hintText:
+                                'Search job titles, descriptions, or client names',
+                            border: InputBorder.none,
+                          ),
+                          onSubmitted: (_) => onSearchSubmitted(),
+                        ),
                       ),
-                      onSubmitted: (_) => onSearchSubmitted(),
-                    ),
-                  ),
-                  ListenableBuilder(
-                    listenable: searchController,
-                    builder: (context, _) {
-                      if (searchController.text.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
+                      ListenableBuilder(
+                        listenable: searchController,
+                        builder: (context, _) {
+                          if (searchController.text.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
 
-                      return IconButton(
-                        onPressed: onClearSearch,
-                        icon: const Icon(Icons.close_rounded),
-                      );
-                    },
+                          return IconButton(
+                            onPressed: onClearSearch,
+                            icon: const Icon(Icons.close_rounded),
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+            const SizedBox(width: 12),
+            IconButton.filledTonal(
+              tooltip: 'Refresh current filters',
+              onPressed: onRefresh,
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        OutlinedButton.icon(
-          onPressed: onOpenFilters,
-          icon: const Icon(Icons.filter_alt_rounded),
-          label: const Text('Filters'),
-        ),
-        const SizedBox(width: 12),
-        _OrderByMenu(
-          current: currentOrderBy,
-          onSelected: onOrderBySelected,
-          orderByLabelBuilder: orderByLabelBuilder,
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            OutlinedButton.icon(
+              onPressed: onOpenFilters,
+              icon: const Icon(Icons.filter_alt_rounded),
+              label: const Text('Filters'),
+            ),
+            const Spacer(),
+            _OrderByMenu(
+              current: currentOrderBy,
+              onSelected: onOrderBySelected,
+              orderByLabelBuilder: orderByLabelBuilder,
+            ),
+          ],
         ),
       ],
     );
@@ -110,9 +122,10 @@ class _OrderByMenu extends StatelessWidget {
           ),
       ],
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        height: 40,
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
           border: Border.all(
             color: Theme.of(
@@ -121,6 +134,7 @@ class _OrderByMenu extends StatelessWidget {
           ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.swap_vert_rounded),
             const SizedBox(width: 10),

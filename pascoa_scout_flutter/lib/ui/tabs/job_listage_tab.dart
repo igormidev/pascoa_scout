@@ -63,21 +63,24 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
     ];
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       child: JobListageResultsView(
-        header: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Job matches', style: theme.textTheme.headlineMedium),
-            const SizedBox(height: 8),
-            Text(
-              'Search persisted analyses, inspect scores and AI-generated responses, and refresh only the rows that are still incomplete.',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: Colors.white.withValues(alpha: 0.72),
+        header: Padding(
+          padding: const EdgeInsets.only(top: 28),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Job matches', style: theme.textTheme.headlineMedium),
+              const SizedBox(height: 8),
+              Text(
+                'Search persisted analyses, inspect scores and AI-generated responses, and refresh only the rows that are still incomplete.',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.72),
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
         toolbar: JobListageToolbar(
           searchController: _searchController,
