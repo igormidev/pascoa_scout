@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
+import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
+import 'package:pascoa_scout/interactor/job_filter/job_filter_providers.dart';
 import 'package:pascoa_scout/interactor/job_sync/job_sync_state.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
@@ -27,7 +29,6 @@ Pagination buildJobSyncPagination() {
 
 class JobSyncController extends Notifier<JobSyncState> {
   StreamSubscription<JobAutomationOverview>? _overviewSubscription;
-  Timer? _successBannerTimer;
 
   @override
   JobSyncState build() {
@@ -37,13 +38,36 @@ class JobSyncController extends Notifier<JobSyncState> {
   }
 
   Future<void> _initialize() async {
-    await _subscribeToOverview();
     try {
-      final overview = await ref
-          .read(clientProvider)
-          .jobAutomation
-          .getOverview();
-      _applyOverview(overview);
+      var overview = await ref.read(clientProvider).jobAutomation.getOverview();
+      final localFilter = _readLocalSavedFilter();
+
+      if (!_hasUsableSearchQuery(overview.settings.jobFilter) &&
+          localFilter != null) {
+        overview = await ref
+            .read(clientProvider)
+            .jobAutomation
+            .updateSettings(
+              update: JobAutomationSettingsUpdate(
+                jobFilter: localFilter,
+                scoreBatchSize: overview.settings.scoreBatchSize,
+                proposalBatchSize: overview.settings.proposalBatchSize,
+                upworkSyncResultsPerPage:
+                    overview.settings.upworkSyncResultsPerPage,
+                proposalMinimumScorePercentage:
+                    overview.settings.proposalMinimumScorePercentage,
+                loopDelayMinutes: overview.settings.loopDelayMinutes,
+              ),
+            );
+      }
+
+      if (!overview.settings.isJobFetchingPaused) {
+        await _setPaused(true);
+      } else {
+        _applyOverview(overview);
+      }
+
+      await _subscribeToOverview();
     } catch (error, stackTrace) {
       state = state.copyWith(
         isBusy: false,
@@ -97,7 +121,7 @@ class JobSyncController extends Notifier<JobSyncState> {
 
   Future<void> setIntervalMinutes(int value) async {
     final normalizedValue = value < 1 ? 1 : value;
-    final jobFilter = state.settings?.jobFilter;
+    final jobFilter = _resolveJobFilter();
     if (jobFilter == null) {
       return;
     }
@@ -115,7 +139,7 @@ class JobSyncController extends Notifier<JobSyncState> {
 
   Future<void> setScoreBatchSize(int value) async {
     final normalizedValue = value < 1 ? 1 : value;
-    final jobFilter = state.settings?.jobFilter;
+    final jobFilter = _resolveJobFilter();
     if (jobFilter == null) {
       return;
     }
@@ -133,7 +157,7 @@ class JobSyncController extends Notifier<JobSyncState> {
 
   Future<void> setProposalBatchSize(int value) async {
     final normalizedValue = value < 1 ? 1 : value;
-    final jobFilter = state.settings?.jobFilter;
+    final jobFilter = _resolveJobFilter();
     if (jobFilter == null) {
       return;
     }
@@ -151,7 +175,7 @@ class JobSyncController extends Notifier<JobSyncState> {
 
   Future<void> setUpworkSyncResultsPerPage(int value) async {
     final normalizedValue = value < 1 ? 1 : value;
-    final jobFilter = state.settings?.jobFilter;
+    final jobFilter = _resolveJobFilter();
     if (jobFilter == null) {
       return;
     }
@@ -169,7 +193,7 @@ class JobSyncController extends Notifier<JobSyncState> {
 
   Future<void> setProposalMinimumScorePercentage(int value) async {
     final normalizedValue = value.clamp(0, 100);
-    final jobFilter = state.settings?.jobFilter;
+    final jobFilter = _resolveJobFilter();
     if (jobFilter == null) {
       return;
     }
@@ -193,18 +217,17 @@ class JobSyncController extends Notifier<JobSyncState> {
     await _setPaused(true, successMessage: 'Job fetching paused.');
   }
 
-  Future<void> _setPaused(
-    bool isPaused, {
-    required String successMessage,
-  }) async {
-    state = state.copyWith(isBusy: true, successBanner: null);
+  Future<void> _setPaused(bool isPaused, {String? successMessage}) async {
+    state = state.copyWith(isBusy: true);
     try {
       final overview = await ref
           .read(clientProvider)
           .jobAutomation
           .setJobFetchingPaused(isPaused: isPaused);
       _applyOverview(overview);
-      _showSuccessBanner(successMessage);
+      if (successMessage != null) {
+        ref.notifySnackbar(successMessage);
+      }
     } catch (error, stackTrace) {
       state = state.copyWith(
         isBusy: false,
@@ -230,7 +253,7 @@ class JobSyncController extends Notifier<JobSyncState> {
     required int loopDelayMinutes,
     required String successMessage,
   }) async {
-    state = state.copyWith(isBusy: true, successBanner: null);
+    state = state.copyWith(isBusy: true);
     try {
       final overview = await ref
           .read(clientProvider)
@@ -246,7 +269,7 @@ class JobSyncController extends Notifier<JobSyncState> {
             ),
           );
       _applyOverview(overview);
-      _showSuccessBanner(successMessage);
+      ref.notifySnackbar(successMessage);
     } catch (error, stackTrace) {
       state = state.copyWith(
         isBusy: false,
@@ -263,20 +286,12 @@ class JobSyncController extends Notifier<JobSyncState> {
     }
   }
 
-  void resetForNewFilter() {
-    state = state.copyWith(successBanner: null);
-  }
+  void resetForNewFilter() {}
 
   void clearError(JobSyncErrorLog error) {
     state = state.copyWith(
       errors: state.errors.where((candidate) => candidate != error).toList(),
     );
-  }
-
-  void clearSuccessBanner() {
-    _successBannerTimer?.cancel();
-    _successBannerTimer = null;
-    state = state.copyWith(successBanner: null);
   }
 
   void _applyOverview(JobAutomationOverview overview) {
@@ -294,21 +309,24 @@ class JobSyncController extends Notifier<JobSyncState> {
     state = state.copyWith(isBusy: false, overview: overview, errors: errors);
   }
 
-  void _showSuccessBanner(String message) {
-    _successBannerTimer?.cancel();
-    state = state.copyWith(
-      successBanner: JobSyncSuccessBanner(
-        message: message,
-        shownAt: DateTime.now(),
-      ),
-    );
-    _successBannerTimer = Timer(const Duration(seconds: 3), () {
-      state = state.copyWith(successBanner: null);
-    });
+  JobFilter? _resolveJobFilter() {
+    final serverFilter = state.settings?.jobFilter;
+    if (_hasUsableSearchQuery(serverFilter)) {
+      return serverFilter;
+    }
+
+    return _readLocalSavedFilter();
+  }
+
+  JobFilter? _readLocalSavedFilter() {
+    return ref.read(currentFilterNotifier.notifier).currentFilter;
+  }
+
+  bool _hasUsableSearchQuery(JobFilter? filter) {
+    return filter != null && filter.searchQueryTerm.trim().isNotEmpty;
   }
 
   Future<void> _dispose() async {
     await _overviewSubscription?.cancel();
-    _successBannerTimer?.cancel();
   }
 }

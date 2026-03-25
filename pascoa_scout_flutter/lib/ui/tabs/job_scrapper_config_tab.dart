@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
 import 'package:pascoa_scout/interactor/job_filter/apify_curl_builder.dart';
 import 'package:pascoa_scout/interactor/job_filter/current_filter_state.dart';
 import 'package:pascoa_scout/interactor/job_filter/filter_panel_mode_provider.dart';
@@ -198,27 +199,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              Icons.check_circle_rounded,
-              color: Colors.greenAccent.shade400,
-            ),
-            const SizedBox(width: 12.0),
-            Text(
-              'Filter saved to local preferences.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-    );
+    ref.notifySnackbar('Filter saved to local preferences.');
   }
 
   void _handleDiscard() {
@@ -271,27 +252,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
       return;
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            Icon(
-              Icons.content_copy_rounded,
-              color: Colors.greenAccent.shade400,
-            ),
-            const SizedBox(width: 12.0),
-            Text(
-              'Exact Apify cURL copied to clipboard.',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-      ),
-    );
+    ref.notifySnackbar('Exact Apify cURL copied to clipboard.');
   }
 
   void _showInvalidFormDialog({required String actionLabel}) {
@@ -1493,7 +1454,7 @@ class _CompactFilterRunTab extends ConsumerWidget {
       JobAutomationStep.generatingProposals =>
         'Generating cover letters and question answers for the strongest matches.',
       JobAutomationStep.pausedWaiting =>
-        'Job fetching is paused. The loop will keep cycling and skip the Upwork sync step.',
+        'Automation is paused. Resume job fetching to queue the next loop cycle.',
       JobAutomationStep.error =>
         'Automation hit an error. The latest failure is shown below.',
     };
@@ -1504,6 +1465,8 @@ class _CompactFilterRunTab extends ConsumerWidget {
     final statusText = elapsedText == null
         ? stepCopy
         : '$stepCopy Current step elapsed time: $elapsedText.';
+
+    final areFilterControlsLocked = syncState.isLocked;
 
     return ListView(
       key: const ValueKey('compact-filter-run-view'),
@@ -1536,10 +1499,14 @@ class _CompactFilterRunTab extends ConsumerWidget {
                 LayoutBuilder(
                   builder: (context, constraints) {
                     final useColumn = constraints.maxWidth < 460.0;
-                    final changeFiltersButton = OutlinedButton.icon(
-                      onPressed: onChangeFilters,
-                      icon: const Icon(Icons.tune_rounded),
-                      label: const Text('Change filter settings'),
+                    final changeFiltersButton = AnimatedOpacity(
+                      duration: 220.ms,
+                      opacity: areFilterControlsLocked ? 0.48 : 1.0,
+                      child: OutlinedButton.icon(
+                        onPressed: onChangeFilters,
+                        icon: const Icon(Icons.tune_rounded),
+                        label: const Text('Change filter settings'),
+                      ),
                     );
                     final copyCurlButton = OutlinedButton.icon(
                       onPressed: onCopyCurl,
@@ -1567,53 +1534,70 @@ class _CompactFilterRunTab extends ConsumerWidget {
                     );
                   },
                 ),
+                if (areFilterControlsLocked) ...[
+                  const SizedBox(height: 14.0),
+                  _CompactInfoCard(
+                    icon: Icons.lock_clock_rounded,
+                    message: syncState.isRunning
+                        ? 'Pause job fetching before changing filter settings or automation limits.'
+                        : 'Automation settings are updating. Controls will unlock in a moment.',
+                  ),
+                ],
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20.0),
                   child: Divider(height: 1.0),
                 ),
-                _NumericStepperCard(
-                  title: 'Loop step delay',
-                  description:
-                      '${syncState.intervalMinutes} minute${syncState.intervalMinutes == 1 ? '' : 's'} between scheduled loop stages.',
-                  value: syncState.intervalMinutes,
-                  onDecrease: onDecreaseInterval,
-                  onIncrease: onIncreaseInterval,
-                ),
-                const SizedBox(height: 12),
-                _NumericStepperCard(
-                  title: 'Upwork sync batch',
-                  description:
-                      '${syncState.upworkSyncResultsPerPage} jobs fetched per Upwork sync step.',
-                  value: syncState.upworkSyncResultsPerPage,
-                  onDecrease: onDecreaseSyncResults,
-                  onIncrease: onIncreaseSyncResults,
-                ),
-                const SizedBox(height: 12),
-                _NumericStepperCard(
-                  title: 'Score batch size',
-                  description:
-                      '${syncState.scoreBatchSize} job analyses scored per scoring step.',
-                  value: syncState.scoreBatchSize,
-                  onDecrease: onDecreaseScoreBatch,
-                  onIncrease: onIncreaseScoreBatch,
-                ),
-                const SizedBox(height: 12),
-                _NumericStepperCard(
-                  title: 'Proposal batch size',
-                  description:
-                      '${syncState.proposalBatchSize} proposals generated per proposal step.',
-                  value: syncState.proposalBatchSize,
-                  onDecrease: onDecreaseProposalBatch,
-                  onIncrease: onIncreaseProposalBatch,
-                ),
-                const SizedBox(height: 12),
-                _NumericStepperCard(
-                  title: 'Minimum score for proposals',
-                  description:
-                      '${syncState.proposalMinimumScorePercentage}% minimum compatibility before AI proposal generation starts.',
-                  value: syncState.proposalMinimumScorePercentage,
-                  onDecrease: onDecreaseMinimumScore,
-                  onIncrease: onIncreaseMinimumScore,
+                AnimatedOpacity(
+                  duration: 220.ms,
+                  opacity: areFilterControlsLocked ? 0.48 : 1.0,
+                  child: Column(
+                    children: [
+                      _NumericStepperCard(
+                        title: 'Loop step delay',
+                        description:
+                            '${syncState.intervalMinutes} minute${syncState.intervalMinutes == 1 ? '' : 's'} between scheduled loop stages.',
+                        value: syncState.intervalMinutes,
+                        onDecrease: onDecreaseInterval,
+                        onIncrease: onIncreaseInterval,
+                      ),
+                      const SizedBox(height: 12),
+                      _NumericStepperCard(
+                        title: 'Upwork sync batch',
+                        description:
+                            '${syncState.upworkSyncResultsPerPage} jobs fetched per Upwork sync step.',
+                        value: syncState.upworkSyncResultsPerPage,
+                        onDecrease: onDecreaseSyncResults,
+                        onIncrease: onIncreaseSyncResults,
+                      ),
+                      const SizedBox(height: 12),
+                      _NumericStepperCard(
+                        title: 'Score batch size',
+                        description:
+                            '${syncState.scoreBatchSize} job analyses scored per scoring step.',
+                        value: syncState.scoreBatchSize,
+                        onDecrease: onDecreaseScoreBatch,
+                        onIncrease: onIncreaseScoreBatch,
+                      ),
+                      const SizedBox(height: 12),
+                      _NumericStepperCard(
+                        title: 'Proposal batch size',
+                        description:
+                            '${syncState.proposalBatchSize} proposals generated per proposal step.',
+                        value: syncState.proposalBatchSize,
+                        onDecrease: onDecreaseProposalBatch,
+                        onIncrease: onIncreaseProposalBatch,
+                      ),
+                      const SizedBox(height: 12),
+                      _NumericStepperCard(
+                        title: 'Minimum score for proposals',
+                        description:
+                            '${syncState.proposalMinimumScorePercentage}% minimum compatibility before AI proposal generation starts.',
+                        value: syncState.proposalMinimumScorePercentage,
+                        onDecrease: onDecreaseMinimumScore,
+                        onIncrease: onIncreaseMinimumScore,
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 14.0),
                 _CompactInfoCard(
@@ -1648,20 +1632,6 @@ class _CompactFilterRunTab extends ConsumerWidget {
                           : 'Resume job fetching',
                     ),
                   ),
-                ),
-                AnimatedSwitcher(
-                  duration: 260.ms,
-                  child: syncState.successBanner == null
-                      ? const SizedBox.shrink(
-                          key: ValueKey('no-success-banner'),
-                        )
-                      : Padding(
-                          key: ValueKey(syncState.successBanner!.shownAt),
-                          padding: const EdgeInsets.only(top: 14.0),
-                          child: _SuccessInfoCard(
-                            message: syncState.successBanner!.message,
-                          ),
-                        ),
                 ),
                 if (syncState.errors.isNotEmpty) ...[
                   const Padding(
@@ -1809,42 +1779,6 @@ class _CompactInfoCard extends StatelessWidget {
   }
 }
 
-class _SuccessInfoCard extends StatelessWidget {
-  const _SuccessInfoCard({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(14.0),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.0),
-        color: const Color(0xFF143328),
-        border: Border.all(
-          color: const Color(0xFF5EE9B5).withValues(alpha: 0.34),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.check_circle_rounded, color: Color(0xFF5EE9B5)),
-          const SizedBox(width: 10.0),
-          Expanded(
-            child: Text(
-              message,
-              style: const TextStyle(
-                color: Color(0xFFE2FFF4),
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 220.ms).slideY(begin: 0.08);
-  }
-}
-
 class _ErrorLogCard extends StatelessWidget {
   const _ErrorLogCard({required this.error});
 
@@ -1895,11 +1829,9 @@ class _ErrorLogCard extends StatelessWidget {
                       return;
                     }
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Error details copied.'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
+                    notifySnackbarWithContext(
+                      context,
+                      message: 'Error details copied.',
                     );
                   },
                   visualDensity: VisualDensity.compact,

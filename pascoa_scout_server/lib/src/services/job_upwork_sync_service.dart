@@ -72,12 +72,6 @@ class JobUpworkSyncService {
       final existingJob = await JobInfo.db.findFirstRow(
         session,
         where: (table) => table.upworkId.equals(incomingJob.upworkId),
-        include: JobInfo.include(
-          analysisState: JobAnalysisState.include(),
-          questions: Question.includeList(
-            orderBy: (table) => table.positionIndex,
-          ),
-        ),
         transaction: transaction,
         lockMode: LockMode.forUpdate,
       );
@@ -87,9 +81,17 @@ class JobUpworkSyncService {
         return;
       }
 
+      final existingAnalysisState = await JobAnalysisState.db.findFirstRow(
+        session,
+        where: (table) => table.jobInfoId.equals(existingJob.id),
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+
       await _updateExistingJob(
         session,
         existingJob: existingJob,
+        existingAnalysisState: existingAnalysisState,
         incomingJob: incomingJob,
         transaction: transaction,
       );
@@ -110,7 +112,7 @@ class JobUpworkSyncService {
       transaction: transaction,
     );
 
-    final analysisState = await JobAnalysisState.db.insertRow(
+    await JobAnalysisState.db.insertRow(
       session,
       JobAnalysisState(
         jobInfoId: insertedJob.id!,
@@ -120,33 +122,21 @@ class JobUpworkSyncService {
     );
 
     if ((incomingJob.questions?.isNotEmpty ?? false)) {
-      final insertedQuestions = await Question.db.insert(
+      await Question.db.insert(
         session,
         [
           for (final question in incomingJob.questions ?? const <Question>[])
-            question,
+            question.copyWith(jobInfoId: insertedJob.id),
         ],
         transaction: transaction,
       );
-      await JobInfo.db.attach.questions(
-        session,
-        insertedJob,
-        insertedQuestions,
-        transaction: transaction,
-      );
     }
-
-    await JobInfo.db.attachRow.analysisState(
-      session,
-      insertedJob,
-      analysisState,
-      transaction: transaction,
-    );
   }
 
   Future<void> _updateExistingJob(
     Session session, {
     required JobInfo existingJob,
+    required JobAnalysisState? existingAnalysisState,
     required JobInfo incomingJob,
     required Transaction transaction,
   }) async {
@@ -192,35 +182,23 @@ class JobUpworkSyncService {
     );
 
     if ((incomingJob.questions?.isNotEmpty ?? false)) {
-      final insertedQuestions = await Question.db.insert(
+      await Question.db.insert(
         session,
         [
           for (final question in incomingJob.questions ?? const <Question>[])
-            question,
+            question.copyWith(jobInfoId: existingJob.id),
         ],
-        transaction: transaction,
-      );
-      await JobInfo.db.attach.questions(
-        session,
-        existingJob,
-        insertedQuestions,
         transaction: transaction,
       );
     }
 
-    if (existingJob.analysisState == null) {
-      final analysisState = await JobAnalysisState.db.insertRow(
+    if (existingAnalysisState == null) {
+      await JobAnalysisState.db.insertRow(
         session,
         JobAnalysisState(
           jobInfoId: existingJob.id!,
           createdJobInfoAt: DateTime.now().toUtc(),
         ),
-        transaction: transaction,
-      );
-      await JobInfo.db.attachRow.analysisState(
-        session,
-        existingJob,
-        analysisState,
         transaction: transaction,
       );
     }

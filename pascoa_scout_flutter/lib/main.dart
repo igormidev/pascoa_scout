@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/ui/dashboard_page.dart';
+import 'package:pascoa_scout/ui/widgets/app_notification_overlay.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 import 'package:serverpod_flutter/serverpod_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -156,7 +157,15 @@ class PascoaScoutApp extends StatelessWidget {
           ),
         ),
       ),
-      home: DashboardPage(),
+      builder: (context, child) {
+        return Stack(
+          children: [
+            ...(child != null ? [child] : const <Widget>[]),
+            const AppNotificationOverlay(),
+          ],
+        );
+      },
+      home: const DashboardPage(),
     );
   }
 }

@@ -4,7 +4,6 @@ class JobSyncState {
   const JobSyncState({
     required this.isBusy,
     required this.overview,
-    required this.successBanner,
     required this.errors,
     required this.jobs,
   });
@@ -13,7 +12,6 @@ class JobSyncState {
     return const JobSyncState(
       isBusy: true,
       overview: null,
-      successBanner: null,
       errors: <JobSyncErrorLog>[],
       jobs: <TrackedJob>[],
     );
@@ -21,7 +19,6 @@ class JobSyncState {
 
   final bool isBusy;
   final JobAutomationOverview? overview;
-  final JobSyncSuccessBanner? successBanner;
   final List<JobSyncErrorLog> errors;
   final List<TrackedJob> jobs;
 
@@ -30,7 +27,7 @@ class JobSyncState {
 
   bool get isRunning => !(settings?.isJobFetchingPaused ?? true);
   bool get isPulling => currentStep == JobAutomationStep.fetchingJobs;
-  bool get isLocked => isBusy;
+  bool get isLocked => isBusy || isRunning;
 
   int get intervalMinutes => settings?.loopDelayMinutes ?? 5;
   int get scoreBatchSize => settings?.scoreBatchSize ?? 20;
@@ -50,7 +47,6 @@ class JobSyncState {
   JobSyncState copyWith({
     bool? isBusy,
     Object? overview = _sentinel,
-    Object? successBanner = _sentinel,
     List<JobSyncErrorLog>? errors,
     List<TrackedJob>? jobs,
   }) {
@@ -59,20 +55,10 @@ class JobSyncState {
       overview: overview == _sentinel
           ? this.overview
           : overview as JobAutomationOverview?,
-      successBanner: successBanner == _sentinel
-          ? this.successBanner
-          : successBanner as JobSyncSuccessBanner?,
       errors: errors ?? this.errors,
       jobs: jobs ?? this.jobs,
     );
   }
-}
-
-class JobSyncSuccessBanner {
-  const JobSyncSuccessBanner({required this.message, required this.shownAt});
-
-  final String message;
-  final DateTime shownAt;
 }
 
 class JobSyncErrorLog {

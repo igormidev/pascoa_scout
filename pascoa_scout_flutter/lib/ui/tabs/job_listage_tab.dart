@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
+import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_card.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
@@ -369,11 +370,10 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(error.toString()),
-          behavior: SnackBarBehavior.floating,
-        ),
+      notifySnackbarWithContext(
+        context,
+        message: error.toString(),
+        tone: AppNotificationTone.error,
       );
     } finally {
       if (mounted) {

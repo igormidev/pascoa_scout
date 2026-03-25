@@ -29,4 +29,13 @@ class JobAutomationLoopScheduler {
       parameters: QueryParameters.named({'identifier': identifier}),
     );
   }
+
+  Future<void> cancelAll(
+    Session session, {
+    required Iterable<String> identifiers,
+  }) async {
+    for (final identifier in identifiers) {
+      await cancel(session, identifier: identifier);
+    }
+  }
 }

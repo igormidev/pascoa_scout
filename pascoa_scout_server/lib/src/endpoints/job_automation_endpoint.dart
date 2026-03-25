@@ -51,14 +51,35 @@ class JobAutomationEndpoint extends Endpoint {
     );
 
     final overview = result.fold((value) => value, (error) => throw error);
-    if (!isPaused) {
-      await _scheduler.reschedule(
+    if (isPaused) {
+      await _scheduler.cancelAll(
         session,
-        callName: jobAutomationSyncFutureCallName,
-        identifier: jobAutomationSyncFutureCallIdentifier,
-        delay: Duration.zero,
+        identifiers: const [
+          jobAutomationSyncFutureCallIdentifier,
+          jobAutomationScoreFutureCallIdentifier,
+          jobAutomationProposalFutureCallIdentifier,
+        ],
+      );
+      final runtimeResult = await _service.setCurrentStep(
+        session,
+        JobAutomationStep.pausedWaiting,
+      );
+      final runtime = runtimeResult.fold(
+        (value) => value,
+        (error) => throw error,
+      );
+      return JobAutomationOverview(
+        settings: overview.settings,
+        runtime: runtime,
       );
     }
+
+    await _scheduler.reschedule(
+      session,
+      callName: jobAutomationSyncFutureCallName,
+      identifier: jobAutomationSyncFutureCallIdentifier,
+      delay: Duration.zero,
+    );
 
     return overview;
   }

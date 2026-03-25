@@ -274,7 +274,7 @@ class JobAutomationService {
       JobAutomationSettings(
         singletonKey: jobAutomationSingletonKey,
         jobFilter: JobFilter(searchQueryTerm: ''),
-        isJobFetchingPaused: false,
+        isJobFetchingPaused: true,
         scoreBatchSize: defaultScoreBatchSize,
         proposalBatchSize: defaultProposalBatchSize,
         upworkSyncResultsPerPage: defaultUpworkSyncResultsPerPage,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -326,9 +327,11 @@ class _JobAnalysisCardState extends State<JobAnalysisCard> {
   Future<void> _openJob(BuildContext context, String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null) {
-      ScaffoldMessenger.of(
+      notifySnackbarWithContext(
         context,
-      ).showSnackBar(const SnackBar(content: Text('The job URL is invalid.')));
+        message: 'The job URL is invalid.',
+        tone: AppNotificationTone.error,
+      );
       return;
     }
 
@@ -337,8 +340,10 @@ class _JobAnalysisCardState extends State<JobAnalysisCard> {
       mode: LaunchMode.externalApplication,
     );
     if (!wasOpened && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Unable to open this Upwork job.')),
+      notifySnackbarWithContext(
+        context,
+        message: 'Unable to open this Upwork job.',
+        tone: AppNotificationTone.error,
       );
     }
   }
@@ -352,12 +357,7 @@ class _JobAnalysisCardState extends State<JobAnalysisCard> {
     if (!context.mounted) {
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(successMessage),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    notifySnackbarWithContext(context, message: successMessage);
   }
 }
 
@@ -452,12 +452,7 @@ class _AnswerCard extends StatelessWidget {
                   if (!context.mounted) {
                     return;
                   }
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Answer copied.'),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
+                  notifySnackbarWithContext(context, message: 'Answer copied.');
                 },
                 icon: const Icon(Icons.content_copy_rounded),
               ),

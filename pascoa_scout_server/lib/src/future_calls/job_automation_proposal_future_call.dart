@@ -29,6 +29,14 @@ class JobAutomationProposalFutureCall extends FutureCall {
       (error) => throw error,
     );
 
+    if (settings.isJobFetchingPaused) {
+      await _automationService.setCurrentStep(
+        session,
+        JobAutomationStep.pausedWaiting,
+      );
+      return;
+    }
+
     await _automationService.setCurrentStep(
       session,
       JobAutomationStep.generatingProposals,
@@ -43,11 +51,26 @@ class JobAutomationProposalFutureCall extends FutureCall {
       (error) => _automationService.markError(session, message: error.message),
     );
 
+    final latestSettingsResult = await _automationService.getOrCreateSettings(
+      session,
+    );
+    final latestSettings = latestSettingsResult.fold(
+      (value) => value,
+      (error) => throw error,
+    );
+    if (latestSettings.isJobFetchingPaused) {
+      await _automationService.setCurrentStep(
+        session,
+        JobAutomationStep.pausedWaiting,
+      );
+      return;
+    }
+
     await _scheduler.reschedule(
       session,
       callName: jobAutomationSyncFutureCallName,
       identifier: jobAutomationSyncFutureCallIdentifier,
-      delay: Duration(minutes: settings.loopDelayMinutes),
+      delay: Duration(minutes: latestSettings.loopDelayMinutes),
     );
   }
 }

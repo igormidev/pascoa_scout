@@ -49,12 +49,6 @@ class JobAutomationSyncFutureCall extends FutureCall {
         session,
         JobAutomationStep.pausedWaiting,
       );
-      await _scheduler.reschedule(
-        session,
-        callName: jobAutomationScoreFutureCallName,
-        identifier: jobAutomationScoreFutureCallIdentifier,
-        delay: Duration(minutes: settings.loopDelayMinutes),
-      );
       return;
     }
 
@@ -72,11 +66,26 @@ class JobAutomationSyncFutureCall extends FutureCall {
       (error) => _automationService.markError(session, message: error.message),
     );
 
+    final latestSettingsResult = await _automationService.getOrCreateSettings(
+      session,
+    );
+    final latestSettings = latestSettingsResult.fold(
+      (value) => value,
+      (error) => throw error,
+    );
+    if (latestSettings.isJobFetchingPaused) {
+      await _automationService.setCurrentStep(
+        session,
+        JobAutomationStep.pausedWaiting,
+      );
+      return;
+    }
+
     await _scheduler.reschedule(
       session,
       callName: jobAutomationScoreFutureCallName,
       identifier: jobAutomationScoreFutureCallIdentifier,
-      delay: Duration(minutes: settings.loopDelayMinutes),
+      delay: Duration(minutes: latestSettings.loopDelayMinutes),
     );
   }
 }
