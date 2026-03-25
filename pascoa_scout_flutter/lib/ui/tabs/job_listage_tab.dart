@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
+import 'package:pascoa_scout/interactor/job_analysis_selection/selected_job_analysis_provider.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_applied_filters.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_results_view.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_toolbar.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
@@ -46,6 +48,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final selectedAnalysis = ref.watch(selectedJobAnalysisProvider);
     final appliedFilterLabels = <String>[
       if (_filters.searchTerm?.isNotEmpty ?? false)
         'Search: ${_filters.searchTerm}',
@@ -87,7 +90,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         toolbar: JobListageToolbar(
           searchController: _searchController,
           currentOrderBy: _filters.orderBy,
-          onRefresh: () => _loadPage(resetReference: true, page: 1),
+          onRefresh: () => _refreshList(resetReference: true, page: 1),
           onSearchSubmitted: _applySearch,
           onClearSearch: () {
             _searchController.clear();
@@ -104,10 +107,12 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         pageData: _pageData,
         visiblePagesBuilder: _buildVisiblePages,
         refreshingCards: _refreshingCards,
-        onRetry: () => _loadPage(resetReference: true),
-        onRefreshEmptyState: () => _loadPage(resetReference: true, page: 1),
+        selectedAnalysis: selectedAnalysis,
+        onRetry: () => _refreshList(resetReference: true),
+        onRefreshEmptyState: () => _refreshList(resetReference: true, page: 1),
         onLoadPage: (page) => _loadPage(page: page),
         onRefreshCard: _refreshCard,
+        onSelectAnalysis: _selectAnalysis,
       ),
     );
   }
@@ -125,7 +130,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
     setState(() {
       _filters = _filters.copyWith(searchTerm: _searchController.text.trim());
     });
-    await _loadPage(resetReference: true, page: 1);
+    await _refreshList(resetReference: true, page: 1);
   }
 
   Future<void> _openFiltersDialog() async {
@@ -144,7 +149,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
     if (!mounted) {
       return;
     }
-    await _loadPage(resetReference: true, page: 1);
+    await _refreshList(resetReference: true, page: 1);
   }
 
   Future<void> _updateOrderBy(JobAnalysisOrderBy orderBy) async {
@@ -156,7 +161,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
     if (!mounted) {
       return;
     }
-    await _loadPage(resetReference: true, page: 1);
+    await _refreshList(resetReference: true, page: 1);
   }
 
   Future<void> _loadPage({bool resetReference = false, int? page}) async {
@@ -196,6 +201,9 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
       if (!mounted) {
         return;
       }
+      ref
+          .read(selectedJobAnalysisProvider.notifier)
+          .syncWithVisibleItems(pageData.items);
       setState(() {
         _pageData = pageData;
         _isLoading = false;
@@ -216,14 +224,19 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
       _refreshingCards.add(id);
     });
     try {
-      final updated = await ref
+      final updatedFuture = ref
           .read(clientProvider)
           .jobAnalysis
           .refreshCard(jobAnalysisStateId: id);
+      final updated = await Future.wait<Object?>([
+        updatedFuture,
+        Future<void>.delayed(const Duration(milliseconds: 500)),
+      ]).then((values) => values.first as JobAnalysisState);
       if (!mounted || _pageData == null) {
         return;
       }
 
+      ref.read(selectedJobAnalysisProvider.notifier).update(updated);
       setState(() {
         _pageData = _pageData!.copyWith(
           items: [
@@ -248,6 +261,26 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         });
       }
     }
+  }
+
+  Future<void> _refreshList({bool resetReference = false, int? page}) async {
+    _clearSelectedAnalysis();
+    await _loadPage(resetReference: resetReference, page: page);
+  }
+
+  void _selectAnalysis(JobAnalysisState analysis) {
+    final notifier = ref.read(selectedJobAnalysisProvider.notifier);
+    final selectedAnalysis = ref.read(selectedJobAnalysisProvider);
+    if (selectedAnalysis != null &&
+        isSameJobAnalysis(selectedAnalysis, analysis)) {
+      return;
+    }
+
+    notifier.select(analysis);
+  }
+
+  void _clearSelectedAnalysis() {
+    ref.read(selectedJobAnalysisProvider.notifier).clear();
   }
 
   Future<void> _persistFilters(_LocalJobAnalysisFilters filters) async {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_card.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
 const _jobListageToolbarExtent = 118.0;
@@ -18,10 +19,12 @@ class JobListageResultsView extends StatefulWidget {
     required this.pageData,
     required this.visiblePagesBuilder,
     required this.refreshingCards,
+    required this.selectedAnalysis,
     required this.onRetry,
     required this.onRefreshEmptyState,
     required this.onLoadPage,
     required this.onRefreshCard,
+    required this.onSelectAnalysis,
   });
 
   final Widget header;
@@ -33,10 +36,12 @@ class JobListageResultsView extends StatefulWidget {
   final JobAnalysisPagination? pageData;
   final List<int> Function(int currentPage, int totalPages) visiblePagesBuilder;
   final Set<int> refreshingCards;
+  final JobAnalysisState? selectedAnalysis;
   final VoidCallback onRetry;
   final VoidCallback onRefreshEmptyState;
   final ValueChanged<int> onLoadPage;
   final Future<void> Function(int id) onRefreshCard;
+  final ValueChanged<JobAnalysisState> onSelectAnalysis;
 
   @override
   State<JobListageResultsView> createState() => _JobListageResultsViewState();
@@ -148,12 +153,19 @@ class _JobListageResultsViewState extends State<JobListageResultsView> {
                       padding: EdgeInsets.only(bottom: isLastCard ? 0 : 16),
                       child: JobAnalysisCard(
                         analysis: analysis,
+                        isSelected:
+                            widget.selectedAnalysis != null &&
+                            isSameJobAnalysis(
+                              widget.selectedAnalysis!,
+                              analysis,
+                            ),
                         isRefreshing: widget.refreshingCards.contains(
                           analysis.id,
                         ),
                         onRefresh: analysis.id == null
                             ? null
                             : widget.onRefreshCard,
+                        onSelect: () => widget.onSelectAnalysis(analysis),
                       ),
                     );
                   },

@@ -59,5 +59,295 @@
   "jobListOrderByHighestClientTotalSpent": "Highest client total spent",
   "@jobListOrderByHighestClientTotalSpent": {
     "description": "Order-by label for sorting jobs by the highest client total spent."
+  },
+  "jobAnalysisHourlyFromLabel": "From {amount}",
+  "@jobAnalysisHourlyFromLabel": {
+    "description": "Compensation label for hourly jobs with only a minimum rate.",
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "jobAnalysisHourlyUpToLabel": "Up to {amount}",
+  "@jobAnalysisHourlyUpToLabel": {
+    "description": "Compensation label for hourly jobs with only a maximum rate.",
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "jobAnalysisUnavailableValue": "-",
+  "@jobAnalysisUnavailableValue": {
+    "description": "Fallback value shown when a job detail is unavailable."
+  },
+  "jobAnalysisQuestionsChip": "{count, plural, =0{0 Questions} =1{1 Question} other{{count} Questions}}",
+  "@jobAnalysisQuestionsChip": {
+    "description": "Compact chip label showing how many application questions a job has.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "jobAnalysisHireChip": "Hire {percent}",
+  "@jobAnalysisHireChip": {
+    "description": "Compact chip label showing the client hire rate.",
+    "placeholders": {
+      "percent": {}
+    }
+  },
+  "jobAnalysisYesValue": "Yes",
+  "@jobAnalysisYesValue": {
+    "description": "Affirmative value label in job details tables."
+  },
+  "jobAnalysisNoValue": "No",
+  "@jobAnalysisNoValue": {
+    "description": "Negative value label in job details tables."
+  },
+  "jobAnalysisPaymentStatusUnknown": "Unknown",
+  "@jobAnalysisPaymentStatusUnknown": {
+    "description": "Payment verification label for an unknown client payment status."
+  },
+  "jobAnalysisPaymentStatusVerified": "Verified",
+  "@jobAnalysisPaymentStatusVerified": {
+    "description": "Payment verification label for a verified client payment status."
+  },
+  "jobAnalysisPaymentStatusUnverified": "Unverified",
+  "@jobAnalysisPaymentStatusUnverified": {
+    "description": "Payment verification label for an unverified client payment status."
+  },
+  "jobAnalysisDescriptionSectionTitle": "Description",
+  "@jobAnalysisDescriptionSectionTitle": {
+    "description": "Section title for the job description."
+  },
+  "jobAnalysisCopyDescriptionTooltip": "Copy description",
+  "@jobAnalysisCopyDescriptionTooltip": {
+    "description": "Tooltip for copying the job description."
+  },
+  "jobAnalysisDescriptionCopied": "Description copied.",
+  "@jobAnalysisDescriptionCopied": {
+    "description": "Snackbar message after copying the job description."
+  },
+  "jobAnalysisViewMore": "View more",
+  "@jobAnalysisViewMore": {
+    "description": "Label for expanding a truncated block of job text."
+  },
+  "jobAnalysisViewLess": "View less",
+  "@jobAnalysisViewLess": {
+    "description": "Label for collapsing an expanded block of job text."
+  },
+  "jobAnalysisGeneralStatsSectionTitle": "General stats",
+  "@jobAnalysisGeneralStatsSectionTitle": {
+    "description": "Section title for the general job stats table."
+  },
+  "jobAnalysisQuestionsSectionTitle": "Job questions",
+  "@jobAnalysisQuestionsSectionTitle": {
+    "description": "Section title for the raw application questions."
+  },
+  "jobAnalysisQuestionTitle": "Question {index}",
+  "@jobAnalysisQuestionTitle": {
+    "description": "Title for a question entry in the selected job detail panel.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "jobAnalysisCopyQuestionTooltip": "Copy question",
+  "@jobAnalysisCopyQuestionTooltip": {
+    "description": "Tooltip for copying a raw application question."
+  },
+  "jobAnalysisQuestionCopied": "Question copied.",
+  "@jobAnalysisQuestionCopied": {
+    "description": "Snackbar message after copying a raw application question."
+  },
+  "jobAnalysisAiCompatibilitySectionTitle": "AI compatibility explanation",
+  "@jobAnalysisAiCompatibilitySectionTitle": {
+    "description": "Section title for the AI-generated compatibility explanation."
+  },
+  "jobAnalysisCopyAiCompatibilityTooltip": "Copy AI compatibility explanation",
+  "@jobAnalysisCopyAiCompatibilityTooltip": {
+    "description": "Tooltip for copying the AI-generated compatibility explanation."
+  },
+  "jobAnalysisAiCompatibilityCopied": "AI compatibility explanation copied.",
+  "@jobAnalysisAiCompatibilityCopied": {
+    "description": "Snackbar message after copying the AI-generated compatibility explanation."
+  },
+  "jobAnalysisCoverLetterSectionTitle": "AI-generated cover letter",
+  "@jobAnalysisCoverLetterSectionTitle": {
+    "description": "Section title for the AI-generated cover letter."
+  },
+  "jobAnalysisCopyCoverLetterTooltip": "Copy cover letter",
+  "@jobAnalysisCopyCoverLetterTooltip": {
+    "description": "Tooltip for copying the AI-generated cover letter."
+  },
+  "jobAnalysisCoverLetterCopied": "Cover letter copied.",
+  "@jobAnalysisCoverLetterCopied": {
+    "description": "Snackbar message after copying the AI-generated cover letter."
+  },
+  "jobAnalysisAiAnswersSectionTitle": "AI-generated answers",
+  "@jobAnalysisAiAnswersSectionTitle": {
+    "description": "Section title for the AI-generated answers to the job questions."
+  },
+  "jobAnalysisAnswerFallbackTitle": "Generated answer",
+  "@jobAnalysisAnswerFallbackTitle": {
+    "description": "Fallback title when an AI-generated answer has no linked question title."
+  },
+  "jobAnalysisCopyAnswerTooltip": "Copy answer",
+  "@jobAnalysisCopyAnswerTooltip": {
+    "description": "Tooltip for copying an AI-generated answer."
+  },
+  "jobAnalysisAnswerCopied": "Answer copied.",
+  "@jobAnalysisAnswerCopied": {
+    "description": "Snackbar message after copying an AI-generated answer."
+  },
+  "jobAnalysisUpworkIdLabel": "Upwork ID",
+  "@jobAnalysisUpworkIdLabel": {
+    "description": "Label for the Upwork ID row in the job details table."
+  },
+  "jobAnalysisSubIdLabel": "Sub ID",
+  "@jobAnalysisSubIdLabel": {
+    "description": "Label for the Sub ID row in the job details table."
+  },
+  "jobAnalysisJobUrlLabel": "Job URL",
+  "@jobAnalysisJobUrlLabel": {
+    "description": "Label for the job URL row in the job details table."
+  },
+  "jobAnalysisRelativeDateLabel": "Relative date",
+  "@jobAnalysisRelativeDateLabel": {
+    "description": "Label for the relative date row in the job details table."
+  },
+  "jobAnalysisRelativeDateMinutesLabel": "Relative date (minutes)",
+  "@jobAnalysisRelativeDateMinutesLabel": {
+    "description": "Label for the raw relative date in minutes row in the job details table."
+  },
+  "jobAnalysisAbsoluteDateLabel": "Absolute date",
+  "@jobAnalysisAbsoluteDateLabel": {
+    "description": "Label for the absolute date row in the job details table."
+  },
+  "jobAnalysisAbsoluteDateTimeLabel": "Absolute date time",
+  "@jobAnalysisAbsoluteDateTimeLabel": {
+    "description": "Label for the absolute date time row in the job details table."
+  },
+  "jobAnalysisBudgetLabel": "Budget",
+  "@jobAnalysisBudgetLabel": {
+    "description": "Label for the raw budget row in the job details table."
+  },
+  "jobAnalysisCompensationLabel": "Compensation",
+  "@jobAnalysisCompensationLabel": {
+    "description": "Label for the formatted compensation row in the job details table."
+  },
+  "jobAnalysisFixedPriceAmountLabel": "Fixed price amount",
+  "@jobAnalysisFixedPriceAmountLabel": {
+    "description": "Label for the fixed price amount row in the job details table."
+  },
+  "jobAnalysisHourlyMinLabel": "Hourly min",
+  "@jobAnalysisHourlyMinLabel": {
+    "description": "Label for the hourly minimum rate row in the job details table."
+  },
+  "jobAnalysisHourlyMaxLabel": "Hourly max",
+  "@jobAnalysisHourlyMaxLabel": {
+    "description": "Label for the hourly maximum rate row in the job details table."
+  },
+  "jobAnalysisJobTypeLabel": "Job type",
+  "@jobAnalysisJobTypeLabel": {
+    "description": "Label for the job type row in the job details table."
+  },
+  "jobAnalysisExperienceLabel": "Experience",
+  "@jobAnalysisExperienceLabel": {
+    "description": "Label for the experience level row in the job details table."
+  },
+  "jobAnalysisPaymentVerifiedLabel": "Payment verified",
+  "@jobAnalysisPaymentVerifiedLabel": {
+    "description": "Label for the payment verification row in the job details table."
+  },
+  "jobAnalysisAllowedCountriesLabel": "Allowed applicant countries",
+  "@jobAnalysisAllowedCountriesLabel": {
+    "description": "Label for the allowed applicant countries row in the job details table."
+  },
+  "jobAnalysisClientNameLabel": "Client name",
+  "@jobAnalysisClientNameLabel": {
+    "description": "Label for the client name row in the job details table."
+  },
+  "jobAnalysisClientNameConfidenceLabel": "Client name confidence",
+  "@jobAnalysisClientNameConfidenceLabel": {
+    "description": "Label for the client name confidence row in the job details table."
+  },
+  "jobAnalysisClientAverageHourlyRateLabel": "Client avg hourly rate",
+  "@jobAnalysisClientAverageHourlyRateLabel": {
+    "description": "Label for the client average hourly rate row in the job details table."
+  },
+  "jobAnalysisClientRatingLabel": "Client rating",
+  "@jobAnalysisClientRatingLabel": {
+    "description": "Label for the client rating row in the job details table."
+  },
+  "jobAnalysisClientRatingValue": "{rating} / 5",
+  "@jobAnalysisClientRatingValue": {
+    "description": "Formatted client rating value in the job details table.",
+    "placeholders": {
+      "rating": {}
+    }
+  },
+  "jobAnalysisClientHireRateLabel": "Client hire rate",
+  "@jobAnalysisClientHireRateLabel": {
+    "description": "Label for the client hire rate row in the job details table."
+  },
+  "jobAnalysisClientTotalSpentLabel": "Client total spent",
+  "@jobAnalysisClientTotalSpentLabel": {
+    "description": "Label for the client total spent row in the job details table."
+  },
+  "jobAnalysisClientCountryLabel": "Client country",
+  "@jobAnalysisClientCountryLabel": {
+    "description": "Label for the client country row in the job details table."
+  },
+  "jobAnalysisClientRegionLabel": "Client region",
+  "@jobAnalysisClientRegionLabel": {
+    "description": "Label for the client region row in the job details table."
+  },
+  "jobAnalysisClientSubRegionLabel": "Client sub-region",
+  "@jobAnalysisClientSubRegionLabel": {
+    "description": "Label for the client sub-region row in the job details table."
+  },
+  "jobAnalysisTagsLabel": "Tags",
+  "@jobAnalysisTagsLabel": {
+    "description": "Label for the tags row in the job details table."
+  },
+  "jobAnalysisHasHiredLabel": "Has hired",
+  "@jobAnalysisHasHiredLabel": {
+    "description": "Label for the has hired row in the job details table."
+  },
+  "jobAnalysisQuestionCountLabel": "Question count",
+  "@jobAnalysisQuestionCountLabel": {
+    "description": "Label for the question count row in the job details table."
+  },
+  "jobAnalysisPersistedAtLabel": "Job persisted at",
+  "@jobAnalysisPersistedAtLabel": {
+    "description": "Label for the job persisted timestamp row in the job details table."
+  },
+  "jobAnalysisScoreGeneratedAtLabel": "Score generated at",
+  "@jobAnalysisScoreGeneratedAtLabel": {
+    "description": "Label for the score generated timestamp row in the job details table."
+  },
+  "jobAnalysisAiResponsesGeneratedAtLabel": "AI responses generated at",
+  "@jobAnalysisAiResponsesGeneratedAtLabel": {
+    "description": "Label for the AI responses generated timestamp row in the job details table."
+  },
+  "jobAnalysisInvalidUrlMessage": "The job URL is invalid.",
+  "@jobAnalysisInvalidUrlMessage": {
+    "description": "Error snackbar message shown when a job URL cannot be parsed."
+  },
+  "jobAnalysisUnableToOpenJobMessage": "Unable to open this Upwork job.",
+  "@jobAnalysisUnableToOpenJobMessage": {
+    "description": "Error snackbar message shown when opening a job URL fails."
+  },
+  "jobAnalysisBackToFiltersButton": "Back to filters",
+  "@jobAnalysisBackToFiltersButton": {
+    "description": "Button label for returning from the selected job panel to the filter editor."
+  },
+  "jobAnalysisViewJobButton": "View job",
+  "@jobAnalysisViewJobButton": {
+    "description": "Button label for opening the job in the browser."
+  },
+  "jobAnalysisNoClientRatingValue": "No data",
+  "@jobAnalysisNoClientRatingValue": {
+    "description": "Fallback value shown when a client does not have a rating."
   }
 }

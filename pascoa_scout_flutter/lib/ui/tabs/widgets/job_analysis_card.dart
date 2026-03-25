@@ -1,335 +1,231 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
+import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/expandable_inline_text.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class JobAnalysisCard extends StatefulWidget {
+class JobAnalysisCard extends StatelessWidget {
   const JobAnalysisCard({
     super.key,
     required this.analysis,
-    required this.onRefresh,
+    required this.onSelect,
+    this.onRefresh,
     this.isRefreshing = false,
+    this.isSelected = false,
   });
 
   final JobAnalysisState analysis;
+  final VoidCallback onSelect;
   final Future<void> Function(int id)? onRefresh;
   final bool isRefreshing;
-
-  @override
-  State<JobAnalysisCard> createState() => _JobAnalysisCardState();
-}
-
-class _JobAnalysisCardState extends State<JobAnalysisCard> {
-  bool _isCoverLetterExpanded = false;
-
-  JobInfo get _job => widget.analysis.jobInfo!;
-  bool get _isCompleted =>
-      widget.analysis.score != null && widget.analysis.proposal != null;
+  final bool isSelected;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final proposal = widget.analysis.proposal;
-    final score = widget.analysis.score;
+    final job = analysis.jobInfo!;
+    final score = analysis.score;
+    final canRefresh = analysis.id != null && onRefresh != null;
+    final selectedBorderColor = isSelected
+        ? theme.colorScheme.primary
+        : theme.colorScheme.outline.withValues(alpha: 0.22);
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(28),
-            color: theme.colorScheme.surface.withValues(alpha: 0.94),
-            border: Border.all(
-              color: theme.colorScheme.outline.withValues(alpha: 0.26),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.16),
-                blurRadius: 26,
-                offset: const Offset(0, 14),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _job.title,
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          _buildClientLine(_job),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.72),
-                          ),
-                        ),
-                      ],
-                    ),
+    return Padding(
+      padding: const EdgeInsets.only(top: 22),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(30),
+              onTap: onSelect,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.fromLTRB(18, 28, 18, 18),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(30),
+                  color: theme.colorScheme.surface.withValues(alpha: 0.96),
+                  border: Border.all(
+                    color: selectedBorderColor,
+                    width: isSelected ? 2.2 : 1.0,
                   ),
-                  const SizedBox(width: 16),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      _MetaPill(
-                        icon: Icons.schedule_rounded,
-                        label:
-                            _job.relativeDate ??
-                            _job.absoluteDate ??
-                            'Date unavailable',
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 22,
+                      offset: const Offset(0, 10),
+                    ),
+                    if (isSelected)
+                      BoxShadow(
+                        color: theme.colorScheme.primary.withValues(
+                          alpha: 0.16,
+                        ),
+                        blurRadius: 18,
+                        spreadRadius: 1,
                       ),
-                      const SizedBox(height: 10),
-                      _StatusPill(analysis: widget.analysis),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  if (_job.budget != null)
-                    _InfoChip(
-                      icon: Icons.payments_rounded,
-                      label: _job.budget!,
-                    ),
-                  if (_job.clientRating != null)
-                    _InfoChip(
-                      icon: Icons.star_rounded,
-                      label: 'Client ${_job.clientRating!.toStringAsFixed(1)}',
-                    ),
-                  if (_job.clientHireRatePercent != null)
-                    _InfoChip(
-                      icon: Icons.percent_rounded,
-                      label:
-                          'Hire ${_job.clientHireRatePercent!.toStringAsFixed(1)}%',
-                    ),
-                  if ((_job.questions?.isNotEmpty ?? false))
-                    _InfoChip(
-                      icon: Icons.quiz_rounded,
-                      label: '${_job.questions!.length} question(s)',
-                    ),
-                  if (_job.tags.isNotEmpty)
-                    for (final tag in _job.tags.take(5))
-                      _InfoChip(icon: Icons.sell_rounded, label: tag),
-                ],
-              ),
-              const SizedBox(height: 18),
-              _SectionBlock(
-                title: 'Description',
-                child: SelectableText(
-                  _job.description,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.55,
-                    color: Colors.white.withValues(alpha: 0.82),
-                  ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 16),
-              _SectionBlock(
-                title: 'Analysis timeline',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _TimelineRow(
-                      label: 'Job persisted',
-                      value: _formatDateTime(widget.analysis.createdJobInfoAt),
-                    ),
-                    _TimelineRow(
-                      label: 'Score generated',
-                      value: _formatDateTime(
-                        widget.analysis.createdJobScoringAt,
+                    Text(
+                      job.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        height: 1.15,
                       ),
                     ),
-                    _TimelineRow(
-                      label: 'AI responses generated',
-                      value: _formatDateTime(
-                        widget.analysis.createdJobAiResponsesAt,
+                    const SizedBox(height: 8),
+                    ExpandableInlineText(
+                      text: job.description,
+                      collapsedMaxLines: 1,
+                      expandLabel: l10n.jobAnalysisViewMore,
+                      collapseLabel: l10n.jobAnalysisViewLess,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withValues(
+                          alpha: 0.66,
+                        ),
+                        height: 1.45,
+                      ),
+                      linkStyle: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: theme.colorScheme.primary,
                       ),
                     ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              _SectionBlock(
-                title: 'Compatibility score',
-                child: score == null
-                    ? _PendingCopy(
-                        icon: Icons.psychology_alt_rounded,
-                        message:
-                            'The scoring step has not finished for this job yet.',
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                    const SizedBox(height: 14),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final chipWrap = Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            _MetricChip(
+                              icon: Icons.quiz_outlined,
+                              label: jobAnalysisQuestionsLabel(
+                                l10n,
+                                job.questions?.length ?? 0,
+                              ),
+                            ),
+                            _MetricChip(
+                              icon: jobAnalysisCompensationIcon(job),
+                              label: jobAnalysisCompensationLabel(l10n, job),
+                            ),
+                            _MetricChip(
+                              icon: Icons.trending_up_rounded,
+                              label: jobAnalysisClientHireRateLabel(
+                                l10n,
+                                job.clientHireRatePercent,
+                              ),
+                            ),
+                          ],
+                        );
+                        final openJobButton = FilledButton.tonalIcon(
+                          onPressed: () => _openJob(context, job.url),
+                          icon: const Icon(Icons.open_in_new_rounded),
+                          label: Text(l10n.jobAnalysisViewJobButton),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFFB8D89D),
+                            foregroundColor: const Color(0xFF1B2514),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 14,
+                            ),
+                            textStyle: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        );
+
+                        if (constraints.maxWidth < 720) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(999),
-                                  color: _scoreColor(
-                                    score.scorePercentage,
-                                  ).withValues(alpha: 0.16),
-                                ),
-                                child: Text(
-                                  '${score.scorePercentage}%',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    color: _scoreColor(score.scorePercentage),
-                                  ),
-                                ),
+                              chipWrap,
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: openJobButton,
                               ),
                             ],
-                          ),
-                          const SizedBox(height: 12),
-                          SelectableText(
-                            score.aiScoreJustificationText,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.82),
-                              height: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-              const SizedBox(height: 16),
-              _SectionBlock(
-                title: 'AI-generated cover letter',
-                trailing: proposal == null
-                    ? null
-                    : IconButton(
-                        tooltip: 'Copy cover letter',
-                        onPressed: () => _copyText(
-                          context,
-                          proposal.aiGeneratedCoverLetterText,
-                          'Cover letter copied.',
+                          );
+                        }
+
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: chipWrap),
+                            const SizedBox(width: 12),
+                            openJobButton,
+                          ],
+                        );
+                      },
+                    ),
+                    if (score != null) ...[
+                      const SizedBox(height: 16),
+                      Text(
+                        l10n.jobAnalysisAiCompatibilitySectionTitle,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
                         ),
-                        icon: const Icon(Icons.content_copy_rounded),
                       ),
-                child: proposal == null
-                    ? _PendingCopy(
-                        icon: Icons.mark_email_unread_outlined,
-                        message:
-                            'The proposal step has not finished for this job yet.',
-                      )
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SelectableText(
-                            proposal.aiGeneratedCoverLetterText,
-                            maxLines: _isCoverLetterExpanded ? null : 2,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.white.withValues(alpha: 0.82),
-                              height: 1.55,
-                            ),
+                      const SizedBox(height: 8),
+                      Text(
+                        score.aiScoreJustificationText,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          height: 1.45,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.72,
                           ),
-                          const SizedBox(height: 10),
-                          TextButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _isCoverLetterExpanded =
-                                    !_isCoverLetterExpanded;
-                              });
-                            },
-                            icon: Icon(
-                              _isCoverLetterExpanded
-                                  ? Icons.unfold_less_rounded
-                                  : Icons.unfold_more_rounded,
-                            ),
-                            label: Text(
-                              _isCoverLetterExpanded ? 'Collapse' : 'Expand',
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-              const SizedBox(height: 16),
-              _SectionBlock(
-                title: 'Question answers',
-                child: proposal == null || (proposal.answers?.isEmpty ?? true)
-                    ? _PendingCopy(
-                        icon: Icons.question_answer_outlined,
-                        message: (_job.questions?.isNotEmpty ?? false)
-                            ? 'Answers will appear here after proposal generation finishes.'
-                            : 'This job has no application questions.',
-                      )
-                    : Column(
-                        children: [
-                          for (final answer in proposal.answers!)
-                            _AnswerCard(answer: answer),
-                        ],
-                      ),
-              ),
-              const SizedBox(height: 18),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _openJob(context, _job.url),
-                  icon: const Icon(Icons.open_in_new_rounded),
-                  label: const Text('Open job on Upwork'),
-                ),
-              ),
-            ],
-          ),
-        ),
-        if (!_isCompleted && widget.analysis.id != null)
-          Positioned(
-            top: -8,
-            right: -8,
-            child: Material(
-              elevation: 8,
-              color: Theme.of(context).colorScheme.primary,
-              borderRadius: BorderRadius.circular(999),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(999),
-                onTap: widget.onRefresh == null || widget.isRefreshing
-                    ? null
-                    : () => widget.onRefresh!(widget.analysis.id!),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: widget.isRefreshing
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFF03110D),
-                          ),
-                        )
-                      : const Icon(
-                          Icons.refresh_rounded,
-                          color: Color(0xFF03110D),
                         ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
           ),
-      ],
+          Positioned(
+            top: -18,
+            left: 18,
+            right: 18,
+            child: Row(
+              children: [
+                _ClientRatingBadge(rating: job.clientRating),
+                const Spacer(),
+                if (canRefresh)
+                  _RefreshCircleButton(
+                    isRefreshing: isRefreshing,
+                    onTap: () => onRefresh!(analysis.id!),
+                  ),
+                if (score != null) ...[
+                  const SizedBox(width: 10),
+                  _ScoreCircle(score: score.scorePercentage),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Future<void> _openJob(BuildContext context, String url) async {
+    final l10n = AppLocalizations.of(context);
     final uri = Uri.tryParse(url);
     if (uri == null) {
       notifySnackbarWithContext(
         context,
-        message: 'The job URL is invalid.',
+        message: l10n.jobAnalysisInvalidUrlMessage,
         tone: AppNotificationTone.error,
       );
       return;
@@ -342,353 +238,169 @@ class _JobAnalysisCardState extends State<JobAnalysisCard> {
     if (!wasOpened && context.mounted) {
       notifySnackbarWithContext(
         context,
-        message: 'Unable to open this Upwork job.',
+        message: l10n.jobAnalysisUnableToOpenJobMessage,
         tone: AppNotificationTone.error,
       );
     }
   }
-
-  Future<void> _copyText(
-    BuildContext context,
-    String text,
-    String successMessage,
-  ) async {
-    await Clipboard.setData(ClipboardData(text: text));
-    if (!context.mounted) {
-      return;
-    }
-    notifySnackbarWithContext(context, message: successMessage);
-  }
 }
 
-class _SectionBlock extends StatelessWidget {
-  const _SectionBlock({
-    required this.title,
-    required this.child,
-    this.trailing,
-  });
+class _ClientRatingBadge extends StatelessWidget {
+  const _ClientRatingBadge({required this.rating});
 
-  final String title;
-  final Widget child;
-  final Widget? trailing;
+  final double? rating;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        color: Colors.white.withValues(alpha: 0.03),
-        border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.18),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              if (trailing != null) ...[trailing!],
-            ],
-          ),
-          const SizedBox(height: 12),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-class _AnswerCard extends StatelessWidget {
-  const _AnswerCard({required this.answer});
-
-  final JobProposalAnswerToQuestion answer;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final questionLabel = answer.relatedQuestion?.question ?? 'Question';
+    final currentRating = rating;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        color: Colors.white.withValues(alpha: 0.02),
+        color: theme.colorScheme.surface,
         border: Border.all(
-          color: theme.colorScheme.outline.withValues(alpha: 0.18),
+          color: theme.colorScheme.outline.withValues(alpha: 0.22),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  questionLabel,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: 'Copy answer',
-                onPressed: () async {
-                  await Clipboard.setData(
-                    ClipboardData(text: answer.aiGeneratedAnswerText),
-                  );
-                  if (!context.mounted) {
-                    return;
-                  }
-                  notifySnackbarWithContext(context, message: 'Answer copied.');
-                },
-                icon: const Icon(Icons.content_copy_rounded),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          SelectableText(
-            answer.aiGeneratedAnswerText,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              height: 1.5,
-              color: Colors.white.withValues(alpha: 0.82),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _PendingCopy extends StatelessWidget {
-  const _PendingCopy({required this.icon, required this.message});
-
-  final IconData icon;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: Theme.of(context).colorScheme.secondary),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            message,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Colors.white.withValues(alpha: 0.72),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TimelineRow extends StatelessWidget {
-  const _TimelineRow({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 150,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.white.withValues(alpha: 0.68),
+      child: currentRating == null
+          ? Text(
+              l10n.jobAnalysisNoClientRatingValue,
+              style: theme.textTheme.bodyMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
+            )
+          : RatingBarIndicator(
+              rating: currentRating,
+              itemBuilder: (context, _) =>
+                  const Icon(Icons.star_rounded, color: Color(0xFFF2CF63)),
+              itemCount: 5,
+              itemSize: 20,
+              unratedColor: theme.colorScheme.outline.withValues(alpha: 0.28),
+            ),
+    );
+  }
+}
+
+class _RefreshCircleButton extends StatelessWidget {
+  const _RefreshCircleButton({required this.isRefreshing, required this.onTap});
+
+  final bool isRefreshing;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      shape: const CircleBorder(),
+      elevation: 6,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: isRefreshing ? null : onTap,
+        child: SizedBox(
+          width: 58,
+          height: 58,
+          child: Center(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 220),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: ScaleTransition(scale: animation, child: child),
+                );
+              },
+              child: isRefreshing
+                  ? const SizedBox(
+                      key: ValueKey('job-card-loading'),
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2.4),
+                    )
+                  : const Icon(
+                      key: ValueKey('job-card-refresh'),
+                      Icons.refresh_rounded,
+                      size: 28,
+                    ),
             ),
           ),
-          Expanded(
-            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreCircle extends StatelessWidget {
+  const _ScoreCircle({required this.score});
+
+  final int score;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = jobAnalysisScoreColor(theme.colorScheme, score);
+
+    return Container(
+      width: 58,
+      height: 58,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: theme.colorScheme.surface,
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Text(
+        '$score',
+        style: theme.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w900,
+          color: color,
+        ),
+      ),
+    );
+  }
+}
+
+class _MetricChip extends StatelessWidget {
+  const _MetricChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFCBE0F6),
+        border: Border.all(color: const Color(0xFF8FAED1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 18, color: const Color(0xFF1F3654)),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF112136),
+            ),
           ),
         ],
       ),
     );
   }
-}
-
-class _MetaPill extends StatelessWidget {
-  const _MetaPill({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: Colors.white.withValues(alpha: 0.05),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: Theme.of(context).colorScheme.secondary),
-          const SizedBox(width: 8),
-          Text(label),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.analysis});
-
-  final JobAnalysisState analysis;
-
-  @override
-  Widget build(BuildContext context) {
-    final (label, color) = switch ((
-      analysis.score != null,
-      analysis.proposal != null,
-    )) {
-      (true, true) => ('Completed', const Color(0xFF5EE9B5)),
-      (true, false) => ('Scored', const Color(0xFFFAC94A)),
-      (false, false) => ('Pending AI', Theme.of(context).colorScheme.secondary),
-      _ => ('In progress', Theme.of(context).colorScheme.secondary),
-    };
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: color.withValues(alpha: 0.16),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(fontWeight: FontWeight.w700, color: color),
-      ),
-    );
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.icon, required this.label});
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(999),
-        color: Colors.white.withValues(alpha: 0.05),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: Theme.of(context).colorScheme.secondary),
-          const SizedBox(width: 8),
-          Text(label),
-        ],
-      ),
-    );
-  }
-}
-
-String _buildClientLine(JobInfo job) {
-  final parts = <String>[
-    if (job.clientName != null && job.clientName!.trim().isNotEmpty)
-      job.clientName!,
-    if (job.clientLocation != null) _clientLocationLabel(job.clientLocation!),
-  ];
-
-  if (parts.isEmpty) {
-    return 'Client details not available';
-  }
-
-  return parts.join(' · ');
-}
-
-String _clientLocationLabel(ClientLocation location) {
-  final country = location.country;
-  final subRegion = location.subRegion;
-  final region = location.region;
-
-  if (country != null) {
-    return _humanizeEnumName(country.name);
-  }
-  if (subRegion != null) {
-    return _humanizeEnumName(subRegion.name);
-  }
-  if (region != null) {
-    return _humanizeEnumName(region.name);
-  }
-
-  return 'Location unavailable';
-}
-
-String _humanizeEnumName(String name) {
-  final buffer = StringBuffer();
-
-  for (var index = 0; index < name.length; index++) {
-    final char = name[index];
-    final isUppercase =
-        char.toUpperCase() == char && char.toLowerCase() != char;
-    final isDigit = int.tryParse(char) != null;
-    if (index > 0 && (isUppercase || isDigit)) {
-      buffer.write(' ');
-    }
-    buffer.write(char);
-  }
-
-  return buffer
-      .toString()
-      .split(' ')
-      .map((word) {
-        if (word.isEmpty) {
-          return word;
-        }
-        return '${word[0].toUpperCase()}${word.substring(1)}';
-      })
-      .join(' ');
-}
-
-String _formatDateTime(DateTime? value) {
-  if (value == null) {
-    return 'Not available yet';
-  }
-
-  final local = value.toLocal();
-  final month = local.month.toString().padLeft(2, '0');
-  final day = local.day.toString().padLeft(2, '0');
-  final hour = local.hour.toString().padLeft(2, '0');
-  final minute = local.minute.toString().padLeft(2, '0');
-  return '${local.year}-$month-$day $hour:$minute';
-}
-
-Color _scoreColor(int value) {
-  if (value >= 80) {
-    return const Color(0xFF5EE9B5);
-  }
-  if (value >= 60) {
-    return const Color(0xFFFAC94A);
-  }
-  return const Color(0xFFFF8C7A);
 }

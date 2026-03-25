@@ -5,7 +5,7 @@ import 'package:pascoa_scout/interactor/job_filter/job_filter_providers.dart';
 import 'package:pascoa_scout/interactor/job_knowledge/job_knowledge_providers.dart';
 import 'package:pascoa_scout/ui/job_knowledge_onboarding_flow.dart';
 import 'package:pascoa_scout/ui/tabs/job_listage_tab.dart';
-import 'package:pascoa_scout/ui/tabs/job_scrapper_config_tab.dart';
+import 'package:pascoa_scout/ui/tabs/job_scrapper_workspace_tab.dart';
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -145,7 +145,7 @@ class _SplitDashboardLayout extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SizedBox(width: configWidth, child: const JobScrapperConfigTab()),
+        SizedBox(width: configWidth, child: const JobScrapperWorkspaceTab()),
         SizedBox(
           width: DashboardPage._paneGap,
           child: Center(
@@ -184,7 +184,7 @@ class _StackedDashboardLayout extends StatelessWidget {
               constraints: const BoxConstraints(
                 maxWidth: DashboardPage._centeredConfigMaxWidth,
               ),
-              child: const JobScrapperConfigTab(),
+              child: const JobScrapperWorkspaceTab(),
             ),
           ),
         ),
