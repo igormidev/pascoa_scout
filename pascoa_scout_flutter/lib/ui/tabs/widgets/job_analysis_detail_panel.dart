@@ -26,136 +26,120 @@ class JobAnalysisDetailPanel extends StatelessWidget {
     final score = analysis.score;
     final proposal = analysis.proposal;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface.withValues(alpha: 0.92),
-        border: Border(
-          right: BorderSide(
-            color: theme.colorScheme.outline.withValues(alpha: 0.12),
-          ),
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: SelectionArea(
-          child: Scrollbar(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 18, 24, 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _DetailHeader(
-                    analysis: analysis,
-                    onBack: onBack,
-                    onOpenJob: () => _openJob(context, job.url),
+    return SafeArea(
+      bottom: false,
+      child: SelectionArea(
+        child: Scrollbar(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 18, 0, 32),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _DetailHeader(
+                  analysis: analysis,
+                  onBack: onBack,
+                  onOpenJob: () => _openJob(context, job.url),
+                ),
+                const SizedBox(height: 20),
+                _SectionHeading(
+                  title: l10n.jobAnalysisDescriptionSectionTitle,
+                  trailing: IconButton(
+                    tooltip: l10n.jobAnalysisCopyDescriptionTooltip,
+                    onPressed: () => _copyText(
+                      context,
+                      job.description,
+                      l10n.jobAnalysisDescriptionCopied,
+                    ),
+                    icon: const Icon(Icons.content_copy_rounded),
                   ),
-                  const SizedBox(height: 20),
+                ),
+                const SizedBox(height: 10),
+                ExpandableInlineText(
+                  text: job.description,
+                  collapsedMaxLines: 3,
+                  expandLabel: l10n.jobAnalysisViewMore,
+                  collapseLabel: l10n.jobAnalysisViewLess,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    height: 1.55,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.82),
+                  ),
+                  linkStyle: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _SectionHeading(
+                  title: l10n.jobAnalysisGeneralStatsSectionTitle,
+                ),
+                const SizedBox(height: 12),
+                _StatsTable(rows: _detailRows(context, analysis)),
+                if (job.questions?.isNotEmpty ?? false) ...[
+                  const SizedBox(height: 24),
+                  _SectionHeading(title: l10n.jobAnalysisQuestionsSectionTitle),
+                  const SizedBox(height: 12),
+                  for (final question in job.questions!) ...[
+                    _CopyableTextSection(
+                      title: l10n.jobAnalysisQuestionTitle(
+                        question.positionIndex + 1,
+                      ),
+                      text: question.question,
+                      tooltip: l10n.jobAnalysisCopyQuestionTooltip,
+                      copiedMessage: l10n.jobAnalysisQuestionCopied,
+                    ),
+                    const SizedBox(height: 18),
+                  ],
+                ],
+                if (score != null) ...[
                   _SectionHeading(
-                    title: l10n.jobAnalysisDescriptionSectionTitle,
+                    title: l10n.jobAnalysisAiCompatibilitySectionTitle,
                     trailing: IconButton(
-                      tooltip: l10n.jobAnalysisCopyDescriptionTooltip,
+                      tooltip: l10n.jobAnalysisCopyAiCompatibilityTooltip,
                       onPressed: () => _copyText(
                         context,
-                        job.description,
-                        l10n.jobAnalysisDescriptionCopied,
+                        score.aiScoreJustificationText,
+                        l10n.jobAnalysisAiCompatibilityCopied,
                       ),
                       icon: const Icon(Icons.content_copy_rounded),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  ExpandableInlineText(
-                    text: job.description,
-                    collapsedMaxLines: 3,
-                    expandLabel: l10n.jobAnalysisViewMore,
-                    collapseLabel: l10n.jobAnalysisViewLess,
+                  const SizedBox(height: 12),
+                  SelectableText(
+                    score.aiScoreJustificationText,
                     style: theme.textTheme.bodyLarge?.copyWith(
                       height: 1.55,
                       color: theme.colorScheme.onSurface.withValues(
                         alpha: 0.82,
                       ),
                     ),
-                    linkStyle: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.primary,
-                    ),
                   ),
                   const SizedBox(height: 24),
-                  _SectionHeading(
-                    title: l10n.jobAnalysisGeneralStatsSectionTitle,
+                ],
+                if (proposal != null) ...[
+                  _CopyableTextSection(
+                    title: l10n.jobAnalysisCoverLetterSectionTitle,
+                    text: proposal.aiGeneratedCoverLetterText,
+                    tooltip: l10n.jobAnalysisCopyCoverLetterTooltip,
+                    copiedMessage: l10n.jobAnalysisCoverLetterCopied,
                   ),
+                  const SizedBox(height: 24),
+                ],
+                if (proposal?.answers?.isNotEmpty ?? false) ...[
+                  _SectionHeading(title: l10n.jobAnalysisAiAnswersSectionTitle),
                   const SizedBox(height: 12),
-                  _StatsTable(rows: _detailRows(context, analysis)),
-                  if (job.questions?.isNotEmpty ?? false) ...[
-                    const SizedBox(height: 24),
-                    _SectionHeading(
-                      title: l10n.jobAnalysisQuestionsSectionTitle,
-                    ),
-                    const SizedBox(height: 12),
-                    for (final question in job.questions!) ...[
-                      _CopyableTextSection(
-                        title: l10n.jobAnalysisQuestionTitle(
-                          question.positionIndex + 1,
-                        ),
-                        text: question.question,
-                        tooltip: l10n.jobAnalysisCopyQuestionTooltip,
-                        copiedMessage: l10n.jobAnalysisQuestionCopied,
-                      ),
-                      const SizedBox(height: 18),
-                    ],
-                  ],
-                  if (score != null) ...[
-                    _SectionHeading(
-                      title: l10n.jobAnalysisAiCompatibilitySectionTitle,
-                      trailing: IconButton(
-                        tooltip: l10n.jobAnalysisCopyAiCompatibilityTooltip,
-                        onPressed: () => _copyText(
-                          context,
-                          score.aiScoreJustificationText,
-                          l10n.jobAnalysisAiCompatibilityCopied,
-                        ),
-                        icon: const Icon(Icons.content_copy_rounded),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    SelectableText(
-                      score.aiScoreJustificationText,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        height: 1.55,
-                        color: theme.colorScheme.onSurface.withValues(
-                          alpha: 0.82,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
-                  if (proposal != null) ...[
+                  for (final answer in proposal!.answers!) ...[
                     _CopyableTextSection(
-                      title: l10n.jobAnalysisCoverLetterSectionTitle,
-                      text: proposal.aiGeneratedCoverLetterText,
-                      tooltip: l10n.jobAnalysisCopyCoverLetterTooltip,
-                      copiedMessage: l10n.jobAnalysisCoverLetterCopied,
+                      title:
+                          answer.relatedQuestion?.question ??
+                          l10n.jobAnalysisAnswerFallbackTitle,
+                      text: answer.aiGeneratedAnswerText,
+                      tooltip: l10n.jobAnalysisCopyAnswerTooltip,
+                      copiedMessage: l10n.jobAnalysisAnswerCopied,
                     ),
-                    const SizedBox(height: 24),
-                  ],
-                  if (proposal?.answers?.isNotEmpty ?? false) ...[
-                    _SectionHeading(
-                      title: l10n.jobAnalysisAiAnswersSectionTitle,
-                    ),
-                    const SizedBox(height: 12),
-                    for (final answer in proposal!.answers!) ...[
-                      _CopyableTextSection(
-                        title:
-                            answer.relatedQuestion?.question ??
-                            l10n.jobAnalysisAnswerFallbackTitle,
-                        text: answer.aiGeneratedAnswerText,
-                        tooltip: l10n.jobAnalysisCopyAnswerTooltip,
-                        copiedMessage: l10n.jobAnalysisAnswerCopied,
-                      ),
-                      const SizedBox(height: 18),
-                    ],
+                    const SizedBox(height: 18),
                   ],
                 ],
-              ),
+              ],
             ),
           ),
         ),

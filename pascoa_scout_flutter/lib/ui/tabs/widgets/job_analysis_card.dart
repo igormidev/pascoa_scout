@@ -195,7 +195,7 @@ class JobAnalysisCard extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: -18,
+            top: -25,
             left: 18,
             right: 18,
             child: Row(
@@ -300,8 +300,8 @@ class _RefreshCircleButton extends StatelessWidget {
         customBorder: const CircleBorder(),
         onTap: isRefreshing ? null : onTap,
         child: SizedBox(
-          width: 58,
-          height: 58,
+          width: 40,
+          height: 40,
           child: Center(
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 220),
@@ -344,8 +344,8 @@ class _ScoreCircle extends StatelessWidget {
     final color = jobAnalysisScoreColor(theme.colorScheme, score);
 
     return Container(
-      width: 58,
-      height: 58,
+      width: 48,
+      height: 48,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,

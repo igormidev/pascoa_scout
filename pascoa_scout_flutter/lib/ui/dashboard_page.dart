@@ -146,6 +146,7 @@ class _SplitDashboardLayout extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(width: configWidth, child: const JobScrapperWorkspaceTab()),
+
         SizedBox(
           width: DashboardPage._paneGap,
           child: Center(
