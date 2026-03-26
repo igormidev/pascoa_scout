@@ -846,24 +846,10 @@ class _CompactFilterRunTab extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Padding(
-      // padding: EdgeInsets.zero,
       padding: const EdgeInsets.fromLTRB(20.0, 28.0, 10.0, 28.0),
       child: ListView(
         key: const ValueKey('compact-filter-run-view'),
-        // crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Center(
-          //   child: const Text(
-          //     '🗿',
-          //     style: TextStyle(fontSize: 82.0, height: 1.0),
-          //   ),
-          // ),
-          // const SizedBox(height: 10.0),
-          // Text(
-          //   'Pascoa Scout',
-          //   style: theme.textTheme.headlineMedium,
-          //   textAlign: TextAlign.center,
-          // ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.start,

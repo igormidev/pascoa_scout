@@ -284,6 +284,60 @@ abstract class AppLocalizations {
   /// **'General stats'**
   String get jobAnalysisGeneralStatsSectionTitle;
 
+  /// Button label for opening the general stats customization dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get jobAnalysisGeneralStatsEditButton;
+
+  /// Tooltip for copying a value from the general stats list.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy value'**
+  String get jobAnalysisCopyStatTooltip;
+
+  /// Snackbar message after copying a value from the general stats list.
+  ///
+  /// In en, this message translates to:
+  /// **'{label} copied.'**
+  String jobAnalysisGeneralStatsCopied(Object label);
+
+  /// Dialog title for customizing which general stats are shown and in what order.
+  ///
+  /// In en, this message translates to:
+  /// **'Customize general stats'**
+  String get jobAnalysisGeneralStatsEditorTitle;
+
+  /// Dialog description for the general stats customization dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which stats are visible and drag to reorder them.'**
+  String get jobAnalysisGeneralStatsEditorDescription;
+
+  /// Button label for resetting the general stats customization back to defaults.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get jobAnalysisGeneralStatsEditorResetButton;
+
+  /// Button label for dismissing the general stats customization dialog without saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get jobAnalysisGeneralStatsEditorCancelButton;
+
+  /// Button label for saving the general stats customization dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get jobAnalysisGeneralStatsEditorSaveButton;
+
+  /// Error shown when the general stats configuration cannot be persisted.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to save the general stats configuration.'**
+  String get jobAnalysisGeneralStatsSaveFailed;
+
   /// Section title for the raw application questions.
   ///
   /// In en, this message translates to:

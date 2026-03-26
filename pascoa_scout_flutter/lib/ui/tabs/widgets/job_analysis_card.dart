@@ -201,6 +201,21 @@ class JobAnalysisCard extends StatelessWidget {
             child: Row(
               children: [
                 _ClientRatingBadge(rating: job.clientRating),
+                if (analysis.createdJobAiResponsesAt != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Tooltip(
+                      message: 'Completed! Have even generated AI answers',
+                      child: CircleAvatar(
+                        radius: 16,
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        child: Icon(
+                          Icons.check,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      ),
+                    ),
+                  ),
                 const Spacer(),
                 if (canRefresh)
                   _RefreshCircleButton(

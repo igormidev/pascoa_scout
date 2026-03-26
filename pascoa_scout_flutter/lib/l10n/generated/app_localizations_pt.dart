@@ -123,6 +123,38 @@ class AppLocalizationsPt extends AppLocalizations {
   String get jobAnalysisGeneralStatsSectionTitle => 'Estatísticas gerais';
 
   @override
+  String get jobAnalysisGeneralStatsEditButton => 'Editar';
+
+  @override
+  String get jobAnalysisCopyStatTooltip => 'Copiar valor';
+
+  @override
+  String jobAnalysisGeneralStatsCopied(Object label) {
+    return '$label copiado.';
+  }
+
+  @override
+  String get jobAnalysisGeneralStatsEditorTitle =>
+      'Personalizar estatísticas gerais';
+
+  @override
+  String get jobAnalysisGeneralStatsEditorDescription =>
+      'Escolha quais estatísticas ficam visíveis e arraste para reordenar.';
+
+  @override
+  String get jobAnalysisGeneralStatsEditorResetButton => 'Redefinir';
+
+  @override
+  String get jobAnalysisGeneralStatsEditorCancelButton => 'Cancelar';
+
+  @override
+  String get jobAnalysisGeneralStatsEditorSaveButton => 'Salvar';
+
+  @override
+  String get jobAnalysisGeneralStatsSaveFailed =>
+      'Não foi possível salvar a configuração das estatísticas gerais.';
+
+  @override
   String get jobAnalysisQuestionsSectionTitle => 'Perguntas da vaga';
 
   @override

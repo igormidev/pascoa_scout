@@ -120,6 +120,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jobAnalysisGeneralStatsSectionTitle => 'General stats';
 
   @override
+  String get jobAnalysisGeneralStatsEditButton => 'Edit';
+
+  @override
+  String get jobAnalysisCopyStatTooltip => 'Copy value';
+
+  @override
+  String jobAnalysisGeneralStatsCopied(Object label) {
+    return '$label copied.';
+  }
+
+  @override
+  String get jobAnalysisGeneralStatsEditorTitle => 'Customize general stats';
+
+  @override
+  String get jobAnalysisGeneralStatsEditorDescription =>
+      'Choose which stats are visible and drag to reorder them.';
+
+  @override
+  String get jobAnalysisGeneralStatsEditorResetButton => 'Reset';
+
+  @override
+  String get jobAnalysisGeneralStatsEditorCancelButton => 'Cancel';
+
+  @override
+  String get jobAnalysisGeneralStatsEditorSaveButton => 'Save';
+
+  @override
+  String get jobAnalysisGeneralStatsSaveFailed =>
+      'Unable to save the general stats configuration.';
+
+  @override
   String get jobAnalysisQuestionsSectionTitle => 'Job questions';
 
   @override

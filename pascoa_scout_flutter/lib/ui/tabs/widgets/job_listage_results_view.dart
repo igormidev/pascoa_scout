@@ -264,7 +264,7 @@ class _PaginationPill extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 58, maxHeight: 58),
+      constraints: const BoxConstraints(minHeight: 48, maxHeight: 48),
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
@@ -381,6 +381,7 @@ class _PaginationPageButton extends StatelessWidget {
           curve: Curves.easeOutCubic,
           constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
           padding: const EdgeInsets.symmetric(horizontal: 12),
+          margin: EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             color: isSelected

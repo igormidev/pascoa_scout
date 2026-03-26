@@ -138,6 +138,45 @@
   "@jobAnalysisGeneralStatsSectionTitle": {
     "description": "Section title for the general job stats table."
   },
+  "jobAnalysisGeneralStatsEditButton": "Edit",
+  "@jobAnalysisGeneralStatsEditButton": {
+    "description": "Button label for opening the general stats customization dialog."
+  },
+  "jobAnalysisCopyStatTooltip": "Copy value",
+  "@jobAnalysisCopyStatTooltip": {
+    "description": "Tooltip for copying a value from the general stats list."
+  },
+  "jobAnalysisGeneralStatsCopied": "{label} copied.",
+  "@jobAnalysisGeneralStatsCopied": {
+    "description": "Snackbar message after copying a value from the general stats list.",
+    "placeholders": {
+      "label": {}
+    }
+  },
+  "jobAnalysisGeneralStatsEditorTitle": "Customize general stats",
+  "@jobAnalysisGeneralStatsEditorTitle": {
+    "description": "Dialog title for customizing which general stats are shown and in what order."
+  },
+  "jobAnalysisGeneralStatsEditorDescription": "Choose which stats are visible and drag to reorder them.",
+  "@jobAnalysisGeneralStatsEditorDescription": {
+    "description": "Dialog description for the general stats customization dialog."
+  },
+  "jobAnalysisGeneralStatsEditorResetButton": "Reset",
+  "@jobAnalysisGeneralStatsEditorResetButton": {
+    "description": "Button label for resetting the general stats customization back to defaults."
+  },
+  "jobAnalysisGeneralStatsEditorCancelButton": "Cancel",
+  "@jobAnalysisGeneralStatsEditorCancelButton": {
+    "description": "Button label for dismissing the general stats customization dialog without saving."
+  },
+  "jobAnalysisGeneralStatsEditorSaveButton": "Save",
+  "@jobAnalysisGeneralStatsEditorSaveButton": {
+    "description": "Button label for saving the general stats customization dialog."
+  },
+  "jobAnalysisGeneralStatsSaveFailed": "Unable to save the general stats configuration.",
+  "@jobAnalysisGeneralStatsSaveFailed": {
+    "description": "Error shown when the general stats configuration cannot be persisted."
+  },
   "jobAnalysisQuestionsSectionTitle": "Job questions",
   "@jobAnalysisQuestionsSectionTitle": {
     "description": "Section title for the raw application questions."
