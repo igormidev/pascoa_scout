@@ -312,4 +312,87 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jobAnalysisNoClientRatingValue => 'No data';
+
+  @override
+  String get jobKnowledgeQuickActionsEditCurriculumButton =>
+      'Change curriculum';
+
+  @override
+  String get jobKnowledgeQuickActionsEditAnswerStyleButton =>
+      'Change proposal writing';
+
+  @override
+  String get jobKnowledgeQuickActionsEditScoreLogicButton =>
+      'Change job score logic';
+
+  @override
+  String get jobKnowledgeEditorCurriculumTitle => 'Curriculum';
+
+  @override
+  String get jobKnowledgeEditorCurriculumDescription =>
+      'Update the long-form curriculum text the AI uses as grounded context for your skills, experience, and positioning.';
+
+  @override
+  String get jobKnowledgeEditorCurriculumInputLabel => 'Curriculum text';
+
+  @override
+  String get jobKnowledgeEditorCurriculumSaved => 'Curriculum updated.';
+
+  @override
+  String get jobKnowledgeEditorAnswerStyleTitle =>
+      'How you want answers to be written';
+
+  @override
+  String get jobKnowledgeEditorAnswerStyleDescription =>
+      'Update the tone, structure, level of detail, and writing rules that should guide generated proposals and answers.';
+
+  @override
+  String get jobKnowledgeEditorAnswerStyleInputLabel =>
+      'Answer style preference';
+
+  @override
+  String get jobKnowledgeEditorAnswerStyleSaved => 'Answer style updated.';
+
+  @override
+  String get jobKnowledgeEditorScoreLogicTitle => 'How a job should be scored';
+
+  @override
+  String get jobKnowledgeEditorScoreLogicDescription =>
+      'Update the criteria that define what makes a job worth your time, plus the red flags that should lower the AI score.';
+
+  @override
+  String get jobKnowledgeEditorScoreLogicInputLabel => 'Job scoring logic';
+
+  @override
+  String get jobKnowledgeEditorScoreLogicSaved => 'Job scoring logic updated.';
+
+  @override
+  String get jobKnowledgeEditorLoadFailedTitle => 'Unable to load this text';
+
+  @override
+  String get jobKnowledgeEditorRetryButton => 'Retry';
+
+  @override
+  String get jobKnowledgeEditorCancelButton => 'Cancel';
+
+  @override
+  String get jobKnowledgeEditorSaveButton => 'Save';
+
+  @override
+  String get jobKnowledgeEditorSavingButton => 'Saving…';
+
+  @override
+  String jobKnowledgeEditorCharacterHint(int minimum, int maximum) {
+    return 'Minimum $minimum characters. Maximum $maximum characters.';
+  }
+
+  @override
+  String jobKnowledgeEditorValidationMin(int minimum) {
+    return 'Please add at least $minimum characters before saving.';
+  }
+
+  @override
+  String jobKnowledgeEditorValidationMax(int maximum) {
+    return 'Please keep the text under $maximum characters.';
+  }
 }

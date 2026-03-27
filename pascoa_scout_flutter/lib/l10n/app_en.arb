@@ -388,5 +388,115 @@
   "jobAnalysisNoClientRatingValue": "No data",
   "@jobAnalysisNoClientRatingValue": {
     "description": "Fallback value shown when a client does not have a rating."
+  },
+  "jobKnowledgeQuickActionsEditCurriculumButton": "Change curriculum",
+  "@jobKnowledgeQuickActionsEditCurriculumButton": {
+    "description": "Button label for changing the curriculum knowledge text from the compact summary view."
+  },
+  "jobKnowledgeQuickActionsEditAnswerStyleButton": "Change proposal writing",
+  "@jobKnowledgeQuickActionsEditAnswerStyleButton": {
+    "description": "Button label for changing the proposal writing guidance from the compact summary view."
+  },
+  "jobKnowledgeQuickActionsEditScoreLogicButton": "Change job score logic",
+  "@jobKnowledgeQuickActionsEditScoreLogicButton": {
+    "description": "Button label for changing the job score logic from the compact summary view."
+  },
+  "jobKnowledgeEditorCurriculumTitle": "Curriculum",
+  "@jobKnowledgeEditorCurriculumTitle": {
+    "description": "Dialog title for editing the curriculum knowledge text."
+  },
+  "jobKnowledgeEditorCurriculumDescription": "Update the long-form curriculum text the AI uses as grounded context for your skills, experience, and positioning.",
+  "@jobKnowledgeEditorCurriculumDescription": {
+    "description": "Dialog description for editing the curriculum knowledge text."
+  },
+  "jobKnowledgeEditorCurriculumInputLabel": "Curriculum text",
+  "@jobKnowledgeEditorCurriculumInputLabel": {
+    "description": "Text field label for the curriculum knowledge editor."
+  },
+  "jobKnowledgeEditorCurriculumSaved": "Curriculum updated.",
+  "@jobKnowledgeEditorCurriculumSaved": {
+    "description": "Snackbar message after saving the curriculum knowledge text."
+  },
+  "jobKnowledgeEditorAnswerStyleTitle": "How you want answers to be written",
+  "@jobKnowledgeEditorAnswerStyleTitle": {
+    "description": "Dialog title for editing how proposals and answers should sound."
+  },
+  "jobKnowledgeEditorAnswerStyleDescription": "Update the tone, structure, level of detail, and writing rules that should guide generated proposals and answers.",
+  "@jobKnowledgeEditorAnswerStyleDescription": {
+    "description": "Dialog description for editing the proposal style knowledge text."
+  },
+  "jobKnowledgeEditorAnswerStyleInputLabel": "Answer style preference",
+  "@jobKnowledgeEditorAnswerStyleInputLabel": {
+    "description": "Text field label for the proposal style knowledge editor."
+  },
+  "jobKnowledgeEditorAnswerStyleSaved": "Answer style updated.",
+  "@jobKnowledgeEditorAnswerStyleSaved": {
+    "description": "Snackbar message after saving the proposal style knowledge text."
+  },
+  "jobKnowledgeEditorScoreLogicTitle": "How a job should be scored",
+  "@jobKnowledgeEditorScoreLogicTitle": {
+    "description": "Dialog title for editing the opportunity preference and job scoring logic."
+  },
+  "jobKnowledgeEditorScoreLogicDescription": "Update the criteria that define what makes a job worth your time, plus the red flags that should lower the AI score.",
+  "@jobKnowledgeEditorScoreLogicDescription": {
+    "description": "Dialog description for editing the opportunity preference and job scoring logic."
+  },
+  "jobKnowledgeEditorScoreLogicInputLabel": "Job scoring logic",
+  "@jobKnowledgeEditorScoreLogicInputLabel": {
+    "description": "Text field label for the job scoring logic editor."
+  },
+  "jobKnowledgeEditorScoreLogicSaved": "Job scoring logic updated.",
+  "@jobKnowledgeEditorScoreLogicSaved": {
+    "description": "Snackbar message after saving the job scoring logic text."
+  },
+  "jobKnowledgeEditorLoadFailedTitle": "Unable to load this text",
+  "@jobKnowledgeEditorLoadFailedTitle": {
+    "description": "Dialog error title shown when a stored knowledge text cannot be loaded."
+  },
+  "jobKnowledgeEditorRetryButton": "Retry",
+  "@jobKnowledgeEditorRetryButton": {
+    "description": "Button label for retrying the knowledge text load."
+  },
+  "jobKnowledgeEditorCancelButton": "Cancel",
+  "@jobKnowledgeEditorCancelButton": {
+    "description": "Button label for dismissing the knowledge editor dialog without saving."
+  },
+  "jobKnowledgeEditorSaveButton": "Save",
+  "@jobKnowledgeEditorSaveButton": {
+    "description": "Button label for saving the knowledge editor dialog."
+  },
+  "jobKnowledgeEditorSavingButton": "Saving…",
+  "@jobKnowledgeEditorSavingButton": {
+    "description": "Button label shown while a knowledge text is being saved."
+  },
+  "jobKnowledgeEditorCharacterHint": "Minimum {minimum} characters. Maximum {maximum} characters.",
+  "@jobKnowledgeEditorCharacterHint": {
+    "description": "Helper text explaining the supported character range in the knowledge editor dialog.",
+    "placeholders": {
+      "minimum": {
+        "type": "int"
+      },
+      "maximum": {
+        "type": "int"
+      }
+    }
+  },
+  "jobKnowledgeEditorValidationMin": "Please add at least {minimum} characters before saving.",
+  "@jobKnowledgeEditorValidationMin": {
+    "description": "Validation message shown when a knowledge text is too short.",
+    "placeholders": {
+      "minimum": {
+        "type": "int"
+      }
+    }
+  },
+  "jobKnowledgeEditorValidationMax": "Please keep the text under {maximum} characters.",
+  "@jobKnowledgeEditorValidationMax": {
+    "description": "Validation message shown when a knowledge text is too long.",
+    "placeholders": {
+      "maximum": {
+        "type": "int"
+      }
+    }
   }
 }

@@ -7,17 +7,21 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
 import 'package:pascoa_scout/interactor/job_filter/apify_curl_builder.dart';
 import 'package:pascoa_scout/interactor/job_filter/current_filter_state.dart';
 import 'package:pascoa_scout/interactor/job_filter/filter_panel_mode_provider.dart';
 import 'package:pascoa_scout/interactor/job_filter/job_filter_providers.dart';
+import 'package:pascoa_scout/interactor/job_knowledge/job_knowledge_providers.dart';
 import 'package:pascoa_scout/interactor/job_sync/job_sync_providers.dart';
 import 'package:pascoa_scout/interactor/job_sync/job_sync_state.dart';
+import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
 part 'widgets/job_scrapper_advanced_sections_view.dart';
 part 'widgets/job_scrapper_config_editor_view.dart';
+part 'widgets/job_scrapper_knowledge_editor.dart';
 
 class JobScrapperConfigTab extends ConsumerStatefulWidget {
   const JobScrapperConfigTab({super.key});
@@ -222,6 +226,13 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
     if (ref.read(currentFilterNotifier.notifier).currentFilter != null) {
       ref.read(filterPanelModeProvider.notifier).showSummary();
     }
+  }
+
+  Future<void> _showKnowledgeEditor(_JobKnowledgeEditorKind kind) async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => _JobKnowledgeEditorDialog(kind: kind),
+    );
   }
 
   Future<void> _handleCopyCurlFromEditor() async {
@@ -523,6 +534,12 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
               onCopyCurl: () {
                 _copyCurl(currentFilter);
               },
+              onChangeCurriculum: () =>
+                  _showKnowledgeEditor(_JobKnowledgeEditorKind.curriculum),
+              onChangeProposalWriting: () =>
+                  _showKnowledgeEditor(_JobKnowledgeEditorKind.answerStyle),
+              onChangeJobScoreLogic: () =>
+                  _showKnowledgeEditor(_JobKnowledgeEditorKind.scoreLogic),
             ),
     );
   }
@@ -835,11 +852,17 @@ class _CompactFilterRunTab extends StatelessWidget {
     required this.summaryText,
     required this.onChangeFilters,
     required this.onCopyCurl,
+    required this.onChangeCurriculum,
+    required this.onChangeProposalWriting,
+    required this.onChangeJobScoreLogic,
   });
 
   final String summaryText;
   final VoidCallback onChangeFilters;
   final VoidCallback onCopyCurl;
+  final Future<void> Function() onChangeCurriculum;
+  final Future<void> Function() onChangeProposalWriting;
+  final Future<void> Function() onChangeJobScoreLogic;
 
   @override
   Widget build(BuildContext context) {
@@ -891,6 +914,12 @@ class _CompactFilterRunTab extends StatelessWidget {
             child: Divider(height: 1.0),
           ),
           const _CompactAutomationSettingsColumn(),
+          const SizedBox(height: 14.0),
+          _JobKnowledgeQuickActionsRow(
+            onChangeCurriculum: onChangeCurriculum,
+            onChangeProposalWriting: onChangeProposalWriting,
+            onChangeJobScoreLogic: onChangeJobScoreLogic,
+          ),
           const SizedBox(height: 14.0),
           const _CompactAutomationStatusCard(),
           const SizedBox(height: 14.0),

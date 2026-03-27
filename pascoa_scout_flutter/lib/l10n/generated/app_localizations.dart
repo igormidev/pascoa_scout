@@ -643,6 +643,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data'**
   String get jobAnalysisNoClientRatingValue;
+
+  /// Button label for changing the curriculum knowledge text from the compact summary view.
+  ///
+  /// In en, this message translates to:
+  /// **'Change curriculum'**
+  String get jobKnowledgeQuickActionsEditCurriculumButton;
+
+  /// Button label for changing the proposal writing guidance from the compact summary view.
+  ///
+  /// In en, this message translates to:
+  /// **'Change proposal writing'**
+  String get jobKnowledgeQuickActionsEditAnswerStyleButton;
+
+  /// Button label for changing the job score logic from the compact summary view.
+  ///
+  /// In en, this message translates to:
+  /// **'Change job score logic'**
+  String get jobKnowledgeQuickActionsEditScoreLogicButton;
+
+  /// Dialog title for editing the curriculum knowledge text.
+  ///
+  /// In en, this message translates to:
+  /// **'Curriculum'**
+  String get jobKnowledgeEditorCurriculumTitle;
+
+  /// Dialog description for editing the curriculum knowledge text.
+  ///
+  /// In en, this message translates to:
+  /// **'Update the long-form curriculum text the AI uses as grounded context for your skills, experience, and positioning.'**
+  String get jobKnowledgeEditorCurriculumDescription;
+
+  /// Text field label for the curriculum knowledge editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Curriculum text'**
+  String get jobKnowledgeEditorCurriculumInputLabel;
+
+  /// Snackbar message after saving the curriculum knowledge text.
+  ///
+  /// In en, this message translates to:
+  /// **'Curriculum updated.'**
+  String get jobKnowledgeEditorCurriculumSaved;
+
+  /// Dialog title for editing how proposals and answers should sound.
+  ///
+  /// In en, this message translates to:
+  /// **'How you want answers to be written'**
+  String get jobKnowledgeEditorAnswerStyleTitle;
+
+  /// Dialog description for editing the proposal style knowledge text.
+  ///
+  /// In en, this message translates to:
+  /// **'Update the tone, structure, level of detail, and writing rules that should guide generated proposals and answers.'**
+  String get jobKnowledgeEditorAnswerStyleDescription;
+
+  /// Text field label for the proposal style knowledge editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer style preference'**
+  String get jobKnowledgeEditorAnswerStyleInputLabel;
+
+  /// Snackbar message after saving the proposal style knowledge text.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer style updated.'**
+  String get jobKnowledgeEditorAnswerStyleSaved;
+
+  /// Dialog title for editing the opportunity preference and job scoring logic.
+  ///
+  /// In en, this message translates to:
+  /// **'How a job should be scored'**
+  String get jobKnowledgeEditorScoreLogicTitle;
+
+  /// Dialog description for editing the opportunity preference and job scoring logic.
+  ///
+  /// In en, this message translates to:
+  /// **'Update the criteria that define what makes a job worth your time, plus the red flags that should lower the AI score.'**
+  String get jobKnowledgeEditorScoreLogicDescription;
+
+  /// Text field label for the job scoring logic editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Job scoring logic'**
+  String get jobKnowledgeEditorScoreLogicInputLabel;
+
+  /// Snackbar message after saving the job scoring logic text.
+  ///
+  /// In en, this message translates to:
+  /// **'Job scoring logic updated.'**
+  String get jobKnowledgeEditorScoreLogicSaved;
+
+  /// Dialog error title shown when a stored knowledge text cannot be loaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load this text'**
+  String get jobKnowledgeEditorLoadFailedTitle;
+
+  /// Button label for retrying the knowledge text load.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get jobKnowledgeEditorRetryButton;
+
+  /// Button label for dismissing the knowledge editor dialog without saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get jobKnowledgeEditorCancelButton;
+
+  /// Button label for saving the knowledge editor dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get jobKnowledgeEditorSaveButton;
+
+  /// Button label shown while a knowledge text is being saved.
+  ///
+  /// In en, this message translates to:
+  /// **'Saving…'**
+  String get jobKnowledgeEditorSavingButton;
+
+  /// Helper text explaining the supported character range in the knowledge editor dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimum {minimum} characters. Maximum {maximum} characters.'**
+  String jobKnowledgeEditorCharacterHint(int minimum, int maximum);
+
+  /// Validation message shown when a knowledge text is too short.
+  ///
+  /// In en, this message translates to:
+  /// **'Please add at least {minimum} characters before saving.'**
+  String jobKnowledgeEditorValidationMin(int minimum);
+
+  /// Validation message shown when a knowledge text is too long.
+  ///
+  /// In en, this message translates to:
+  /// **'Please keep the text under {maximum} characters.'**
+  String jobKnowledgeEditorValidationMax(int maximum);
 }
 
 class _AppLocalizationsDelegate

@@ -320,4 +320,92 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get jobAnalysisNoClientRatingValue => 'Sem dados';
+
+  @override
+  String get jobKnowledgeQuickActionsEditCurriculumButton =>
+      'Alterar currículo';
+
+  @override
+  String get jobKnowledgeQuickActionsEditAnswerStyleButton =>
+      'Alterar escrita da proposta';
+
+  @override
+  String get jobKnowledgeQuickActionsEditScoreLogicButton =>
+      'Alterar lógica de pontuação da vaga';
+
+  @override
+  String get jobKnowledgeEditorCurriculumTitle => 'Currículo';
+
+  @override
+  String get jobKnowledgeEditorCurriculumDescription =>
+      'Atualize o texto longo do currículo que a IA usa como contexto sobre suas habilidades, experiência e posicionamento.';
+
+  @override
+  String get jobKnowledgeEditorCurriculumInputLabel => 'Texto do currículo';
+
+  @override
+  String get jobKnowledgeEditorCurriculumSaved => 'Currículo atualizado.';
+
+  @override
+  String get jobKnowledgeEditorAnswerStyleTitle =>
+      'Como você quer que as respostas sejam escritas';
+
+  @override
+  String get jobKnowledgeEditorAnswerStyleDescription =>
+      'Atualize o tom, a estrutura, o nível de detalhe e as regras de escrita que devem orientar propostas e respostas geradas.';
+
+  @override
+  String get jobKnowledgeEditorAnswerStyleInputLabel =>
+      'Preferência de estilo das respostas';
+
+  @override
+  String get jobKnowledgeEditorAnswerStyleSaved =>
+      'Estilo das respostas atualizado.';
+
+  @override
+  String get jobKnowledgeEditorScoreLogicTitle =>
+      'Como uma vaga deve ser pontuada';
+
+  @override
+  String get jobKnowledgeEditorScoreLogicDescription =>
+      'Atualize os critérios que definem o que faz uma vaga valer o seu tempo, além dos sinais de alerta que devem reduzir a pontuação da IA.';
+
+  @override
+  String get jobKnowledgeEditorScoreLogicInputLabel =>
+      'Lógica de pontuação da vaga';
+
+  @override
+  String get jobKnowledgeEditorScoreLogicSaved =>
+      'Lógica de pontuação da vaga atualizada.';
+
+  @override
+  String get jobKnowledgeEditorLoadFailedTitle =>
+      'Não foi possível carregar este texto';
+
+  @override
+  String get jobKnowledgeEditorRetryButton => 'Tentar novamente';
+
+  @override
+  String get jobKnowledgeEditorCancelButton => 'Cancelar';
+
+  @override
+  String get jobKnowledgeEditorSaveButton => 'Salvar';
+
+  @override
+  String get jobKnowledgeEditorSavingButton => 'Salvando…';
+
+  @override
+  String jobKnowledgeEditorCharacterHint(int minimum, int maximum) {
+    return 'Mínimo de $minimum caracteres. Máximo de $maximum caracteres.';
+  }
+
+  @override
+  String jobKnowledgeEditorValidationMin(int minimum) {
+    return 'Adicione pelo menos $minimum caracteres antes de salvar.';
+  }
+
+  @override
+  String jobKnowledgeEditorValidationMax(int maximum) {
+    return 'Mantenha o texto abaixo de $maximum caracteres.';
+  }
 }
