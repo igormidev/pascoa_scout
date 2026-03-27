@@ -360,7 +360,11 @@ _parseBudgetRange({
     return (fixedPriceAmount: null, hourlyMinRate: null, hourlyMaxRate: null);
   }
 
-  final matches = RegExp(r'-?\d+(?:\.\d+)?').allMatches(budget);
+  // Apify budget strings can include thousands separators, e.g. "$2,000.00".
+  // Normalize them before extracting numeric tokens so we don't split 2000 into
+  // separate values such as 2 and 000.00.
+  final normalizedBudget = budget.replaceAll(',', '');
+  final matches = RegExp(r'\d+(?:\.\d+)?').allMatches(normalizedBudget);
   final values = [
     for (final match in matches)
       double.tryParse(match.group(0) ?? '') ?? double.nan,
