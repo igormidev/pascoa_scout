@@ -85,6 +85,31 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String jobAnalysisPostedMinutesAgo(int minutes) {
+    return 'há $minutes min';
+  }
+
+  @override
+  String jobAnalysisPostedHoursAgo(int hours) {
+    return 'há $hours h';
+  }
+
+  @override
+  String jobAnalysisPostedHoursAndMinutesAgo(int hours, int minutes) {
+    return 'há $hours h e $minutes min';
+  }
+
+  @override
+  String jobAnalysisPostedYesterdayAt(Object time) {
+    return 'Ontem às $time';
+  }
+
+  @override
+  String jobAnalysisPostedMonthDay(int day, Object month) {
+    return '$day de $month';
+  }
+
+  @override
   String jobAnalysisHireChip(Object percent) {
     return 'Contratação $percent';
   }
@@ -320,6 +345,10 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get jobAnalysisNoClientRatingValue => 'Sem dados';
+
+  @override
+  String get jobAnalysisAiAnswersReadyTooltip =>
+      'Concluído. Respostas de IA geradas.';
 
   @override
   String get jobKnowledgeQuickActionsEditCurriculumButton =>

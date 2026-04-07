@@ -87,6 +87,53 @@
       }
     }
   },
+  "jobAnalysisPostedMinutesAgo": "{minutes}m ago",
+  "@jobAnalysisPostedMinutesAgo": {
+    "description": "Compact label for jobs posted today when less than one hour has elapsed.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "jobAnalysisPostedHoursAgo": "{hours}h ago",
+  "@jobAnalysisPostedHoursAgo": {
+    "description": "Compact label for jobs posted today when only whole hours have elapsed.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "jobAnalysisPostedHoursAndMinutesAgo": "{hours}h and {minutes}m ago",
+  "@jobAnalysisPostedHoursAndMinutesAgo": {
+    "description": "Compact label for jobs posted today when hours and minutes have elapsed.",
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "jobAnalysisPostedYesterdayAt": "Yesterday at {time}",
+  "@jobAnalysisPostedYesterdayAt": {
+    "description": "Compact label for jobs posted on the previous calendar day.",
+    "placeholders": {
+      "time": {}
+    }
+  },
+  "jobAnalysisPostedMonthDay": "{day} of {month}",
+  "@jobAnalysisPostedMonthDay": {
+    "description": "Compact label for jobs posted before yesterday, without including the year.",
+    "placeholders": {
+      "day": {
+        "type": "int"
+      },
+      "month": {}
+    }
+  },
   "jobAnalysisHireChip": "Hire {percent}",
   "@jobAnalysisHireChip": {
     "description": "Compact chip label showing the client hire rate.",
@@ -388,6 +435,10 @@
   "jobAnalysisNoClientRatingValue": "No data",
   "@jobAnalysisNoClientRatingValue": {
     "description": "Fallback value shown when a client does not have a rating."
+  },
+  "jobAnalysisAiAnswersReadyTooltip": "Completed. AI answers generated.",
+  "@jobAnalysisAiAnswersReadyTooltip": {
+    "description": "Tooltip shown on the badge when AI answers have already been generated for the job."
   },
   "jobKnowledgeQuickActionsEditCurriculumButton": "Change curriculum",
   "@jobKnowledgeQuickActionsEditCurriculumButton": {

@@ -212,6 +212,36 @@ abstract class AppLocalizations {
   /// **'{count, plural, =0{0 Questions} =1{1 Question} other{{count} Questions}}'**
   String jobAnalysisQuestionsChip(int count);
 
+  /// Compact label for jobs posted today when less than one hour has elapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{minutes}m ago'**
+  String jobAnalysisPostedMinutesAgo(int minutes);
+
+  /// Compact label for jobs posted today when only whole hours have elapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h ago'**
+  String jobAnalysisPostedHoursAgo(int hours);
+
+  /// Compact label for jobs posted today when hours and minutes have elapsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{hours}h and {minutes}m ago'**
+  String jobAnalysisPostedHoursAndMinutesAgo(int hours, int minutes);
+
+  /// Compact label for jobs posted on the previous calendar day.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday at {time}'**
+  String jobAnalysisPostedYesterdayAt(Object time);
+
+  /// Compact label for jobs posted before yesterday, without including the year.
+  ///
+  /// In en, this message translates to:
+  /// **'{day} of {month}'**
+  String jobAnalysisPostedMonthDay(int day, Object month);
+
   /// Compact chip label showing the client hire rate.
   ///
   /// In en, this message translates to:
@@ -643,6 +673,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No data'**
   String get jobAnalysisNoClientRatingValue;
+
+  /// Tooltip shown on the badge when AI answers have already been generated for the job.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed. AI answers generated.'**
+  String get jobAnalysisAiAnswersReadyTooltip;
 
   /// Button label for changing the curriculum knowledge text from the compact summary view.
   ///

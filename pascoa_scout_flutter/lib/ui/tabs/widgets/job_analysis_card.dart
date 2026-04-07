@@ -4,6 +4,7 @@ import 'package:pascoa_scout/interactor/app_notification/app_notification_provid
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/expandable_inline_text.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_posted_at_badge.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -200,32 +201,61 @@ class JobAnalysisCard extends StatelessWidget {
             right: 18,
             child: Row(
               children: [
-                _ClientRatingBadge(rating: job.clientRating),
-                if (analysis.createdJobAiResponsesAt != null)
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: Tooltip(
-                      message: 'Completed! Have even generated AI answers',
-                      child: CircleAvatar(
-                        radius: 16,
-                        backgroundColor: Theme.of(context).colorScheme.primary,
-                        child: Icon(
-                          Icons.check,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Row(
+                        children: [
+                          _ClientRatingBadge(rating: job.clientRating),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: JobAnalysisPostedAtBadge(
+                              postedAt: job.absoluteDateTime,
+                            ),
+                          ),
+                          if (analysis.createdJobAiResponsesAt != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Tooltip(
+                                message: l10n.jobAnalysisAiAnswersReadyTooltip,
+                                child: CircleAvatar(
+                                  radius: 16,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).colorScheme.primary,
+                                  child: Icon(
+                                    Icons.check,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onPrimary,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                   ),
-                const Spacer(),
-                if (canRefresh)
-                  _RefreshCircleButton(
-                    isRefreshing: isRefreshing,
-                    onTap: () => onRefresh!(analysis.id!),
+                ),
+                if (canRefresh || score != null) const SizedBox(width: 12),
+                if (canRefresh || score != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (canRefresh)
+                        _RefreshCircleButton(
+                          isRefreshing: isRefreshing,
+                          onTap: () => onRefresh!(analysis.id!),
+                        ),
+                      if (score != null) ...[
+                        const SizedBox(width: 10),
+                        _ScoreCircle(score: score.scorePercentage),
+                      ],
+                    ],
                   ),
-                if (score != null) ...[
-                  const SizedBox(width: 10),
-                  _ScoreCircle(score: score.scorePercentage),
-                ],
               ],
             ),
           ),
