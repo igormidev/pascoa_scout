@@ -5,6 +5,7 @@ fields:
   jobInfo: JobInfo?, relation(name=job_info_analysis_state, field=jobInfoId)
   score: JobScore?, relation(name=job_analysis_state_score)
   proposal: JobProposal?, relation(name=job_analysis_state_proposal)
+  didViewJob: bool, default=false
   createdJobInfoAt: DateTime
   createdJobScoringAt: DateTime?
   createdJobAiResponsesAt: DateTime?

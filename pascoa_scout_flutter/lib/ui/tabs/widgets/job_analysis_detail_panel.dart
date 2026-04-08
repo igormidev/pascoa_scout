@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
+import 'package:pascoa_scout/interactor/job_analysis_selection/selected_job_analysis_provider.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/expandable_inline_text.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_general_stats_editor_dialog.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_general_stats_preferences.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_open_job_button.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -47,7 +50,12 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
                     _DetailHeader(
                       analysis: analysis,
                       onBack: onBack,
-                      onOpenJob: () => _openJob(context, job.url),
+                      onOpenJob: () => _openJob(
+                        context,
+                        ref,
+                        analysis: analysis,
+                        url: job.url,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     _SectionHeading(
@@ -477,7 +485,12 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
     }
   }
 
-  Future<void> _openJob(BuildContext context, String url) async {
+  Future<void> _openJob(
+    BuildContext context,
+    WidgetRef ref, {
+    required JobAnalysisState analysis,
+    required String url,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final uri = Uri.tryParse(url);
     if (uri == null) {
@@ -497,6 +510,36 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
       notifySnackbarWithContext(
         context,
         message: l10n.jobAnalysisUnableToOpenJobMessage,
+        tone: AppNotificationTone.error,
+      );
+      return;
+    }
+
+    if (!wasOpened || analysis.didViewJob) {
+      return;
+    }
+
+    final optimistic = analysis.copyWith(didViewJob: true);
+    ref.read(selectedJobAnalysisProvider.notifier).update(optimistic);
+
+    if (analysis.id == null) {
+      return;
+    }
+
+    try {
+      final updated = await ref
+          .read(clientProvider)
+          .jobAnalysis
+          .markJobViewed(jobAnalysisStateId: analysis.id!);
+      ref.read(selectedJobAnalysisProvider.notifier).update(updated);
+    } catch (error) {
+      ref.read(selectedJobAnalysisProvider.notifier).update(analysis);
+      if (!context.mounted) {
+        return;
+      }
+      notifySnackbarWithContext(
+        context,
+        message: error.toString(),
         tone: AppNotificationTone.error,
       );
     }
@@ -545,10 +588,9 @@ class _DetailHeader extends StatelessWidget {
               label: Text(l10n.jobAnalysisBackToFiltersButton),
             ),
             const Spacer(),
-            FilledButton.icon(
+            JobAnalysisOpenJobButton(
+              didViewJob: analysis.didViewJob,
               onPressed: onOpenJob,
-              icon: const Icon(Icons.open_in_new_rounded),
-              label: Text(l10n.jobAnalysisViewJobButton),
             ),
           ],
         ),

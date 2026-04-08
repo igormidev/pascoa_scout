@@ -23,10 +23,11 @@ abstract class JobAnalysisState implements _i1.SerializableModel {
     this.jobInfo,
     this.score,
     this.proposal,
+    bool? didViewJob,
     required this.createdJobInfoAt,
     this.createdJobScoringAt,
     this.createdJobAiResponsesAt,
-  });
+  }) : didViewJob = didViewJob ?? false;
 
   factory JobAnalysisState({
     int? id,
@@ -34,6 +35,7 @@ abstract class JobAnalysisState implements _i1.SerializableModel {
     _i2.JobInfo? jobInfo,
     _i3.JobScore? score,
     _i4.JobProposal? proposal,
+    bool? didViewJob,
     required DateTime createdJobInfoAt,
     DateTime? createdJobScoringAt,
     DateTime? createdJobAiResponsesAt,
@@ -58,6 +60,9 @@ abstract class JobAnalysisState implements _i1.SerializableModel {
           : _i5.Protocol().deserialize<_i4.JobProposal>(
               jsonSerialization['proposal'],
             ),
+      didViewJob: jsonSerialization['didViewJob'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['didViewJob']),
       createdJobInfoAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdJobInfoAt'],
       ),
@@ -88,6 +93,8 @@ abstract class JobAnalysisState implements _i1.SerializableModel {
 
   _i4.JobProposal? proposal;
 
+  bool didViewJob;
+
   DateTime createdJobInfoAt;
 
   DateTime? createdJobScoringAt;
@@ -103,6 +110,7 @@ abstract class JobAnalysisState implements _i1.SerializableModel {
     _i2.JobInfo? jobInfo,
     _i3.JobScore? score,
     _i4.JobProposal? proposal,
+    bool? didViewJob,
     DateTime? createdJobInfoAt,
     DateTime? createdJobScoringAt,
     DateTime? createdJobAiResponsesAt,
@@ -116,6 +124,7 @@ abstract class JobAnalysisState implements _i1.SerializableModel {
       if (jobInfo != null) 'jobInfo': jobInfo?.toJson(),
       if (score != null) 'score': score?.toJson(),
       if (proposal != null) 'proposal': proposal?.toJson(),
+      'didViewJob': didViewJob,
       'createdJobInfoAt': createdJobInfoAt.toJson(),
       if (createdJobScoringAt != null)
         'createdJobScoringAt': createdJobScoringAt?.toJson(),
@@ -139,6 +148,7 @@ class _JobAnalysisStateImpl extends JobAnalysisState {
     _i2.JobInfo? jobInfo,
     _i3.JobScore? score,
     _i4.JobProposal? proposal,
+    bool? didViewJob,
     required DateTime createdJobInfoAt,
     DateTime? createdJobScoringAt,
     DateTime? createdJobAiResponsesAt,
@@ -148,6 +158,7 @@ class _JobAnalysisStateImpl extends JobAnalysisState {
          jobInfo: jobInfo,
          score: score,
          proposal: proposal,
+         didViewJob: didViewJob,
          createdJobInfoAt: createdJobInfoAt,
          createdJobScoringAt: createdJobScoringAt,
          createdJobAiResponsesAt: createdJobAiResponsesAt,
@@ -163,6 +174,7 @@ class _JobAnalysisStateImpl extends JobAnalysisState {
     Object? jobInfo = _Undefined,
     Object? score = _Undefined,
     Object? proposal = _Undefined,
+    bool? didViewJob,
     DateTime? createdJobInfoAt,
     Object? createdJobScoringAt = _Undefined,
     Object? createdJobAiResponsesAt = _Undefined,
@@ -175,6 +187,7 @@ class _JobAnalysisStateImpl extends JobAnalysisState {
       proposal: proposal is _i4.JobProposal?
           ? proposal
           : this.proposal?.copyWith(),
+      didViewJob: didViewJob ?? this.didViewJob,
       createdJobInfoAt: createdJobInfoAt ?? this.createdJobInfoAt,
       createdJobScoringAt: createdJobScoringAt is DateTime?
           ? createdJobScoringAt

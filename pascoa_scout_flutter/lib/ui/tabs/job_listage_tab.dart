@@ -49,6 +49,15 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectedAnalysis = ref.watch(selectedJobAnalysisProvider);
+    ref.listen<JobAnalysisState?>(selectedJobAnalysisProvider, (
+      previous,
+      next,
+    ) {
+      if (!mounted || next == null) {
+        return;
+      }
+      _mergeUpdatedAnalysis(next);
+    });
     final appliedFilterLabels = <String>[
       if (_filters.searchTerm?.isNotEmpty ?? false)
         'Search: ${_filters.searchTerm}',
@@ -112,6 +121,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         onRefreshEmptyState: () => _refreshList(resetReference: true, page: 1),
         onLoadPage: (page) => _loadPage(page: page),
         onRefreshCard: _refreshCard,
+        onMarkJobViewed: _markJobViewed,
         onSelectAnalysis: _selectAnalysis,
       ),
     );
@@ -237,14 +247,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
       }
 
       ref.read(selectedJobAnalysisProvider.notifier).update(updated);
-      setState(() {
-        _pageData = _pageData!.copyWith(
-          items: [
-            for (final item in _pageData!.items)
-              if (item.id == id) updated else item,
-          ],
-        );
-      });
+      _mergeUpdatedAnalysis(updated);
     } catch (error) {
       if (!mounted) {
         return;
@@ -260,6 +263,40 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
           _refreshingCards.remove(id);
         });
       }
+    }
+  }
+
+  Future<void> _markJobViewed(JobAnalysisState analysis) async {
+    if (analysis.didViewJob) {
+      return;
+    }
+
+    final optimistic = analysis.copyWith(didViewJob: true);
+    ref.read(selectedJobAnalysisProvider.notifier).update(optimistic);
+    _mergeUpdatedAnalysis(optimistic);
+
+    if (analysis.id == null) {
+      return;
+    }
+
+    try {
+      final updated = await ref
+          .read(clientProvider)
+          .jobAnalysis
+          .markJobViewed(jobAnalysisStateId: analysis.id!);
+      ref.read(selectedJobAnalysisProvider.notifier).update(updated);
+      _mergeUpdatedAnalysis(updated);
+    } catch (error) {
+      ref.read(selectedJobAnalysisProvider.notifier).update(analysis);
+      _mergeUpdatedAnalysis(analysis);
+      if (!mounted) {
+        return;
+      }
+      notifySnackbarWithContext(
+        context,
+        message: error.toString(),
+        tone: AppNotificationTone.error,
+      );
     }
   }
 
@@ -281,6 +318,29 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
 
   void _clearSelectedAnalysis() {
     ref.read(selectedJobAnalysisProvider.notifier).clear();
+  }
+
+  void _mergeUpdatedAnalysis(JobAnalysisState analysis) {
+    final pageData = _pageData;
+    if (pageData == null) {
+      return;
+    }
+
+    final hasMatch = pageData.items.any(
+      (item) => isSameJobAnalysis(item, analysis),
+    );
+    if (!hasMatch) {
+      return;
+    }
+
+    setState(() {
+      _pageData = pageData.copyWith(
+        items: [
+          for (final item in pageData.items)
+            if (isSameJobAnalysis(item, analysis)) analysis else item,
+        ],
+      );
+    });
   }
 
   Future<void> _persistFilters(_LocalJobAnalysisFilters filters) async {

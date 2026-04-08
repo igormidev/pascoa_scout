@@ -25,10 +25,11 @@ abstract class JobAnalysisState
     this.jobInfo,
     this.score,
     this.proposal,
+    bool? didViewJob,
     required this.createdJobInfoAt,
     this.createdJobScoringAt,
     this.createdJobAiResponsesAt,
-  });
+  }) : didViewJob = didViewJob ?? false;
 
   factory JobAnalysisState({
     int? id,
@@ -36,6 +37,7 @@ abstract class JobAnalysisState
     _i2.JobInfo? jobInfo,
     _i3.JobScore? score,
     _i4.JobProposal? proposal,
+    bool? didViewJob,
     required DateTime createdJobInfoAt,
     DateTime? createdJobScoringAt,
     DateTime? createdJobAiResponsesAt,
@@ -60,6 +62,9 @@ abstract class JobAnalysisState
           : _i5.Protocol().deserialize<_i4.JobProposal>(
               jsonSerialization['proposal'],
             ),
+      didViewJob: jsonSerialization['didViewJob'] == null
+          ? null
+          : _i1.BoolJsonExtension.fromJson(jsonSerialization['didViewJob']),
       createdJobInfoAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['createdJobInfoAt'],
       ),
@@ -92,6 +97,8 @@ abstract class JobAnalysisState
 
   _i4.JobProposal? proposal;
 
+  bool didViewJob;
+
   DateTime createdJobInfoAt;
 
   DateTime? createdJobScoringAt;
@@ -110,6 +117,7 @@ abstract class JobAnalysisState
     _i2.JobInfo? jobInfo,
     _i3.JobScore? score,
     _i4.JobProposal? proposal,
+    bool? didViewJob,
     DateTime? createdJobInfoAt,
     DateTime? createdJobScoringAt,
     DateTime? createdJobAiResponsesAt,
@@ -123,6 +131,7 @@ abstract class JobAnalysisState
       if (jobInfo != null) 'jobInfo': jobInfo?.toJson(),
       if (score != null) 'score': score?.toJson(),
       if (proposal != null) 'proposal': proposal?.toJson(),
+      'didViewJob': didViewJob,
       'createdJobInfoAt': createdJobInfoAt.toJson(),
       if (createdJobScoringAt != null)
         'createdJobScoringAt': createdJobScoringAt?.toJson(),
@@ -140,6 +149,7 @@ abstract class JobAnalysisState
       if (jobInfo != null) 'jobInfo': jobInfo?.toJsonForProtocol(),
       if (score != null) 'score': score?.toJsonForProtocol(),
       if (proposal != null) 'proposal': proposal?.toJsonForProtocol(),
+      'didViewJob': didViewJob,
       'createdJobInfoAt': createdJobInfoAt.toJson(),
       if (createdJobScoringAt != null)
         'createdJobScoringAt': createdJobScoringAt?.toJson(),
@@ -195,6 +205,7 @@ class _JobAnalysisStateImpl extends JobAnalysisState {
     _i2.JobInfo? jobInfo,
     _i3.JobScore? score,
     _i4.JobProposal? proposal,
+    bool? didViewJob,
     required DateTime createdJobInfoAt,
     DateTime? createdJobScoringAt,
     DateTime? createdJobAiResponsesAt,
@@ -204,6 +215,7 @@ class _JobAnalysisStateImpl extends JobAnalysisState {
          jobInfo: jobInfo,
          score: score,
          proposal: proposal,
+         didViewJob: didViewJob,
          createdJobInfoAt: createdJobInfoAt,
          createdJobScoringAt: createdJobScoringAt,
          createdJobAiResponsesAt: createdJobAiResponsesAt,
@@ -219,6 +231,7 @@ class _JobAnalysisStateImpl extends JobAnalysisState {
     Object? jobInfo = _Undefined,
     Object? score = _Undefined,
     Object? proposal = _Undefined,
+    bool? didViewJob,
     DateTime? createdJobInfoAt,
     Object? createdJobScoringAt = _Undefined,
     Object? createdJobAiResponsesAt = _Undefined,
@@ -231,6 +244,7 @@ class _JobAnalysisStateImpl extends JobAnalysisState {
       proposal: proposal is _i4.JobProposal?
           ? proposal
           : this.proposal?.copyWith(),
+      didViewJob: didViewJob ?? this.didViewJob,
       createdJobInfoAt: createdJobInfoAt ?? this.createdJobInfoAt,
       createdJobScoringAt: createdJobScoringAt is DateTime?
           ? createdJobScoringAt
@@ -248,6 +262,11 @@ class JobAnalysisStateUpdateTable
 
   _i1.ColumnValue<int, int> jobInfoId(int value) => _i1.ColumnValue(
     table.jobInfoId,
+    value,
+  );
+
+  _i1.ColumnValue<bool, bool> didViewJob(bool value) => _i1.ColumnValue(
+    table.didViewJob,
     value,
   );
 
@@ -279,6 +298,11 @@ class JobAnalysisStateTable extends _i1.Table<int?> {
       'jobInfoId',
       this,
     );
+    didViewJob = _i1.ColumnBool(
+      'didViewJob',
+      this,
+      hasDefault: true,
+    );
     createdJobInfoAt = _i1.ColumnDateTime(
       'createdJobInfoAt',
       this,
@@ -302,6 +326,8 @@ class JobAnalysisStateTable extends _i1.Table<int?> {
   _i3.JobScoreTable? _score;
 
   _i4.JobProposalTable? _proposal;
+
+  late final _i1.ColumnBool didViewJob;
 
   late final _i1.ColumnDateTime createdJobInfoAt;
 
@@ -352,6 +378,7 @@ class JobAnalysisStateTable extends _i1.Table<int?> {
   List<_i1.Column> get columns => [
     id,
     jobInfoId,
+    didViewJob,
     createdJobInfoAt,
     createdJobScoringAt,
     createdJobAiResponsesAt,

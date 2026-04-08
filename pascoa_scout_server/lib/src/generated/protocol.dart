@@ -125,6 +125,13 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'int',
         ),
         _i2.ColumnDefinition(
+          name: 'didViewJob',
+          columnType: _i2.ColumnType.boolean,
+          isNullable: false,
+          dartType: 'bool',
+          columnDefault: 'false',
+        ),
+        _i2.ColumnDefinition(
           name: 'createdJobInfoAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: false,

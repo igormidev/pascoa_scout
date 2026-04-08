@@ -99,6 +99,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     jobAnalysisStateId: params['jobAnalysisStateId'],
                   ),
         ),
+        'markJobViewed': _i1.MethodConnector(
+          name: 'markJobViewed',
+          params: {
+            'jobAnalysisStateId': _i1.ParameterDescription(
+              name: 'jobAnalysisStateId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['jobAnalysis'] as _i2.JobAnalysisEndpoint)
+                  .markJobViewed(
+                    session,
+                    jobAnalysisStateId: params['jobAnalysisStateId'],
+                  ),
+        ),
       },
     );
     connectors['jobAutomation'] = _i1.EndpointConnector(

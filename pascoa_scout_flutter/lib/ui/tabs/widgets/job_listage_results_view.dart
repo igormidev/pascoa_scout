@@ -24,6 +24,7 @@ class JobListageResultsView extends StatefulWidget {
     required this.onRefreshEmptyState,
     required this.onLoadPage,
     required this.onRefreshCard,
+    required this.onMarkJobViewed,
     required this.onSelectAnalysis,
   });
 
@@ -41,6 +42,7 @@ class JobListageResultsView extends StatefulWidget {
   final VoidCallback onRefreshEmptyState;
   final ValueChanged<int> onLoadPage;
   final Future<void> Function(int id) onRefreshCard;
+  final Future<void> Function(JobAnalysisState analysis) onMarkJobViewed;
   final ValueChanged<JobAnalysisState> onSelectAnalysis;
 
   @override
@@ -165,6 +167,7 @@ class _JobListageResultsViewState extends State<JobListageResultsView> {
                         onRefresh: analysis.id == null
                             ? null
                             : widget.onRefreshCard,
+                        onMarkJobViewed: widget.onMarkJobViewed,
                         onSelect: () => widget.onSelectAnalysis(analysis),
                       ),
                     );

@@ -28,4 +28,15 @@ class JobAnalysisEndpoint extends Endpoint {
     );
     return result.fold((row) => row, (error) => throw error);
   }
+
+  Future<JobAnalysisState> markJobViewed(
+    Session session, {
+    required int jobAnalysisStateId,
+  }) async {
+    final result = await _service.markJobViewed(
+      session,
+      jobAnalysisStateId: jobAnalysisStateId,
+    );
+    return result.fold((row) => row, (error) => throw error);
+  }
 }

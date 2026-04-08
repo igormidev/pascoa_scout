@@ -76,10 +76,9 @@ class JobAnalysisQueryService {
     required int jobAnalysisStateId,
   }) async {
     try {
-      final row = await JobAnalysisState.db.findById(
+      final row = await _loadAnalysisStateById(
         session,
-        jobAnalysisStateId,
-        include: buildJobAnalysisStateInclude(),
+        jobAnalysisStateId: jobAnalysisStateId,
       );
       if (row == null) {
         return Failure(
@@ -98,6 +97,71 @@ class JobAnalysisQueryService {
           message: 'Unable to refresh the job analysis card',
           description:
               'The server could not load the latest persisted state for the requested job card.',
+          error: error.toString(),
+          stackTrace: stackTrace.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<PascoaResult<JobAnalysisState>> markJobViewed(
+    Session session, {
+    required int jobAnalysisStateId,
+  }) async {
+    try {
+      final row = await _loadAnalysisStateById(
+        session,
+        jobAnalysisStateId: jobAnalysisStateId,
+      );
+      if (row == null) {
+        return Failure(
+          PascoaException(
+            message: 'Job analysis not found',
+            description:
+                'The requested job analysis card could not be found in the database.',
+          ),
+        );
+      }
+
+      final jobInfo = row.jobInfo;
+      if (jobInfo == null) {
+        return Failure(
+          PascoaException(
+            message: 'Job information not found',
+            description:
+                'The requested job analysis does not have a persisted job information row to update.',
+          ),
+        );
+      }
+
+      if (!row.didViewJob) {
+        await JobAnalysisState.db.updateRow(
+          session,
+          row.copyWith(didViewJob: true),
+        );
+      }
+
+      final updatedRow = await _loadAnalysisStateById(
+        session,
+        jobAnalysisStateId: jobAnalysisStateId,
+      );
+      if (updatedRow == null) {
+        return Failure(
+          PascoaException(
+            message: 'Updated job analysis not found',
+            description:
+                'The job analysis was updated, but the server could not reload the persisted row afterwards.',
+          ),
+        );
+      }
+
+      return Success(_normalizeAnalysisState(updatedRow));
+    } catch (error, stackTrace) {
+      return Failure(
+        PascoaException(
+          message: 'Unable to mark the job as viewed',
+          description:
+              'The server could not persist the viewed state for the requested job card.',
           error: error.toString(),
           stackTrace: stackTrace.toString(),
         ),
@@ -285,6 +349,17 @@ class JobAnalysisQueryService {
         .map((id) => rowsById[id])
         .whereType<JobAnalysisState>()
         .toList(growable: false);
+  }
+
+  Future<JobAnalysisState?> _loadAnalysisStateById(
+    Session session, {
+    required int jobAnalysisStateId,
+  }) {
+    return JobAnalysisState.db.findById(
+      session,
+      jobAnalysisStateId,
+      include: buildJobAnalysisStateInclude(),
+    );
   }
 
   int _compareRows(

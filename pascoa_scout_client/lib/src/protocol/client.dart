@@ -66,6 +66,14 @@ class EndpointJobAnalysis extends _i1.EndpointRef {
     'refreshCard',
     {'jobAnalysisStateId': jobAnalysisStateId},
   );
+
+  _i2.Future<_i5.JobAnalysisState> markJobViewed({
+    required int jobAnalysisStateId,
+  }) => caller.callServerEndpoint<_i5.JobAnalysisState>(
+    'jobAnalysis',
+    'markJobViewed',
+    {'jobAnalysisStateId': jobAnalysisStateId},
+  );
 }
 
 /// {@category Endpoint}

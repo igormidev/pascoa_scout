@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/expandable_selectable_text.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/expandable_inline_text.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_open_job_button.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_posted_at_badge.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,6 +16,7 @@ class JobAnalysisCard extends StatelessWidget {
     required this.analysis,
     required this.onSelect,
     this.onRefresh,
+    this.onMarkJobViewed,
     this.isRefreshing = false,
     this.isSelected = false,
   });
@@ -21,6 +24,7 @@ class JobAnalysisCard extends StatelessWidget {
   final JobAnalysisState analysis;
   final VoidCallback onSelect;
   final Future<void> Function(int id)? onRefresh;
+  final Future<void> Function(JobAnalysisState analysis)? onMarkJobViewed;
   final bool isRefreshing;
   final bool isSelected;
 
@@ -128,20 +132,12 @@ class JobAnalysisCard extends StatelessWidget {
                             ),
                           ],
                         );
-                        final openJobButton = FilledButton.tonalIcon(
-                          onPressed: () => _openJob(context, job.url),
-                          icon: const Icon(Icons.open_in_new_rounded),
-                          label: Text(l10n.jobAnalysisViewJobButton),
-                          style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFFB8D89D),
-                            foregroundColor: const Color(0xFF1B2514),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18,
-                              vertical: 14,
-                            ),
-                            textStyle: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
+                        final openJobButton = JobAnalysisOpenJobButton(
+                          didViewJob: analysis.didViewJob,
+                          onPressed: () => _openJob(
+                            context,
+                            analysis: analysis,
+                            url: job.url,
                           ),
                         );
 
@@ -178,15 +174,19 @@ class JobAnalysisCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
-                        score.aiScoreJustificationText,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
+                      ExpandableSelectableText(
+                        text: score.aiScoreJustificationText,
+                        collapsedMaxLines: 3,
+                        expandLabel: l10n.jobAnalysisViewMore,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           height: 1.45,
                           color: theme.colorScheme.onSurface.withValues(
                             alpha: 0.72,
                           ),
+                        ),
+                        linkStyle: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.primary,
                         ),
                       ),
                     ],
@@ -264,7 +264,11 @@ class JobAnalysisCard extends StatelessWidget {
     );
   }
 
-  Future<void> _openJob(BuildContext context, String url) async {
+  Future<void> _openJob(
+    BuildContext context, {
+    required JobAnalysisState analysis,
+    required String url,
+  }) async {
     final l10n = AppLocalizations.of(context);
     final uri = Uri.tryParse(url);
     if (uri == null) {
@@ -286,6 +290,14 @@ class JobAnalysisCard extends StatelessWidget {
         message: l10n.jobAnalysisUnableToOpenJobMessage,
         tone: AppNotificationTone.error,
       );
+      return;
+    }
+
+    if (wasOpened &&
+        !analysis.didViewJob &&
+        onMarkJobViewed != null &&
+        context.mounted) {
+      await onMarkJobViewed!(analysis);
     }
   }
 }
