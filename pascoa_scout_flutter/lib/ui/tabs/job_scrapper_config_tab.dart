@@ -1164,8 +1164,7 @@ class _CompactAutomationAiSettingsCard extends ConsumerWidget {
         ),
       ),
       child: LayoutBuilder(
-        builder: (context, constraints) {
-          final useColumnLayout = constraints.maxWidth < 620.0;
+        builder: (context, _) {
           final modelField = _AutomationDropdownField<JobAutomationAiModel>(
             label: l10n.jobAutomationAiModelLabel,
             value: snapshot.aiModel,
@@ -1209,18 +1208,14 @@ class _CompactAutomationAiSettingsCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 14.0),
-              if (useColumnLayout) ...[
-                modelField,
-                const SizedBox(height: 12.0),
-                effortField,
-              ] else
-                Row(
-                  children: [
-                    Expanded(child: modelField),
-                    const SizedBox(width: 12.0),
-                    Expanded(child: effortField),
-                  ],
-                ),
+
+              Row(
+                children: [
+                  Expanded(flex: 4, child: modelField),
+                  const SizedBox(width: 12.0),
+                  Expanded(flex: 5, child: effortField),
+                ],
+              ),
             ],
           );
         },

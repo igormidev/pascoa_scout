@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/interactor/job_listage/job_listage_live_refresh_preferences.dart';
+import 'package:pascoa_scout/interactor/job_sync/job_sync_providers.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 
 class JobListLiveRefreshSettingCard extends ConsumerWidget {
@@ -12,32 +13,44 @@ class JobListLiveRefreshSettingCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final preferences = ref.watch(jobListageLiveRefreshPreferencesProvider);
+    final isLocked = ref.watch(
+      jobSyncControllerProvider.select((state) => state.isLocked),
+    );
     final controller = ref.read(
       jobListageLiveRefreshPreferencesProvider.notifier,
     );
 
-    return _LiveRefreshSettingSurface(
-      title: l10n.jobListLiveRefreshSettingTitle,
-      description: preferences.isEnabled
-          ? l10n.jobListLiveRefreshSettingEnabledDescription(
-              preferences.intervalSeconds,
-            )
-          : l10n.jobListLiveRefreshSettingDisabledDescription,
-      toggleLabel: l10n.jobListLiveRefreshSettingToggle,
-      isChecked: preferences.isEnabled,
-      onToggleChanged: (isChecked) =>
-          unawaited(controller.setEnabled(isChecked)),
-      value: preferences.intervalSeconds,
-      onDecrease: !preferences.isEnabled || preferences.intervalSeconds <= 10
-          ? null
-          : () => unawaited(
-              controller.setIntervalSeconds(preferences.intervalSeconds - 10),
-            ),
-      onIncrease: !preferences.isEnabled
-          ? null
-          : () => unawaited(
-              controller.setIntervalSeconds(preferences.intervalSeconds + 10),
-            ),
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 220),
+      opacity: isLocked ? 0.48 : 1.0,
+      child: _LiveRefreshSettingSurface(
+        title: l10n.jobListLiveRefreshSettingTitle,
+        description: preferences.isEnabled
+            ? l10n.jobListLiveRefreshSettingEnabledDescription(
+                preferences.intervalSeconds,
+              )
+            : l10n.jobListLiveRefreshSettingDisabledDescription,
+        toggleLabel: l10n.jobListLiveRefreshSettingToggle,
+        isChecked: preferences.isEnabled,
+        isLocked: isLocked,
+        onToggleChanged: isLocked
+            ? null
+            : (isChecked) => unawaited(controller.setEnabled(isChecked)),
+        value: preferences.intervalSeconds,
+        onDecrease:
+            isLocked ||
+                !preferences.isEnabled ||
+                preferences.intervalSeconds <= 10
+            ? null
+            : () => unawaited(
+                controller.setIntervalSeconds(preferences.intervalSeconds - 10),
+              ),
+        onIncrease: isLocked || !preferences.isEnabled
+            ? null
+            : () => unawaited(
+                controller.setIntervalSeconds(preferences.intervalSeconds + 10),
+              ),
+      ),
     );
   }
 }
@@ -48,6 +61,7 @@ class _LiveRefreshSettingSurface extends StatelessWidget {
     required this.description,
     required this.toggleLabel,
     required this.isChecked,
+    required this.isLocked,
     required this.onToggleChanged,
     required this.value,
     required this.onDecrease,
@@ -58,7 +72,8 @@ class _LiveRefreshSettingSurface extends StatelessWidget {
   final String description;
   final String toggleLabel;
   final bool isChecked;
-  final ValueChanged<bool> onToggleChanged;
+  final bool isLocked;
+  final ValueChanged<bool>? onToggleChanged;
   final int value;
   final VoidCallback? onDecrease;
   final VoidCallback? onIncrease;
@@ -88,6 +103,7 @@ class _LiveRefreshSettingSurface extends StatelessWidget {
           final controls = _LiveRefreshControls(
             toggleLabel: toggleLabel,
             isChecked: isChecked,
+            isLocked: isLocked,
             onToggleChanged: onToggleChanged,
             value: value,
             onDecrease: onDecrease,
@@ -186,6 +202,7 @@ class _LiveRefreshControls extends StatelessWidget {
   const _LiveRefreshControls({
     required this.toggleLabel,
     required this.isChecked,
+    required this.isLocked,
     required this.onToggleChanged,
     required this.value,
     required this.onDecrease,
@@ -194,7 +211,8 @@ class _LiveRefreshControls extends StatelessWidget {
 
   final String toggleLabel;
   final bool isChecked;
-  final ValueChanged<bool> onToggleChanged;
+  final bool isLocked;
+  final ValueChanged<bool>? onToggleChanged;
   final int value;
   final VoidCallback? onDecrease;
   final VoidCallback? onIncrease;
@@ -212,12 +230,17 @@ class _LiveRefreshControls extends StatelessWidget {
           children: [
             Text(toggleLabel),
             const SizedBox(width: 8.0),
-            Switch.adaptive(value: isChecked, onChanged: onToggleChanged),
+            Switch.adaptive(
+              value: isChecked,
+              onChanged: onToggleChanged == null
+                  ? null
+                  : (nextValue) => onToggleChanged!(nextValue),
+            ),
           ],
         ),
         _LiveRefreshStepper(
           value: value,
-          enabled: isChecked,
+          enabled: isChecked && !isLocked,
           onDecrease: onDecrease,
           onIncrease: onIncrease,
         ),
