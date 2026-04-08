@@ -25,14 +25,20 @@ class JobAnalysisProposalMilestonesSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          l10n.jobAnalysisMilestonesSectionTitle,
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w800,
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                l10n.jobAnalysisMilestonesSectionTitle,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            _MilestoneTotalChip(totalSuggestedPrice: totalSuggestedPrice),
+          ],
         ),
-        const SizedBox(height: 12),
-        _MilestoneTotalChip(totalSuggestedPrice: totalSuggestedPrice),
         const SizedBox(height: 12),
         for (var index = 0; index < milestones.length; index++) ...[
           _MilestoneCard(index: index, milestone: milestones[index]),
