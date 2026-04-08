@@ -868,65 +868,63 @@ class _CompactFilterRunTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Padding(
+    return ListView(
       padding: const EdgeInsets.fromLTRB(20.0, 28.0, 10.0, 28.0),
-      child: ListView(
-        key: const ValueKey('compact-filter-run-view'),
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('🗿', style: TextStyle(fontSize: 90.0, height: 1.1)),
-              const SizedBox(width: 10.0),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Pascoa Scout',
-                    style: theme.textTheme.headlineLarge,
-                    textAlign: TextAlign.start,
+      key: const ValueKey('compact-filter-run-view'),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('🗿', style: TextStyle(fontSize: 90.0, height: 1.1)),
+            const SizedBox(width: 10.0),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Pascoa Scout',
+                  style: theme.textTheme.headlineLarge,
+                  textAlign: TextAlign.start,
+                ),
+                const SizedBox(height: 2.0),
+                Text(
+                  'Filters summary: $summaryText',
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: Colors.white.withValues(alpha: 0.78),
                   ),
-                  const SizedBox(height: 2.0),
-                  Text(
-                    'Filters summary: $summaryText',
-                    maxLines: 5,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.78),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+              ],
+            ),
+          ],
+        ),
 
-          const SizedBox(height: 18.0),
-          _CompactFilterRunActions(
-            onChangeFilters: onChangeFilters,
-            onCopyCurl: onCopyCurl,
-          ),
-          const _CompactFilterLockHint(),
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 20.0),
-            child: Divider(height: 1.0),
-          ),
-          const _CompactAutomationSettingsColumn(),
-          const SizedBox(height: 14.0),
-          _JobKnowledgeQuickActionsRow(
-            onChangeCurriculum: onChangeCurriculum,
-            onChangeProposalWriting: onChangeProposalWriting,
-            onChangeJobScoreLogic: onChangeJobScoreLogic,
-          ),
-          const SizedBox(height: 14.0),
-          const _CompactAutomationStatusCard(),
-          const SizedBox(height: 14.0),
-          const _CompactAutomationToggleButton(),
-          const _CompactErrorsSection(),
-        ],
-      ),
+        const SizedBox(height: 18.0),
+        _CompactFilterRunActions(
+          onChangeFilters: onChangeFilters,
+          onCopyCurl: onCopyCurl,
+        ),
+        const _CompactFilterLockHint(),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 20.0),
+          child: Divider(height: 1.0),
+        ),
+        const _CompactAutomationSettingsColumn(),
+        const SizedBox(height: 14.0),
+        _JobKnowledgeQuickActionsRow(
+          onChangeCurriculum: onChangeCurriculum,
+          onChangeProposalWriting: onChangeProposalWriting,
+          onChangeJobScoreLogic: onChangeJobScoreLogic,
+        ),
+        const SizedBox(height: 14.0),
+        const _CompactAutomationStatusCard(),
+        const SizedBox(height: 14.0),
+        const _CompactAutomationToggleButton(),
+        const _CompactErrorsSection(),
+      ],
     ).animate().fadeIn(duration: 280.ms).slideX(begin: -0.08);
   }
 }
