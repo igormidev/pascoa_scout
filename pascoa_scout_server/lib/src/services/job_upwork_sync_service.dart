@@ -282,6 +282,11 @@ class JobUpworkSyncService {
         where: (table) => table.jobProposalId.equals(existingProposal.id),
         transaction: transaction,
       );
+      await JobProposalMilestone.db.deleteWhere(
+        session,
+        where: (table) => table.jobProposalId.equals(existingProposal.id),
+        transaction: transaction,
+      );
       await JobProposal.db.deleteRow(
         session,
         existingProposal,

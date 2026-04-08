@@ -64,6 +64,11 @@ void main() {
           where: (table) => table.jobProposalId.equals(seeded.proposal.id!),
           orderBy: (table) => table.relatedQuestionId,
         );
+        final refreshedMilestones = await JobProposalMilestone.db.find(
+          session,
+          where: (table) => table.jobProposalId.equals(seeded.proposal.id!),
+          orderBy: (table) => table.positionIndex,
+        );
 
         expect(refreshedJob?.title, 'Updated title');
         expect(
@@ -72,9 +77,14 @@ void main() {
         );
         expect(refreshedProposal?.id, seeded.proposal.id);
         expect(refreshedAnswers, hasLength(2));
+        expect(refreshedMilestones, hasLength(2));
         expect(
           refreshedAnswers.map((answer) => answer.relatedQuestionId).toList(),
           seeded.questions.map((question) => question.id).toList(),
+        );
+        expect(
+          refreshedMilestones.map((milestone) => milestone.id).toList(),
+          seeded.milestones.map((milestone) => milestone.id).toList(),
         );
         expect(
           refreshedState?.createdJobAiResponsesAt,
@@ -133,9 +143,14 @@ void main() {
           session,
           where: (table) => table.jobProposalId.equals(seeded.proposal.id!),
         );
+        final remainingMilestones = await JobProposalMilestone.db.find(
+          session,
+          where: (table) => table.jobProposalId.equals(seeded.proposal.id!),
+        );
 
         expect(refreshedProposal, isNull);
         expect(remainingAnswers, isEmpty);
+        expect(remainingMilestones, isEmpty);
         expect(refreshedState?.createdJobAiResponsesAt, isNull);
         expect(
           refreshedQuestions.map((question) => question.question).toList(),
@@ -176,12 +191,14 @@ class _SeededJobData {
     required this.analysisState,
     required this.questions,
     required this.proposal,
+    required this.milestones,
   });
 
   final JobInfo jobInfo;
   final JobAnalysisState analysisState;
   final List<Question> questions;
   final JobProposal proposal;
+  final List<JobProposalMilestone> milestones;
 }
 
 Future<_SeededJobData> _seedJobWithProposal(
@@ -233,12 +250,32 @@ Future<_SeededJobData> _seedJobWithProposal(
         ),
     ],
   );
+  final insertedMilestones = await JobProposalMilestone.db.insert(
+    session,
+    [
+      JobProposalMilestone(
+        jobProposalId: insertedProposal.id!,
+        positionIndex: 0,
+        title: 'Discovery and architecture',
+        description: 'Refine requirements and lock the implementation plan.',
+        suggestedPrice: 200,
+      ),
+      JobProposalMilestone(
+        jobProposalId: insertedProposal.id!,
+        positionIndex: 1,
+        title: 'Delivery and handoff',
+        description: 'Implement the scope and hand over the final deliverable.',
+        suggestedPrice: 300,
+      ),
+    ],
+  );
 
   return _SeededJobData(
     jobInfo: insertedJob,
     analysisState: insertedState,
     questions: insertedQuestions,
     proposal: insertedProposal,
+    milestones: insertedMilestones,
   );
 }
 

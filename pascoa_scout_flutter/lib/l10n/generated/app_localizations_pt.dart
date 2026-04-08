@@ -217,6 +217,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get jobAnalysisCoverLetterCopied => 'Carta de apresentação copiada.';
 
   @override
+  String get jobAnalysisMilestonesSectionTitle =>
+      'Quebra de marcos sugerida pela IA';
+
+  @override
+  String jobAnalysisMilestonesTotalLabel(Object amount) {
+    return 'Lance total sugerido: $amount';
+  }
+
+  @override
+  String jobAnalysisMilestoneTitle(int index) {
+    return 'Marco $index';
+  }
+
+  @override
   String get jobAnalysisAiAnswersSectionTitle => 'Respostas geradas por IA';
 
   @override

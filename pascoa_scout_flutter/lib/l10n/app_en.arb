@@ -269,6 +269,26 @@
   "@jobAnalysisCoverLetterCopied": {
     "description": "Snackbar message after copying the AI-generated cover letter."
   },
+  "jobAnalysisMilestonesSectionTitle": "AI milestone breakdown",
+  "@jobAnalysisMilestonesSectionTitle": {
+    "description": "Section title for the AI-generated fixed-price milestone suggestions."
+  },
+  "jobAnalysisMilestonesTotalLabel": "Total suggested bid: {amount}",
+  "@jobAnalysisMilestonesTotalLabel": {
+    "description": "Label showing the total bid implied by the AI-generated milestone prices.",
+    "placeholders": {
+      "amount": {}
+    }
+  },
+  "jobAnalysisMilestoneTitle": "Milestone {index}",
+  "@jobAnalysisMilestoneTitle": {
+    "description": "Title label for an individual AI-generated milestone suggestion.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "jobAnalysisAiAnswersSectionTitle": "AI-generated answers",
   "@jobAnalysisAiAnswersSectionTitle": {
     "description": "Section title for the AI-generated answers to the job questions."

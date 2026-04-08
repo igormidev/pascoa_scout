@@ -11,6 +11,7 @@ import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_general_stats_editor_dialog.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_general_stats_preferences.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_open_job_button.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_proposal_milestones_section.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -170,6 +171,12 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
                         text: proposal.aiGeneratedCoverLetterText,
                         tooltip: l10n.jobAnalysisCopyCoverLetterTooltip,
                         copiedMessage: l10n.jobAnalysisCoverLetterCopied,
+                      ),
+                      const SizedBox(height: 24),
+                    ],
+                    if (proposal?.milestones?.isNotEmpty ?? false) ...[
+                      JobAnalysisProposalMilestonesSection(
+                        milestones: proposal!.milestones!,
                       ),
                       const SizedBox(height: 24),
                     ],

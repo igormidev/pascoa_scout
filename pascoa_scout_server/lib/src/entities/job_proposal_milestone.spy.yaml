@@ -1,0 +1,14 @@
+class: JobProposalMilestone
+table: job_proposal_milestone
+fields:
+  jobProposal: JobProposal?, relation(name=job_proposal_milestones)
+  positionIndex: int
+  title: String
+  description: String
+  suggestedPrice: double
+indexes:
+  job_proposal_milestone_job_proposal_id_idx:
+    fields: jobProposalId
+  job_proposal_milestone_job_proposal_position_unique_idx:
+    fields: jobProposalId, positionIndex
+    unique: true

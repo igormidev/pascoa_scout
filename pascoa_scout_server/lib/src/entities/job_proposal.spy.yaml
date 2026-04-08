@@ -5,6 +5,7 @@ fields:
   jobAnalysisState: JobAnalysisState?, relation(name=job_analysis_state_proposal, field=jobAnalysisStateId)
   aiGeneratedCoverLetterText: String
   answers: List<JobProposalAnswerToQuestion>?, relation(name=job_proposal_answers)
+  milestones: List<JobProposalMilestone>?, relation(name=job_proposal_milestones)
 indexes:
   job_proposal_job_analysis_state_unique_idx:
     fields: jobAnalysisStateId

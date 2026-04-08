@@ -13,7 +13,8 @@
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import '../entities/job_analysis_state.dart' as _i2;
 import '../entities/job_proposal_answer_to_question.dart' as _i3;
-import 'package:pascoa_scout_client/src/protocol/protocol.dart' as _i4;
+import '../entities/job_proposal_milestone.dart' as _i4;
+import 'package:pascoa_scout_client/src/protocol/protocol.dart' as _i5;
 
 abstract class JobProposal implements _i1.SerializableModel {
   JobProposal._({
@@ -22,6 +23,7 @@ abstract class JobProposal implements _i1.SerializableModel {
     this.jobAnalysisState,
     required this.aiGeneratedCoverLetterText,
     this.answers,
+    this.milestones,
   });
 
   factory JobProposal({
@@ -30,6 +32,7 @@ abstract class JobProposal implements _i1.SerializableModel {
     _i2.JobAnalysisState? jobAnalysisState,
     required String aiGeneratedCoverLetterText,
     List<_i3.JobProposalAnswerToQuestion>? answers,
+    List<_i4.JobProposalMilestone>? milestones,
   }) = _JobProposalImpl;
 
   factory JobProposal.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -38,15 +41,20 @@ abstract class JobProposal implements _i1.SerializableModel {
       jobAnalysisStateId: jsonSerialization['jobAnalysisStateId'] as int,
       jobAnalysisState: jsonSerialization['jobAnalysisState'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.JobAnalysisState>(
+          : _i5.Protocol().deserialize<_i2.JobAnalysisState>(
               jsonSerialization['jobAnalysisState'],
             ),
       aiGeneratedCoverLetterText:
           jsonSerialization['aiGeneratedCoverLetterText'] as String,
       answers: jsonSerialization['answers'] == null
           ? null
-          : _i4.Protocol().deserialize<List<_i3.JobProposalAnswerToQuestion>>(
+          : _i5.Protocol().deserialize<List<_i3.JobProposalAnswerToQuestion>>(
               jsonSerialization['answers'],
+            ),
+      milestones: jsonSerialization['milestones'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i4.JobProposalMilestone>>(
+              jsonSerialization['milestones'],
             ),
     );
   }
@@ -64,6 +72,8 @@ abstract class JobProposal implements _i1.SerializableModel {
 
   List<_i3.JobProposalAnswerToQuestion>? answers;
 
+  List<_i4.JobProposalMilestone>? milestones;
+
   /// Returns a shallow copy of this [JobProposal]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -73,6 +83,7 @@ abstract class JobProposal implements _i1.SerializableModel {
     _i2.JobAnalysisState? jobAnalysisState,
     String? aiGeneratedCoverLetterText,
     List<_i3.JobProposalAnswerToQuestion>? answers,
+    List<_i4.JobProposalMilestone>? milestones,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -85,6 +96,8 @@ abstract class JobProposal implements _i1.SerializableModel {
       'aiGeneratedCoverLetterText': aiGeneratedCoverLetterText,
       if (answers != null)
         'answers': answers?.toJson(valueToJson: (v) => v.toJson()),
+      if (milestones != null)
+        'milestones': milestones?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -103,12 +116,14 @@ class _JobProposalImpl extends JobProposal {
     _i2.JobAnalysisState? jobAnalysisState,
     required String aiGeneratedCoverLetterText,
     List<_i3.JobProposalAnswerToQuestion>? answers,
+    List<_i4.JobProposalMilestone>? milestones,
   }) : super._(
          id: id,
          jobAnalysisStateId: jobAnalysisStateId,
          jobAnalysisState: jobAnalysisState,
          aiGeneratedCoverLetterText: aiGeneratedCoverLetterText,
          answers: answers,
+         milestones: milestones,
        );
 
   /// Returns a shallow copy of this [JobProposal]
@@ -121,6 +136,7 @@ class _JobProposalImpl extends JobProposal {
     Object? jobAnalysisState = _Undefined,
     String? aiGeneratedCoverLetterText,
     Object? answers = _Undefined,
+    Object? milestones = _Undefined,
   }) {
     return JobProposal(
       id: id is int? ? id : this.id,
@@ -133,6 +149,9 @@ class _JobProposalImpl extends JobProposal {
       answers: answers is List<_i3.JobProposalAnswerToQuestion>?
           ? answers
           : this.answers?.map((e0) => e0.copyWith()).toList(),
+      milestones: milestones is List<_i4.JobProposalMilestone>?
+          ? milestones
+          : this.milestones?.map((e0) => e0.copyWith()).toList(),
     );
   }
 }

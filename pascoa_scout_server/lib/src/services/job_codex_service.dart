@@ -13,17 +13,20 @@ class JobCodexService {
     required String workingDirectory,
     required String prompt,
     required Map<String, Object?> schema,
+    bool enableWebSearch = false,
   }) async {
     try {
       final codex = Codex();
       final thread = codex.startThread(
-        const ThreadOptions(
+        ThreadOptions(
           sandboxMode: SandboxMode.readOnly,
           skipGitRepoCheck: true,
           modelReasoningEffort: ModelReasoningEffort.xhigh,
           approvalPolicy: ApprovalMode.never,
-          webSearchMode: WebSearchMode.disabled,
-          networkAccessEnabled: false,
+          webSearchMode: enableWebSearch
+              ? WebSearchMode.live
+              : WebSearchMode.disabled,
+          networkAccessEnabled: enableWebSearch,
         ).copyWith(workingDirectory: workingDirectory),
       );
 

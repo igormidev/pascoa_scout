@@ -15,6 +15,9 @@ JobAnalysisStateInclude buildJobAnalysisStateInclude() {
           relatedQuestion: Question.include(),
         ),
       ),
+      milestones: JobProposalMilestone.includeList(
+        orderBy: (table) => table.positionIndex,
+      ),
     ),
   );
 }

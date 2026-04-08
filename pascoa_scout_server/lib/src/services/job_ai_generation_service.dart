@@ -302,24 +302,35 @@ Scoring rules:
 
       final prompt =
           '''
-You are writing a tailored Upwork cover letter and question answers for the freelancer.
+You are writing a tailored Upwork cover letter, question answers, and milestone suggestions for the freelancer.
 
 Before responding, read these files completely and do not continue until you have read them all:
 - @${curriculumFile.path.split('/').last}
 - @${proposalStyleFile.path.split('/').last}
 - @${jobFile.path.split('/').last}
 
+The job file is the canonical source for the contract type and compensation details.
+If the project is fixed-price, you may do focused web research when it materially improves the milestone breakdown, such as validating sensible delivery phases, dependencies, or domain-specific implementation checkpoints. Keep any research tight and relevant to the actual job.
+
 Return only structured JSON that matches the provided schema.
 Rules:
 - aiGeneratedCoverLetterText must sound like the freelancer described in the files.
 - answers must contain one entry for each job question listed in the job file.
 - Each answer entry must use the exact relatedQuestionId from the job file.
+- milestones must be null when the job type is hourly.
+- For fixed-price jobs, milestones must be a non-empty ordered list of concrete payment checkpoints that break the work into sensible delivery phases.
+- Each milestone must contain a concise title, a specific description of the deliverable or outcome, and a numeric suggestedPrice.
+- When the job file provides a fixed price amount, the sum of all milestone suggestedPrice values must equal that amount exactly to the cent.
+- If the fixed price amount is unavailable but the raw budget text still implies a range or target, infer a single reasonable bid total from the job context and make the milestone prices add up to that inferred total.
+- Milestones should be tailored to the scope, reduce delivery risk, and avoid vague placeholders.
+- If the scope is small, a single milestone is acceptable, but the pricing still must add up to the total bid.
 ''';
 
       final generationResult = await _codexService.runStructuredJson(
         workingDirectory: workDirectory.path,
         prompt: prompt,
         schema: _proposalSchema,
+        enableWebSearch: true,
       );
 
       return await generationResult.fold(
@@ -331,7 +342,7 @@ Rules:
           );
           final parsedResult = _parseProposalPayload(
             payload,
-            analysis.jobInfo?.questions ?? const <Question>[],
+            analysis.jobInfo!,
           );
 
           return await parsedResult.fold(
@@ -368,6 +379,11 @@ Rules:
                   where: (table) => table.jobProposalId.equals(proposal.id),
                   transaction: transaction,
                 );
+                await JobProposalMilestone.db.deleteWhere(
+                  session,
+                  where: (table) => table.jobProposalId.equals(proposal.id),
+                  transaction: transaction,
+                );
 
                 if (parsed.answers.isNotEmpty) {
                   await JobProposalAnswerToQuestion.db.insert(
@@ -378,6 +394,23 @@ Rules:
                           jobProposalId: proposal.id!,
                           relatedQuestionId: answer.relatedQuestionId,
                           aiGeneratedAnswerText: answer.answerText,
+                        ),
+                    ],
+                    transaction: transaction,
+                  );
+                }
+
+                if (parsed.milestones.isNotEmpty) {
+                  await JobProposalMilestone.db.insert(
+                    session,
+                    [
+                      for (final milestone in parsed.milestones)
+                        JobProposalMilestone(
+                          jobProposalId: proposal.id!,
+                          positionIndex: milestone.positionIndex,
+                          title: milestone.title,
+                          description: milestone.description,
+                          suggestedPrice: milestone.suggestedPrice,
                         ),
                     ],
                     transaction: transaction,
@@ -539,7 +572,10 @@ Rules:
     buffer.writeln();
 
     buffer.writeln('## Location and eligibility');
-    writeField('Client location summary', _formatClientLocation(job.clientLocation));
+    writeField(
+      'Client location summary',
+      _formatClientLocation(job.clientLocation),
+    );
     writeField(
       'Client location country',
       _formatEnumValue(job.clientLocation?.country),
@@ -615,10 +651,12 @@ Rules:
     }
 
     final asString = value is int ? value.toString() : value.toStringAsFixed(2);
-    return asString.replaceFirst(RegExp(r'\.00$'), '').replaceFirst(
-      RegExp(r'(\.\d*[1-9])0+$'),
-      r'$1',
-    );
+    return asString
+        .replaceFirst(RegExp(r'\.00$'), '')
+        .replaceFirst(
+          RegExp(r'(\.\d*[1-9])0+$'),
+          r'$1',
+        );
   }
 
   String _formatCurrency(double? value) {
@@ -684,7 +722,10 @@ Rules:
     return normalized
         .split(RegExp(r'\s+'))
         .where((part) => part.isNotEmpty)
-        .map((part) => '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}')
+        .map(
+          (part) =>
+              '${part[0].toUpperCase()}${part.substring(1).toLowerCase()}',
+        )
         .join(' ');
   }
 
@@ -747,10 +788,12 @@ Rules:
 
   PascoaResult<_ParsedProposalPayload> _parseProposalPayload(
     Map<String, dynamic> payload,
-    List<Question> questions,
+    JobInfo job,
   ) {
+    final questions = job.questions ?? const <Question>[];
     final coverLetter = payload['aiGeneratedCoverLetterText'];
     final answersRaw = payload['answers'];
+    final milestonesRaw = payload['milestones'];
     if (coverLetter is! String || coverLetter.trim().isEmpty) {
       return Failure(
         PascoaException(
@@ -769,6 +812,22 @@ Rules:
           error: jsonEncode(payload),
         ),
       );
+    }
+
+    final milestonesResult = _parseMilestonesPayload(
+      milestonesRaw,
+      job,
+    );
+    late final List<_ParsedProposalMilestone> parsedMilestones;
+    final milestonesFailure = milestonesResult.fold<PascoaException?>(
+      (value) {
+        parsedMilestones = value;
+        return null;
+      },
+      (error) => error,
+    );
+    if (milestonesFailure != null) {
+      return Failure(milestonesFailure);
     }
 
     final validQuestionIds = {
@@ -845,8 +904,153 @@ Rules:
       _ParsedProposalPayload(
         coverLetter: coverLetter.trim(),
         answers: parsedAnswers,
+        milestones: parsedMilestones,
       ),
     );
+  }
+
+  PascoaResult<List<_ParsedProposalMilestone>> _parseMilestonesPayload(
+    dynamic milestonesRaw,
+    JobInfo job,
+  ) {
+    if (job.jobType == JobType.hourly) {
+      if (milestonesRaw != null) {
+        return Failure(
+          PascoaException(
+            message: 'Invalid AI proposal payload',
+            description:
+                'Codex must return milestones as null for hourly jobs.',
+            error: jsonEncode({'milestones': milestonesRaw}),
+          ),
+        );
+      }
+
+      return const Success(<_ParsedProposalMilestone>[]);
+    }
+
+    if (milestonesRaw is! List || milestonesRaw.isEmpty) {
+      return Failure(
+        PascoaException(
+          message: 'Incomplete AI proposal payload',
+          description:
+              'Codex must return at least one milestone for fixed-price jobs.',
+          error: jsonEncode({'milestones': milestonesRaw}),
+        ),
+      );
+    }
+
+    final parsedMilestones = <_ParsedProposalMilestone>[];
+    for (var index = 0; index < milestonesRaw.length; index++) {
+      final item = milestonesRaw[index];
+      if (item is! Map) {
+        return Failure(
+          PascoaException(
+            message: 'Invalid AI proposal payload',
+            description: 'Each milestone must be returned as an object.',
+            error: jsonEncode({'milestones': milestonesRaw}),
+          ),
+        );
+      }
+
+      final milestoneJson = Map<String, dynamic>.from(item);
+      final title = milestoneJson['title'];
+      final description = milestoneJson['description'];
+      final suggestedPrice = milestoneJson['suggestedPrice'];
+
+      if (title is! String || title.trim().isEmpty) {
+        return Failure(
+          PascoaException(
+            message: 'Invalid AI proposal payload',
+            description: 'Each milestone must include a non-empty title.',
+            error: jsonEncode({'milestones': milestonesRaw}),
+          ),
+        );
+      }
+
+      if (description is! String || description.trim().isEmpty) {
+        return Failure(
+          PascoaException(
+            message: 'Invalid AI proposal payload',
+            description: 'Each milestone must include a non-empty description.',
+            error: jsonEncode({'milestones': milestonesRaw}),
+          ),
+        );
+      }
+
+      if (suggestedPrice is! num || suggestedPrice <= 0) {
+        return Failure(
+          PascoaException(
+            message: 'Invalid AI proposal payload',
+            description:
+                'Each milestone must include a positive numeric suggestedPrice.',
+            error: jsonEncode({'milestones': milestonesRaw}),
+          ),
+        );
+      }
+
+      parsedMilestones.add(
+        _ParsedProposalMilestone(
+          positionIndex: index,
+          title: title.trim(),
+          description: description.trim(),
+          suggestedPrice: _roundCurrency(suggestedPrice.toDouble()),
+        ),
+      );
+    }
+
+    final expectedTotal = _resolveFixedPriceTotal(job);
+    if (expectedTotal != null) {
+      final actualTotal = _roundCurrency(
+        parsedMilestones.fold<double>(
+          0,
+          (sum, milestone) => sum + milestone.suggestedPrice,
+        ),
+      );
+      if ((actualTotal - expectedTotal).abs() > 0.01) {
+        return Failure(
+          PascoaException(
+            message: 'Invalid AI proposal payload',
+            description:
+                'Milestone prices must add up to the fixed-price total from the job context.',
+            error: jsonEncode({
+              'expectedTotal': expectedTotal,
+              'actualTotal': actualTotal,
+              'milestones': milestonesRaw,
+            }),
+          ),
+        );
+      }
+    }
+
+    return Success(parsedMilestones);
+  }
+
+  double? _resolveFixedPriceTotal(JobInfo job) {
+    final fixedPriceAmount = job.fixedPriceAmount;
+    if (fixedPriceAmount != null && fixedPriceAmount > 0) {
+      return _roundCurrency(fixedPriceAmount);
+    }
+
+    final budget = job.budget;
+    if (budget == null || budget.trim().isEmpty) {
+      return null;
+    }
+
+    final normalizedBudget = budget.replaceAll(',', '');
+    final matches = RegExp(r'\d+(?:\.\d+)?').allMatches(normalizedBudget);
+    final values = [
+      for (final match in matches)
+        double.tryParse(match.group(0) ?? '') ?? double.nan,
+    ].where((value) => !value.isNaN && value > 0).toList(growable: false);
+    if (values.isEmpty) {
+      return null;
+    }
+
+    return _roundCurrency(values.first);
+  }
+
+  double _roundCurrency(double value) {
+    return double.parse(value.toStringAsFixed(2));
   }
 }
 
@@ -864,10 +1068,12 @@ class _ParsedProposalPayload {
   const _ParsedProposalPayload({
     required this.coverLetter,
     required this.answers,
+    required this.milestones,
   });
 
   final String coverLetter;
   final List<_ParsedProposalAnswer> answers;
+  final List<_ParsedProposalMilestone> milestones;
 }
 
 class _ParsedProposalAnswer {
@@ -878,6 +1084,20 @@ class _ParsedProposalAnswer {
 
   final int relatedQuestionId;
   final String answerText;
+}
+
+class _ParsedProposalMilestone {
+  const _ParsedProposalMilestone({
+    required this.positionIndex,
+    required this.title,
+    required this.description,
+    required this.suggestedPrice,
+  });
+
+  final int positionIndex;
+  final String title;
+  final String description;
+  final double suggestedPrice;
 }
 
 const Map<String, Object?> _scoreSchema = {
@@ -914,7 +1134,25 @@ const Map<String, Object?> _proposalSchema = {
         'additionalProperties': false,
       },
     },
+    'milestones': {
+      'anyOf': [
+        {'type': 'null'},
+        {
+          'type': 'array',
+          'items': {
+            'type': 'object',
+            'properties': {
+              'title': {'type': 'string'},
+              'description': {'type': 'string'},
+              'suggestedPrice': {'type': 'number', 'exclusiveMinimum': 0},
+            },
+            'required': ['title', 'description', 'suggestedPrice'],
+            'additionalProperties': false,
+          },
+        },
+      ],
+    },
   },
-  'required': ['aiGeneratedCoverLetterText', 'answers'],
+  'required': ['aiGeneratedCoverLetterText', 'answers', 'milestones'],
   'additionalProperties': false,
 };

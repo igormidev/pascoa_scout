@@ -211,6 +211,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jobAnalysisCoverLetterCopied => 'Cover letter copied.';
 
   @override
+  String get jobAnalysisMilestonesSectionTitle => 'AI milestone breakdown';
+
+  @override
+  String jobAnalysisMilestonesTotalLabel(Object amount) {
+    return 'Total suggested bid: $amount';
+  }
+
+  @override
+  String jobAnalysisMilestoneTitle(int index) {
+    return 'Milestone $index';
+  }
+
+  @override
   String get jobAnalysisAiAnswersSectionTitle => 'AI-generated answers';
 
   @override

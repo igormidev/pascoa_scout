@@ -14,7 +14,8 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../entities/job_analysis_state.dart' as _i2;
 import '../entities/job_proposal_answer_to_question.dart' as _i3;
-import 'package:pascoa_scout_server/src/generated/protocol.dart' as _i4;
+import '../entities/job_proposal_milestone.dart' as _i4;
+import 'package:pascoa_scout_server/src/generated/protocol.dart' as _i5;
 
 abstract class JobProposal
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -24,6 +25,7 @@ abstract class JobProposal
     this.jobAnalysisState,
     required this.aiGeneratedCoverLetterText,
     this.answers,
+    this.milestones,
   });
 
   factory JobProposal({
@@ -32,6 +34,7 @@ abstract class JobProposal
     _i2.JobAnalysisState? jobAnalysisState,
     required String aiGeneratedCoverLetterText,
     List<_i3.JobProposalAnswerToQuestion>? answers,
+    List<_i4.JobProposalMilestone>? milestones,
   }) = _JobProposalImpl;
 
   factory JobProposal.fromJson(Map<String, dynamic> jsonSerialization) {
@@ -40,15 +43,20 @@ abstract class JobProposal
       jobAnalysisStateId: jsonSerialization['jobAnalysisStateId'] as int,
       jobAnalysisState: jsonSerialization['jobAnalysisState'] == null
           ? null
-          : _i4.Protocol().deserialize<_i2.JobAnalysisState>(
+          : _i5.Protocol().deserialize<_i2.JobAnalysisState>(
               jsonSerialization['jobAnalysisState'],
             ),
       aiGeneratedCoverLetterText:
           jsonSerialization['aiGeneratedCoverLetterText'] as String,
       answers: jsonSerialization['answers'] == null
           ? null
-          : _i4.Protocol().deserialize<List<_i3.JobProposalAnswerToQuestion>>(
+          : _i5.Protocol().deserialize<List<_i3.JobProposalAnswerToQuestion>>(
               jsonSerialization['answers'],
+            ),
+      milestones: jsonSerialization['milestones'] == null
+          ? null
+          : _i5.Protocol().deserialize<List<_i4.JobProposalMilestone>>(
+              jsonSerialization['milestones'],
             ),
     );
   }
@@ -68,6 +76,8 @@ abstract class JobProposal
 
   List<_i3.JobProposalAnswerToQuestion>? answers;
 
+  List<_i4.JobProposalMilestone>? milestones;
+
   @override
   _i1.Table<int?> get table => t;
 
@@ -80,6 +90,7 @@ abstract class JobProposal
     _i2.JobAnalysisState? jobAnalysisState,
     String? aiGeneratedCoverLetterText,
     List<_i3.JobProposalAnswerToQuestion>? answers,
+    List<_i4.JobProposalMilestone>? milestones,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -92,6 +103,8 @@ abstract class JobProposal
       'aiGeneratedCoverLetterText': aiGeneratedCoverLetterText,
       if (answers != null)
         'answers': answers?.toJson(valueToJson: (v) => v.toJson()),
+      if (milestones != null)
+        'milestones': milestones?.toJson(valueToJson: (v) => v.toJson()),
     };
   }
 
@@ -106,16 +119,22 @@ abstract class JobProposal
       'aiGeneratedCoverLetterText': aiGeneratedCoverLetterText,
       if (answers != null)
         'answers': answers?.toJson(valueToJson: (v) => v.toJsonForProtocol()),
+      if (milestones != null)
+        'milestones': milestones?.toJson(
+          valueToJson: (v) => v.toJsonForProtocol(),
+        ),
     };
   }
 
   static JobProposalInclude include({
     _i2.JobAnalysisStateInclude? jobAnalysisState,
     _i3.JobProposalAnswerToQuestionIncludeList? answers,
+    _i4.JobProposalMilestoneIncludeList? milestones,
   }) {
     return JobProposalInclude._(
       jobAnalysisState: jobAnalysisState,
       answers: answers,
+      milestones: milestones,
     );
   }
 
@@ -154,12 +173,14 @@ class _JobProposalImpl extends JobProposal {
     _i2.JobAnalysisState? jobAnalysisState,
     required String aiGeneratedCoverLetterText,
     List<_i3.JobProposalAnswerToQuestion>? answers,
+    List<_i4.JobProposalMilestone>? milestones,
   }) : super._(
          id: id,
          jobAnalysisStateId: jobAnalysisStateId,
          jobAnalysisState: jobAnalysisState,
          aiGeneratedCoverLetterText: aiGeneratedCoverLetterText,
          answers: answers,
+         milestones: milestones,
        );
 
   /// Returns a shallow copy of this [JobProposal]
@@ -172,6 +193,7 @@ class _JobProposalImpl extends JobProposal {
     Object? jobAnalysisState = _Undefined,
     String? aiGeneratedCoverLetterText,
     Object? answers = _Undefined,
+    Object? milestones = _Undefined,
   }) {
     return JobProposal(
       id: id is int? ? id : this.id,
@@ -184,6 +206,9 @@ class _JobProposalImpl extends JobProposal {
       answers: answers is List<_i3.JobProposalAnswerToQuestion>?
           ? answers
           : this.answers?.map((e0) => e0.copyWith()).toList(),
+      milestones: milestones is List<_i4.JobProposalMilestone>?
+          ? milestones
+          : this.milestones?.map((e0) => e0.copyWith()).toList(),
     );
   }
 }
@@ -228,6 +253,10 @@ class JobProposalTable extends _i1.Table<int?> {
 
   _i1.ManyRelation<_i3.JobProposalAnswerToQuestionTable>? _answers;
 
+  _i4.JobProposalMilestoneTable? ___milestones;
+
+  _i1.ManyRelation<_i4.JobProposalMilestoneTable>? _milestones;
+
   _i2.JobAnalysisStateTable get jobAnalysisState {
     if (_jobAnalysisState != null) return _jobAnalysisState!;
     _jobAnalysisState = _i1.createRelationTable(
@@ -256,6 +285,19 @@ class JobProposalTable extends _i1.Table<int?> {
     return ___answers!;
   }
 
+  _i4.JobProposalMilestoneTable get __milestones {
+    if (___milestones != null) return ___milestones!;
+    ___milestones = _i1.createRelationTable(
+      relationFieldName: '__milestones',
+      field: JobProposal.t.id,
+      foreignField: _i4.JobProposalMilestone.t.jobProposalId,
+      tableRelation: tableRelation,
+      createTable: (foreignTableRelation) =>
+          _i4.JobProposalMilestoneTable(tableRelation: foreignTableRelation),
+    );
+    return ___milestones!;
+  }
+
   _i1.ManyRelation<_i3.JobProposalAnswerToQuestionTable> get answers {
     if (_answers != null) return _answers!;
     var relationTable = _i1.createRelationTable(
@@ -277,6 +319,25 @@ class JobProposalTable extends _i1.Table<int?> {
     return _answers!;
   }
 
+  _i1.ManyRelation<_i4.JobProposalMilestoneTable> get milestones {
+    if (_milestones != null) return _milestones!;
+    var relationTable = _i1.createRelationTable(
+      relationFieldName: 'milestones',
+      field: JobProposal.t.id,
+      foreignField: _i4.JobProposalMilestone.t.jobProposalId,
+      tableRelation: tableRelation,
+      createTable: (foreignTableRelation) =>
+          _i4.JobProposalMilestoneTable(tableRelation: foreignTableRelation),
+    );
+    _milestones = _i1.ManyRelation<_i4.JobProposalMilestoneTable>(
+      tableWithRelations: relationTable,
+      table: _i4.JobProposalMilestoneTable(
+        tableRelation: relationTable.tableRelation!.lastRelation,
+      ),
+    );
+    return _milestones!;
+  }
+
   @override
   List<_i1.Column> get columns => [
     id,
@@ -292,6 +353,9 @@ class JobProposalTable extends _i1.Table<int?> {
     if (relationField == 'answers') {
       return __answers;
     }
+    if (relationField == 'milestones') {
+      return __milestones;
+    }
     return null;
   }
 }
@@ -300,19 +364,24 @@ class JobProposalInclude extends _i1.IncludeObject {
   JobProposalInclude._({
     _i2.JobAnalysisStateInclude? jobAnalysisState,
     _i3.JobProposalAnswerToQuestionIncludeList? answers,
+    _i4.JobProposalMilestoneIncludeList? milestones,
   }) {
     _jobAnalysisState = jobAnalysisState;
     _answers = answers;
+    _milestones = milestones;
   }
 
   _i2.JobAnalysisStateInclude? _jobAnalysisState;
 
   _i3.JobProposalAnswerToQuestionIncludeList? _answers;
 
+  _i4.JobProposalMilestoneIncludeList? _milestones;
+
   @override
   Map<String, _i1.Include?> get includes => {
     'jobAnalysisState': _jobAnalysisState,
     'answers': _answers,
+    'milestones': _milestones,
   };
 
   @override
@@ -667,6 +736,31 @@ class JobProposalAttachRepository {
       transaction: transaction,
     );
   }
+
+  /// Creates a relation between this [JobProposal] and the given [JobProposalMilestone]s
+  /// by setting each [JobProposalMilestone]'s foreign key `jobProposalId` to refer to this [JobProposal].
+  Future<void> milestones(
+    _i1.DatabaseSession session,
+    JobProposal jobProposal,
+    List<_i4.JobProposalMilestone> jobProposalMilestone, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (jobProposalMilestone.any((e) => e.id == null)) {
+      throw ArgumentError.notNull('jobProposalMilestone.id');
+    }
+    if (jobProposal.id == null) {
+      throw ArgumentError.notNull('jobProposal.id');
+    }
+
+    var $jobProposalMilestone = jobProposalMilestone
+        .map((e) => e.copyWith(jobProposalId: jobProposal.id))
+        .toList();
+    await session.db.update<_i4.JobProposalMilestone>(
+      $jobProposalMilestone,
+      columns: [_i4.JobProposalMilestone.t.jobProposalId],
+      transaction: transaction,
+    );
+  }
 }
 
 class JobProposalAttachRowRepository {
@@ -721,6 +815,31 @@ class JobProposalAttachRowRepository {
       transaction: transaction,
     );
   }
+
+  /// Creates a relation between this [JobProposal] and the given [JobProposalMilestone]
+  /// by setting the [JobProposalMilestone]'s foreign key `jobProposalId` to refer to this [JobProposal].
+  Future<void> milestones(
+    _i1.DatabaseSession session,
+    JobProposal jobProposal,
+    _i4.JobProposalMilestone jobProposalMilestone, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (jobProposalMilestone.id == null) {
+      throw ArgumentError.notNull('jobProposalMilestone.id');
+    }
+    if (jobProposal.id == null) {
+      throw ArgumentError.notNull('jobProposal.id');
+    }
+
+    var $jobProposalMilestone = jobProposalMilestone.copyWith(
+      jobProposalId: jobProposal.id,
+    );
+    await session.db.updateRow<_i4.JobProposalMilestone>(
+      $jobProposalMilestone,
+      columns: [_i4.JobProposalMilestone.t.jobProposalId],
+      transaction: transaction,
+    );
+  }
 }
 
 class JobProposalDetachRepository {
@@ -749,6 +868,30 @@ class JobProposalDetachRepository {
       transaction: transaction,
     );
   }
+
+  /// Detaches the relation between this [JobProposal] and the given [JobProposalMilestone]
+  /// by setting the [JobProposalMilestone]'s foreign key `jobProposalId` to `null`.
+  ///
+  /// This removes the association between the two models without deleting
+  /// the related record.
+  Future<void> milestones(
+    _i1.DatabaseSession session,
+    List<_i4.JobProposalMilestone> jobProposalMilestone, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (jobProposalMilestone.any((e) => e.id == null)) {
+      throw ArgumentError.notNull('jobProposalMilestone.id');
+    }
+
+    var $jobProposalMilestone = jobProposalMilestone
+        .map((e) => e.copyWith(jobProposalId: null))
+        .toList();
+    await session.db.update<_i4.JobProposalMilestone>(
+      $jobProposalMilestone,
+      columns: [_i4.JobProposalMilestone.t.jobProposalId],
+      transaction: transaction,
+    );
+  }
 }
 
 class JobProposalDetachRowRepository {
@@ -774,6 +917,30 @@ class JobProposalDetachRowRepository {
     await session.db.updateRow<_i3.JobProposalAnswerToQuestion>(
       $jobProposalAnswerToQuestion,
       columns: [_i3.JobProposalAnswerToQuestion.t.jobProposalId],
+      transaction: transaction,
+    );
+  }
+
+  /// Detaches the relation between this [JobProposal] and the given [JobProposalMilestone]
+  /// by setting the [JobProposalMilestone]'s foreign key `jobProposalId` to `null`.
+  ///
+  /// This removes the association between the two models without deleting
+  /// the related record.
+  Future<void> milestones(
+    _i1.DatabaseSession session,
+    _i4.JobProposalMilestone jobProposalMilestone, {
+    _i1.Transaction? transaction,
+  }) async {
+    if (jobProposalMilestone.id == null) {
+      throw ArgumentError.notNull('jobProposalMilestone.id');
+    }
+
+    var $jobProposalMilestone = jobProposalMilestone.copyWith(
+      jobProposalId: null,
+    );
+    await session.db.updateRow<_i4.JobProposalMilestone>(
+      $jobProposalMilestone,
+      columns: [_i4.JobProposalMilestone.t.jobProposalId],
       transaction: transaction,
     );
   }

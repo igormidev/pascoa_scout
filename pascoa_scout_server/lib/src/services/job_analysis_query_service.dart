@@ -488,10 +488,16 @@ class JobAnalysisQueryService {
           right.relatedQuestion?.positionIndex ?? 0,
         ),
       );
+    final sortedMilestones = [
+      ...?row.proposal?.milestones,
+    ]..sort((left, right) => left.positionIndex.compareTo(right.positionIndex));
 
     return row.copyWith(
       jobInfo: row.jobInfo?.copyWith(questions: sortedQuestions),
-      proposal: row.proposal?.copyWith(answers: sortedAnswers),
+      proposal: row.proposal?.copyWith(
+        answers: sortedAnswers,
+        milestones: sortedMilestones.isEmpty ? null : sortedMilestones,
+      ),
     );
   }
 }

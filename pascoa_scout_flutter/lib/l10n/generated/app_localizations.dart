@@ -428,6 +428,24 @@ abstract class AppLocalizations {
   /// **'Cover letter copied.'**
   String get jobAnalysisCoverLetterCopied;
 
+  /// Section title for the AI-generated fixed-price milestone suggestions.
+  ///
+  /// In en, this message translates to:
+  /// **'AI milestone breakdown'**
+  String get jobAnalysisMilestonesSectionTitle;
+
+  /// Label showing the total bid implied by the AI-generated milestone prices.
+  ///
+  /// In en, this message translates to:
+  /// **'Total suggested bid: {amount}'**
+  String jobAnalysisMilestonesTotalLabel(Object amount);
+
+  /// Title label for an individual AI-generated milestone suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone {index}'**
+  String jobAnalysisMilestoneTitle(int index);
+
   /// Section title for the AI-generated answers to the job questions.
   ///
   /// In en, this message translates to:
