@@ -12,7 +12,9 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../entities/upwork_scrap/job_filter.dart' as _i2;
-import 'package:pascoa_scout_server/src/generated/protocol.dart' as _i3;
+import '../entities/job_automation_ai_model.dart' as _i3;
+import '../entities/job_automation_ai_thinking_effort.dart' as _i4;
+import 'package:pascoa_scout_server/src/generated/protocol.dart' as _i5;
 
 abstract class JobAutomationSettings
     implements _i1.TableRow<int?>, _i1.ProtocolSerialization {
@@ -26,6 +28,8 @@ abstract class JobAutomationSettings
     required this.upworkSyncResultsPerPage,
     required this.proposalMinimumScorePercentage,
     required this.loopDelayMinutes,
+    this.aiModel,
+    this.aiThinkingEffort,
     required this.updatedAt,
   });
 
@@ -39,6 +43,8 @@ abstract class JobAutomationSettings
     required int upworkSyncResultsPerPage,
     required int proposalMinimumScorePercentage,
     required int loopDelayMinutes,
+    _i3.JobAutomationAiModel? aiModel,
+    _i4.JobAutomationAiThinkingEffort? aiThinkingEffort,
     required DateTime updatedAt,
   }) = _JobAutomationSettingsImpl;
 
@@ -48,7 +54,7 @@ abstract class JobAutomationSettings
     return JobAutomationSettings(
       id: jsonSerialization['id'] as int?,
       singletonKey: jsonSerialization['singletonKey'] as String,
-      jobFilter: _i3.Protocol().deserialize<_i2.JobFilter>(
+      jobFilter: _i5.Protocol().deserialize<_i2.JobFilter>(
         jsonSerialization['jobFilter'],
       ),
       isJobFetchingPaused: _i1.BoolJsonExtension.fromJson(
@@ -61,6 +67,16 @@ abstract class JobAutomationSettings
       proposalMinimumScorePercentage:
           jsonSerialization['proposalMinimumScorePercentage'] as int,
       loopDelayMinutes: jsonSerialization['loopDelayMinutes'] as int,
+      aiModel: jsonSerialization['aiModel'] == null
+          ? null
+          : _i3.JobAutomationAiModel.fromJson(
+              (jsonSerialization['aiModel'] as String),
+            ),
+      aiThinkingEffort: jsonSerialization['aiThinkingEffort'] == null
+          ? null
+          : _i4.JobAutomationAiThinkingEffort.fromJson(
+              (jsonSerialization['aiThinkingEffort'] as String),
+            ),
       updatedAt: _i1.DateTimeJsonExtension.fromJson(
         jsonSerialization['updatedAt'],
       ),
@@ -90,6 +106,10 @@ abstract class JobAutomationSettings
 
   int loopDelayMinutes;
 
+  _i3.JobAutomationAiModel? aiModel;
+
+  _i4.JobAutomationAiThinkingEffort? aiThinkingEffort;
+
   DateTime updatedAt;
 
   @override
@@ -108,6 +128,8 @@ abstract class JobAutomationSettings
     int? upworkSyncResultsPerPage,
     int? proposalMinimumScorePercentage,
     int? loopDelayMinutes,
+    _i3.JobAutomationAiModel? aiModel,
+    _i4.JobAutomationAiThinkingEffort? aiThinkingEffort,
     DateTime? updatedAt,
   });
   @override
@@ -123,6 +145,9 @@ abstract class JobAutomationSettings
       'upworkSyncResultsPerPage': upworkSyncResultsPerPage,
       'proposalMinimumScorePercentage': proposalMinimumScorePercentage,
       'loopDelayMinutes': loopDelayMinutes,
+      if (aiModel != null) 'aiModel': aiModel?.toJson(),
+      if (aiThinkingEffort != null)
+        'aiThinkingEffort': aiThinkingEffort?.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
   }
@@ -140,6 +165,9 @@ abstract class JobAutomationSettings
       'upworkSyncResultsPerPage': upworkSyncResultsPerPage,
       'proposalMinimumScorePercentage': proposalMinimumScorePercentage,
       'loopDelayMinutes': loopDelayMinutes,
+      if (aiModel != null) 'aiModel': aiModel?.toJson(),
+      if (aiThinkingEffort != null)
+        'aiThinkingEffort': aiThinkingEffort?.toJson(),
       'updatedAt': updatedAt.toJson(),
     };
   }
@@ -187,6 +215,8 @@ class _JobAutomationSettingsImpl extends JobAutomationSettings {
     required int upworkSyncResultsPerPage,
     required int proposalMinimumScorePercentage,
     required int loopDelayMinutes,
+    _i3.JobAutomationAiModel? aiModel,
+    _i4.JobAutomationAiThinkingEffort? aiThinkingEffort,
     required DateTime updatedAt,
   }) : super._(
          id: id,
@@ -198,6 +228,8 @@ class _JobAutomationSettingsImpl extends JobAutomationSettings {
          upworkSyncResultsPerPage: upworkSyncResultsPerPage,
          proposalMinimumScorePercentage: proposalMinimumScorePercentage,
          loopDelayMinutes: loopDelayMinutes,
+         aiModel: aiModel,
+         aiThinkingEffort: aiThinkingEffort,
          updatedAt: updatedAt,
        );
 
@@ -215,6 +247,8 @@ class _JobAutomationSettingsImpl extends JobAutomationSettings {
     int? upworkSyncResultsPerPage,
     int? proposalMinimumScorePercentage,
     int? loopDelayMinutes,
+    Object? aiModel = _Undefined,
+    Object? aiThinkingEffort = _Undefined,
     DateTime? updatedAt,
   }) {
     return JobAutomationSettings(
@@ -229,6 +263,10 @@ class _JobAutomationSettingsImpl extends JobAutomationSettings {
       proposalMinimumScorePercentage:
           proposalMinimumScorePercentage ?? this.proposalMinimumScorePercentage,
       loopDelayMinutes: loopDelayMinutes ?? this.loopDelayMinutes,
+      aiModel: aiModel is _i3.JobAutomationAiModel? ? aiModel : this.aiModel,
+      aiThinkingEffort: aiThinkingEffort is _i4.JobAutomationAiThinkingEffort?
+          ? aiThinkingEffort
+          : this.aiThinkingEffort,
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
@@ -283,6 +321,22 @@ class JobAutomationSettingsUpdateTable
     value,
   );
 
+  _i1.ColumnValue<_i3.JobAutomationAiModel, _i3.JobAutomationAiModel> aiModel(
+    _i3.JobAutomationAiModel? value,
+  ) => _i1.ColumnValue(
+    table.aiModel,
+    value,
+  );
+
+  _i1.ColumnValue<
+    _i4.JobAutomationAiThinkingEffort,
+    _i4.JobAutomationAiThinkingEffort
+  >
+  aiThinkingEffort(_i4.JobAutomationAiThinkingEffort? value) => _i1.ColumnValue(
+    table.aiThinkingEffort,
+    value,
+  );
+
   _i1.ColumnValue<DateTime, DateTime> updatedAt(DateTime value) =>
       _i1.ColumnValue(
         table.updatedAt,
@@ -326,6 +380,16 @@ class JobAutomationSettingsTable extends _i1.Table<int?> {
       'loopDelayMinutes',
       this,
     );
+    aiModel = _i1.ColumnEnum(
+      'aiModel',
+      this,
+      _i1.EnumSerialization.byName,
+    );
+    aiThinkingEffort = _i1.ColumnEnum(
+      'aiThinkingEffort',
+      this,
+      _i1.EnumSerialization.byName,
+    );
     updatedAt = _i1.ColumnDateTime(
       'updatedAt',
       this,
@@ -350,6 +414,10 @@ class JobAutomationSettingsTable extends _i1.Table<int?> {
 
   late final _i1.ColumnInt loopDelayMinutes;
 
+  late final _i1.ColumnEnum<_i3.JobAutomationAiModel> aiModel;
+
+  late final _i1.ColumnEnum<_i4.JobAutomationAiThinkingEffort> aiThinkingEffort;
+
   late final _i1.ColumnDateTime updatedAt;
 
   @override
@@ -363,6 +431,8 @@ class JobAutomationSettingsTable extends _i1.Table<int?> {
     upworkSyncResultsPerPage,
     proposalMinimumScorePercentage,
     loopDelayMinutes,
+    aiModel,
+    aiThinkingEffort,
     updatedAt,
   ];
 }

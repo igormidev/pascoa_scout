@@ -2,3 +2,4 @@ class: JobAutomationOverview
 fields:
   settings: JobAutomationSettings
   runtime: JobAutomationRuntime
+  isLoopActive: bool

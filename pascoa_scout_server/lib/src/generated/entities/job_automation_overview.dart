@@ -20,11 +20,13 @@ abstract class JobAutomationOverview
   JobAutomationOverview._({
     required this.settings,
     required this.runtime,
+    required this.isLoopActive,
   });
 
   factory JobAutomationOverview({
     required _i2.JobAutomationSettings settings,
     required _i3.JobAutomationRuntime runtime,
+    required bool isLoopActive,
   }) = _JobAutomationOverviewImpl;
 
   factory JobAutomationOverview.fromJson(
@@ -37,6 +39,9 @@ abstract class JobAutomationOverview
       runtime: _i4.Protocol().deserialize<_i3.JobAutomationRuntime>(
         jsonSerialization['runtime'],
       ),
+      isLoopActive: _i1.BoolJsonExtension.fromJson(
+        jsonSerialization['isLoopActive'],
+      ),
     );
   }
 
@@ -44,12 +49,15 @@ abstract class JobAutomationOverview
 
   _i3.JobAutomationRuntime runtime;
 
+  bool isLoopActive;
+
   /// Returns a shallow copy of this [JobAutomationOverview]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
   JobAutomationOverview copyWith({
     _i2.JobAutomationSettings? settings,
     _i3.JobAutomationRuntime? runtime,
+    bool? isLoopActive,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -57,6 +65,7 @@ abstract class JobAutomationOverview
       '__className__': 'JobAutomationOverview',
       'settings': settings.toJson(),
       'runtime': runtime.toJson(),
+      'isLoopActive': isLoopActive,
     };
   }
 
@@ -66,6 +75,7 @@ abstract class JobAutomationOverview
       '__className__': 'JobAutomationOverview',
       'settings': settings.toJsonForProtocol(),
       'runtime': runtime.toJsonForProtocol(),
+      'isLoopActive': isLoopActive,
     };
   }
 
@@ -79,9 +89,11 @@ class _JobAutomationOverviewImpl extends JobAutomationOverview {
   _JobAutomationOverviewImpl({
     required _i2.JobAutomationSettings settings,
     required _i3.JobAutomationRuntime runtime,
+    required bool isLoopActive,
   }) : super._(
          settings: settings,
          runtime: runtime,
+         isLoopActive: isLoopActive,
        );
 
   /// Returns a shallow copy of this [JobAutomationOverview]
@@ -91,10 +103,12 @@ class _JobAutomationOverviewImpl extends JobAutomationOverview {
   JobAutomationOverview copyWith({
     _i2.JobAutomationSettings? settings,
     _i3.JobAutomationRuntime? runtime,
+    bool? isLoopActive,
   }) {
     return JobAutomationOverview(
       settings: settings ?? this.settings.copyWith(),
       runtime: runtime ?? this.runtime.copyWith(),
+      isLoopActive: isLoopActive ?? this.isLoopActive,
     );
   }
 }

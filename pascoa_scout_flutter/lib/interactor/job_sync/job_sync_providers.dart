@@ -57,16 +57,16 @@ class JobSyncController extends Notifier<JobSyncState> {
                 proposalMinimumScorePercentage:
                     overview.settings.proposalMinimumScorePercentage,
                 loopDelayMinutes: overview.settings.loopDelayMinutes,
+                aiModel:
+                    overview.settings.aiModel ?? JobAutomationAiModel.gpt54,
+                aiThinkingEffort:
+                    overview.settings.aiThinkingEffort ??
+                    JobAutomationAiThinkingEffort.xhigh,
               ),
             );
       }
 
-      if (!overview.settings.isJobFetchingPaused) {
-        await _setPaused(true);
-      } else {
-        _applyOverview(overview);
-      }
-
+      _applyOverview(overview);
       await _subscribeToOverview();
     } catch (error, stackTrace) {
       state = state.copyWith(
@@ -115,6 +115,8 @@ class JobSyncController extends Notifier<JobSyncState> {
       upworkSyncResultsPerPage: state.upworkSyncResultsPerPage,
       proposalMinimumScorePercentage: state.proposalMinimumScorePercentage,
       loopDelayMinutes: state.intervalMinutes,
+      aiModel: state.aiModel,
+      aiThinkingEffort: state.aiThinkingEffort,
       successMessage: 'Server-side automation settings saved.',
     );
   }
@@ -133,6 +135,8 @@ class JobSyncController extends Notifier<JobSyncState> {
       upworkSyncResultsPerPage: state.upworkSyncResultsPerPage,
       proposalMinimumScorePercentage: state.proposalMinimumScorePercentage,
       loopDelayMinutes: normalizedValue,
+      aiModel: state.aiModel,
+      aiThinkingEffort: state.aiThinkingEffort,
       successMessage: 'Loop delay updated.',
     );
   }
@@ -151,6 +155,8 @@ class JobSyncController extends Notifier<JobSyncState> {
       upworkSyncResultsPerPage: state.upworkSyncResultsPerPage,
       proposalMinimumScorePercentage: state.proposalMinimumScorePercentage,
       loopDelayMinutes: state.intervalMinutes,
+      aiModel: state.aiModel,
+      aiThinkingEffort: state.aiThinkingEffort,
       successMessage: 'Score batch size updated.',
     );
   }
@@ -169,6 +175,8 @@ class JobSyncController extends Notifier<JobSyncState> {
       upworkSyncResultsPerPage: state.upworkSyncResultsPerPage,
       proposalMinimumScorePercentage: state.proposalMinimumScorePercentage,
       loopDelayMinutes: state.intervalMinutes,
+      aiModel: state.aiModel,
+      aiThinkingEffort: state.aiThinkingEffort,
       successMessage: 'Proposal batch size updated.',
     );
   }
@@ -187,6 +195,8 @@ class JobSyncController extends Notifier<JobSyncState> {
       upworkSyncResultsPerPage: normalizedValue,
       proposalMinimumScorePercentage: state.proposalMinimumScorePercentage,
       loopDelayMinutes: state.intervalMinutes,
+      aiModel: state.aiModel,
+      aiThinkingEffort: state.aiThinkingEffort,
       successMessage: 'Upwork sync batch size updated.',
     );
   }
@@ -205,7 +215,47 @@ class JobSyncController extends Notifier<JobSyncState> {
       upworkSyncResultsPerPage: state.upworkSyncResultsPerPage,
       proposalMinimumScorePercentage: normalizedValue,
       loopDelayMinutes: state.intervalMinutes,
+      aiModel: state.aiModel,
+      aiThinkingEffort: state.aiThinkingEffort,
       successMessage: 'Minimum proposal score updated.',
+    );
+  }
+
+  Future<void> setAiModel(JobAutomationAiModel value) async {
+    final jobFilter = _resolveJobFilter();
+    if (jobFilter == null) {
+      return;
+    }
+
+    await _updateSettings(
+      jobFilter: jobFilter,
+      scoreBatchSize: state.scoreBatchSize,
+      proposalBatchSize: state.proposalBatchSize,
+      upworkSyncResultsPerPage: state.upworkSyncResultsPerPage,
+      proposalMinimumScorePercentage: state.proposalMinimumScorePercentage,
+      loopDelayMinutes: state.intervalMinutes,
+      aiModel: value,
+      aiThinkingEffort: state.aiThinkingEffort,
+      successMessage: 'AI model updated.',
+    );
+  }
+
+  Future<void> setAiThinkingEffort(JobAutomationAiThinkingEffort value) async {
+    final jobFilter = _resolveJobFilter();
+    if (jobFilter == null) {
+      return;
+    }
+
+    await _updateSettings(
+      jobFilter: jobFilter,
+      scoreBatchSize: state.scoreBatchSize,
+      proposalBatchSize: state.proposalBatchSize,
+      upworkSyncResultsPerPage: state.upworkSyncResultsPerPage,
+      proposalMinimumScorePercentage: state.proposalMinimumScorePercentage,
+      loopDelayMinutes: state.intervalMinutes,
+      aiModel: state.aiModel,
+      aiThinkingEffort: value,
+      successMessage: 'AI thinking effort updated.',
     );
   }
 
@@ -251,6 +301,8 @@ class JobSyncController extends Notifier<JobSyncState> {
     required int upworkSyncResultsPerPage,
     required int proposalMinimumScorePercentage,
     required int loopDelayMinutes,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
     required String successMessage,
   }) async {
     try {
@@ -265,6 +317,8 @@ class JobSyncController extends Notifier<JobSyncState> {
               upworkSyncResultsPerPage: upworkSyncResultsPerPage,
               proposalMinimumScorePercentage: proposalMinimumScorePercentage,
               loopDelayMinutes: loopDelayMinutes,
+              aiModel: aiModel,
+              aiThinkingEffort: aiThinkingEffort,
             ),
           );
       _applyOverview(overview);

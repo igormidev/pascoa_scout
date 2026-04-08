@@ -25,7 +25,7 @@ class JobSyncState {
   JobAutomationSettings? get settings => overview?.settings;
   JobAutomationRuntime? get runtime => overview?.runtime;
 
-  bool get isRunning => !(settings?.isJobFetchingPaused ?? true);
+  bool get isRunning => overview?.isLoopActive ?? false;
   bool get isPulling => currentStep == JobAutomationStep.fetchingJobs;
   bool get isLocked => isBusy || isRunning;
 
@@ -35,6 +35,10 @@ class JobSyncState {
   int get upworkSyncResultsPerPage => settings?.upworkSyncResultsPerPage ?? 20;
   int get proposalMinimumScorePercentage =>
       settings?.proposalMinimumScorePercentage ?? 70;
+  JobAutomationAiModel get aiModel =>
+      settings?.aiModel ?? JobAutomationAiModel.gpt54;
+  JobAutomationAiThinkingEffort get aiThinkingEffort =>
+      settings?.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh;
 
   JobAutomationStep get currentStep =>
       runtime?.currentStep ?? JobAutomationStep.idle;

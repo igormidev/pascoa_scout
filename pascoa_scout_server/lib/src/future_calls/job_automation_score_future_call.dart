@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../core/job_automation_constants.dart';
+import '../core/job_automation_logging.dart';
 import '../generated/protocol.dart';
 import '../services/job_ai_generation_service.dart';
 import '../services/job_automation_loop_scheduler.dart';
@@ -30,6 +31,7 @@ class JobAutomationScoreFutureCall extends FutureCall {
     );
 
     if (settings.isJobFetchingPaused) {
+      logAutomation(session, 'score', 'skipped: job fetching is paused');
       await _automationService.setCurrentStep(
         session,
         JobAutomationStep.pausedWaiting,
@@ -41,9 +43,17 @@ class JobAutomationScoreFutureCall extends FutureCall {
       session,
       JobAutomationStep.generatingScores,
     );
+    logAutomation(
+      session,
+      'score',
+      'starting batch (limit=${settings.scoreBatchSize}, model=${(settings.aiModel ?? JobAutomationAiModel.gpt54).name}, effort=${(settings.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh).name})',
+    );
     final generationResult = await _generationService.generateMissingScores(
       session,
       limit: settings.scoreBatchSize,
+      aiModel: settings.aiModel ?? JobAutomationAiModel.gpt54,
+      aiThinkingEffort:
+          settings.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh,
     );
     await generationResult.fold(
       (_) => _automationService.markScoringSuccess(session),
@@ -58,6 +68,11 @@ class JobAutomationScoreFutureCall extends FutureCall {
       (error) => throw error,
     );
     if (latestSettings.isJobFetchingPaused) {
+      logAutomation(
+        session,
+        'score',
+        'paused after scoring; next step not queued',
+      );
       await _automationService.setCurrentStep(
         session,
         JobAutomationStep.pausedWaiting,
@@ -70,6 +85,11 @@ class JobAutomationScoreFutureCall extends FutureCall {
       callName: jobAutomationProposalFutureCallName,
       identifier: jobAutomationProposalFutureCallIdentifier,
       delay: Duration(minutes: latestSettings.loopDelayMinutes),
+    );
+    logAutomation(
+      session,
+      'loop',
+      'queued proposal step in ${latestSettings.loopDelayMinutes} minute(s)',
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:codex_cli_interface/codex_cli_interface.dart';
 import 'package:result_dart/result_dart.dart';
 
+import '../core/job_automation_constants.dart';
 import '../core/pascoa_result.dart';
 import '../generated/protocol.dart';
 
@@ -13,15 +14,18 @@ class JobCodexService {
     required String workingDirectory,
     required String prompt,
     required Map<String, Object?> schema,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
     bool enableWebSearch = false,
   }) async {
     try {
       final codex = Codex();
       final thread = codex.startThread(
         ThreadOptions(
+          model: _mapModel(aiModel),
           sandboxMode: SandboxMode.readOnly,
           skipGitRepoCheck: true,
-          modelReasoningEffort: ModelReasoningEffort.xhigh,
+          modelReasoningEffort: _mapReasoningEffort(aiThinkingEffort),
           approvalPolicy: ApprovalMode.never,
           webSearchMode: enableWebSearch
               ? WebSearchMode.live
@@ -59,6 +63,24 @@ class JobCodexService {
       );
     }
   }
+}
+
+String _mapModel(JobAutomationAiModel aiModel) {
+  return switch (aiModel) {
+    JobAutomationAiModel.gpt54 => defaultCodexModel,
+    JobAutomationAiModel.gpt54Mini => defaultCodexMiniModel,
+  };
+}
+
+ModelReasoningEffort _mapReasoningEffort(
+  JobAutomationAiThinkingEffort aiThinkingEffort,
+) {
+  return switch (aiThinkingEffort) {
+    JobAutomationAiThinkingEffort.low => ModelReasoningEffort.low,
+    JobAutomationAiThinkingEffort.medium => ModelReasoningEffort.medium,
+    JobAutomationAiThinkingEffort.high => ModelReasoningEffort.high,
+    JobAutomationAiThinkingEffort.xhigh => ModelReasoningEffort.xhigh,
+  };
 }
 
 extension on ThreadOptions {

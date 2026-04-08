@@ -17,6 +17,7 @@ import 'package:pascoa_scout/interactor/job_knowledge/job_knowledge_providers.da
 import 'package:pascoa_scout/interactor/job_sync/job_sync_providers.dart';
 import 'package:pascoa_scout/interactor/job_sync/job_sync_state.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_list_live_refresh_setting_card.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
 part 'widgets/job_scrapper_advanced_sections_view.dart';
@@ -1021,62 +1022,70 @@ class _CompactAutomationSettingsColumn extends ConsumerWidget {
       jobSyncControllerProvider.select((state) => state.isLocked),
     );
 
-    return AnimatedOpacity(
-      duration: 220.ms,
-      opacity: isLocked ? 0.48 : 1.0,
-      child: Column(
-        children: const [
-          _CompactAutomationSettingCard(
-            title: 'Loop step delay',
-            valueSelector: _selectIntervalMinutes,
-            descriptionBuilder: _buildIntervalDescription,
-            canDecrease: _isGreaterThanOne,
-            canIncrease: _alwaysAllowed,
-            onDecrease: _decreaseIntervalMinutes,
-            onIncrease: _increaseIntervalMinutes,
+    return Column(
+      children: [
+        const JobListLiveRefreshSettingCard(),
+        const SizedBox(height: 12),
+        AnimatedOpacity(
+          duration: 220.ms,
+          opacity: isLocked ? 0.48 : 1.0,
+          child: const Column(
+            children: [
+              _CompactAutomationSettingCard(
+                title: 'Loop step delay',
+                valueSelector: _selectIntervalMinutes,
+                descriptionBuilder: _buildIntervalDescription,
+                canDecrease: _isGreaterThanOne,
+                canIncrease: _alwaysAllowed,
+                onDecrease: _decreaseIntervalMinutes,
+                onIncrease: _increaseIntervalMinutes,
+              ),
+              SizedBox(height: 12),
+              _CompactAutomationSettingCard(
+                title: 'Upwork sync batch',
+                valueSelector: _selectSyncResults,
+                descriptionBuilder: _buildSyncResultsDescription,
+                canDecrease: _isGreaterThanOne,
+                canIncrease: _alwaysAllowed,
+                onDecrease: _decreaseSyncResults,
+                onIncrease: _increaseSyncResults,
+              ),
+              SizedBox(height: 12),
+              _CompactAutomationSettingCard(
+                title: 'Score batch size',
+                valueSelector: _selectScoreBatchSize,
+                descriptionBuilder: _buildScoreBatchDescription,
+                canDecrease: _isGreaterThanOne,
+                canIncrease: _alwaysAllowed,
+                onDecrease: _decreaseScoreBatch,
+                onIncrease: _increaseScoreBatch,
+              ),
+              SizedBox(height: 12),
+              _CompactAutomationSettingCard(
+                title: 'Proposal batch size',
+                valueSelector: _selectProposalBatchSize,
+                descriptionBuilder: _buildProposalBatchDescription,
+                canDecrease: _isGreaterThanOne,
+                canIncrease: _alwaysAllowed,
+                onDecrease: _decreaseProposalBatch,
+                onIncrease: _increaseProposalBatch,
+              ),
+              SizedBox(height: 12),
+              _CompactAutomationAiSettingsCard(),
+              SizedBox(height: 12),
+              _CompactAutomationSettingCard(
+                title: 'Minimum score for proposals',
+                valueSelector: _selectMinimumProposalScore,
+                descriptionBuilder: _buildMinimumProposalScoreDescription,
+                canDecrease: _isAboveZero,
+                canIncrease: _isBelowOneHundred,
+                onDecrease: _decreaseMinimumProposalScore,
+                onIncrease: _increaseMinimumProposalScore,
+              ),
+            ],
           ),
-          SizedBox(height: 12),
-          _CompactAutomationSettingCard(
-            title: 'Upwork sync batch',
-            valueSelector: _selectSyncResults,
-            descriptionBuilder: _buildSyncResultsDescription,
-            canDecrease: _isGreaterThanOne,
-            canIncrease: _alwaysAllowed,
-            onDecrease: _decreaseSyncResults,
-            onIncrease: _increaseSyncResults,
-          ),
-          SizedBox(height: 12),
-          _CompactAutomationSettingCard(
-            title: 'Score batch size',
-            valueSelector: _selectScoreBatchSize,
-            descriptionBuilder: _buildScoreBatchDescription,
-            canDecrease: _isGreaterThanOne,
-            canIncrease: _alwaysAllowed,
-            onDecrease: _decreaseScoreBatch,
-            onIncrease: _increaseScoreBatch,
-          ),
-          SizedBox(height: 12),
-          _CompactAutomationSettingCard(
-            title: 'Proposal batch size',
-            valueSelector: _selectProposalBatchSize,
-            descriptionBuilder: _buildProposalBatchDescription,
-            canDecrease: _isGreaterThanOne,
-            canIncrease: _alwaysAllowed,
-            onDecrease: _decreaseProposalBatch,
-            onIncrease: _increaseProposalBatch,
-          ),
-          SizedBox(height: 12),
-          _CompactAutomationSettingCard(
-            title: 'Minimum score for proposals',
-            valueSelector: _selectMinimumProposalScore,
-            descriptionBuilder: _buildMinimumProposalScoreDescription,
-            canDecrease: _isAboveZero,
-            canIncrease: _isBelowOneHundred,
-            onDecrease: _decreaseMinimumProposalScore,
-            onIncrease: _increaseMinimumProposalScore,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -1126,11 +1135,106 @@ class _CompactAutomationSettingCard extends ConsumerWidget {
   }
 }
 
+class _CompactAutomationAiSettingsCard extends ConsumerWidget {
+  const _CompactAutomationAiSettingsCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final snapshot = ref.watch(
+      jobSyncControllerProvider.select(
+        (state) => (
+          isLocked: state.isLocked,
+          aiModel: state.aiModel,
+          aiThinkingEffort: state.aiThinkingEffort,
+        ),
+      ),
+    );
+    final controller = ref.read(jobSyncControllerProvider.notifier);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22.0),
+        color: Colors.white.withValues(alpha: 0.03),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.38),
+        ),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final useColumnLayout = constraints.maxWidth < 620.0;
+          final modelField = _AutomationDropdownField<JobAutomationAiModel>(
+            label: l10n.jobAutomationAiModelLabel,
+            value: snapshot.aiModel,
+            items: JobAutomationAiModel.values,
+            enabled: !snapshot.isLocked,
+            labelBuilder: (value) => _aiModelLabel(l10n, value),
+            onChanged: (value) {
+              if (value == null) {
+                return;
+              }
+              unawaited(controller.setAiModel(value));
+            },
+          );
+          final effortField =
+              _AutomationDropdownField<JobAutomationAiThinkingEffort>(
+                label: l10n.jobAutomationThinkingEffortTitle,
+                value: snapshot.aiThinkingEffort,
+                items: JobAutomationAiThinkingEffort.values,
+                enabled: !snapshot.isLocked,
+                labelBuilder: (value) => _aiThinkingEffortLabel(l10n, value),
+                onChanged: (value) {
+                  if (value == null) {
+                    return;
+                  }
+                  unawaited(controller.setAiThinkingEffort(value));
+                },
+              );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.jobAutomationAiSettingsTitle,
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 4.0),
+              Text(
+                l10n.jobAutomationAiSettingsDescription,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
+              const SizedBox(height: 14.0),
+              if (useColumnLayout) ...[
+                modelField,
+                const SizedBox(height: 12.0),
+                effortField,
+              ] else
+                Row(
+                  children: [
+                    Expanded(child: modelField),
+                    const SizedBox(width: 12.0),
+                    Expanded(child: effortField),
+                  ],
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _CompactAutomationStatusCard extends ConsumerWidget {
   const _CompactAutomationStatusCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final now = ref
         .watch(jobSyncClockProvider)
@@ -1142,22 +1246,27 @@ class _CompactAutomationStatusCard extends ConsumerWidget {
           currentStepStartedAt: state.currentStepStartedAt,
           isPulling: state.isPulling,
           isBusy: state.isBusy,
+          isRunning: state.isRunning,
         ),
       ),
     );
 
-    final stepCopy = switch (syncState.currentStep) {
-      JobAutomationStep.idle =>
-        'Automation is idle until you resume job fetching.',
-      JobAutomationStep.fetchingJobs => 'Getting more jobs from Upwork.',
-      JobAutomationStep.generatingScores =>
-        'Generating compatibility scores for jobs without an AI score yet.',
-      JobAutomationStep.generatingProposals =>
-        'Generating cover letters and question answers for the strongest matches.',
-      JobAutomationStep.pausedWaiting =>
-        'Automation is paused. Resume job fetching to queue the next loop cycle.',
-      JobAutomationStep.error =>
-        'Automation hit an error. The latest failure is shown below.',
+    final stepCopy = switch ((syncState.currentStep, syncState.isRunning)) {
+      (JobAutomationStep.idle, true) ||
+      (
+        JobAutomationStep.pausedWaiting,
+        true,
+      ) => l10n.jobAutomationStatusWaitingNextCycle,
+      (JobAutomationStep.idle, false) => l10n.jobAutomationStatusIdle,
+      (JobAutomationStep.fetchingJobs, _) =>
+        l10n.jobAutomationStatusFetchingJobs,
+      (JobAutomationStep.generatingScores, _) =>
+        l10n.jobAutomationStatusGeneratingScores,
+      (JobAutomationStep.generatingProposals, _) =>
+        l10n.jobAutomationStatusGeneratingProposals,
+      (JobAutomationStep.pausedWaiting, false) =>
+        l10n.jobAutomationStatusPaused,
+      (JobAutomationStep.error, _) => l10n.jobAutomationStatusError,
     };
 
     final elapsedText = syncState.currentStepStartedAt == null
@@ -1165,7 +1274,7 @@ class _CompactAutomationStatusCard extends ConsumerWidget {
         : _formatDuration(now.difference(syncState.currentStepStartedAt!));
     final statusText = elapsedText == null
         ? stepCopy
-        : '$stepCopy Current step elapsed time: $elapsedText.';
+        : '$stepCopy ${l10n.jobAutomationStatusElapsedText(elapsedText)}';
 
     return _CompactInfoCard(
       icon: syncState.isPulling ? Icons.sync_rounded : Icons.route_rounded,
@@ -1189,6 +1298,7 @@ class _CompactAutomationToggleButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final snapshot = ref.watch(
       jobSyncControllerProvider.select(
         (state) => (isRunning: state.isRunning, isBusy: state.isBusy),
@@ -1213,7 +1323,9 @@ class _CompactAutomationToggleButton extends ConsumerWidget {
               : Icons.play_circle_fill_rounded,
         ),
         label: Text(
-          snapshot.isRunning ? 'Pause job fetching' : 'Resume job fetching',
+          snapshot.isRunning
+              ? l10n.jobAutomationPauseButton
+              : l10n.jobAutomationResumeButton,
         ),
       ),
     );
@@ -1270,6 +1382,27 @@ String _buildProposalBatchDescription(int value) =>
     '$value proposals generated per proposal step.';
 String _buildMinimumProposalScoreDescription(int value) =>
     '$value% minimum compatibility before AI proposal generation starts.';
+
+String _aiThinkingEffortLabel(
+  AppLocalizations l10n,
+  JobAutomationAiThinkingEffort value,
+) {
+  return switch (value) {
+    JobAutomationAiThinkingEffort.low => l10n.jobAutomationThinkingEffortLow,
+    JobAutomationAiThinkingEffort.medium =>
+      l10n.jobAutomationThinkingEffortMedium,
+    JobAutomationAiThinkingEffort.high => l10n.jobAutomationThinkingEffortHigh,
+    JobAutomationAiThinkingEffort.xhigh =>
+      l10n.jobAutomationThinkingEffortXhigh,
+  };
+}
+
+String _aiModelLabel(AppLocalizations l10n, JobAutomationAiModel value) {
+  return switch (value) {
+    JobAutomationAiModel.gpt54 => l10n.jobAutomationAiModelGpt54,
+    JobAutomationAiModel.gpt54Mini => l10n.jobAutomationAiModelGpt54Mini,
+  };
+}
 
 bool _alwaysAllowed(int value) => true;
 bool _isGreaterThanOne(int value) => value > 1;
@@ -1389,6 +1522,85 @@ class _NumericStepperCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _AutomationDropdownField<T> extends StatelessWidget {
+  const _AutomationDropdownField({
+    required this.label,
+    required this.value,
+    required this.items,
+    required this.enabled,
+    required this.labelBuilder,
+    required this.onChanged,
+  });
+
+  final String label;
+  final T value;
+  final List<T> items;
+  final bool enabled;
+  final String Function(T value) labelBuilder;
+  final ValueChanged<T?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: Colors.white.withValues(alpha: 0.82),
+          ),
+        ),
+        const SizedBox(height: 6.0),
+        DropdownButtonHideUnderline(
+          child: DropdownButton2<T>(
+            valueListenable: ValueNotifier<T?>(value),
+            isExpanded: true,
+            onChanged: enabled ? onChanged : null,
+            items: [
+              for (final item in items)
+                DropdownItem<T>(value: item, child: Text(labelBuilder(item))),
+            ],
+            buttonStyleData: ButtonStyleData(
+              height: 48.0,
+              padding: const EdgeInsets.symmetric(horizontal: 14.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16.0),
+                color: Colors.white.withValues(alpha: 0.06),
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.36),
+                ),
+              ),
+            ),
+            iconStyleData: IconStyleData(
+              icon: Icon(
+                Icons.expand_more_rounded,
+                color: enabled
+                    ? theme.colorScheme.primary
+                    : theme.disabledColor,
+              ),
+            ),
+            dropdownStyleData: DropdownStyleData(
+              maxHeight: 260.0,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20.0),
+                color: theme.colorScheme.surface,
+                border: Border.all(
+                  color: theme.colorScheme.outline.withValues(alpha: 0.42),
+                ),
+              ),
+            ),
+            menuItemStyleData: const MenuItemStyleData(
+              padding: EdgeInsets.symmetric(horizontal: 14.0),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

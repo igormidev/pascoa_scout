@@ -59,6 +59,31 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    if (score != null) ...[
+                      _SectionHeading(
+                        title: l10n.jobAnalysisAiCompatibilitySectionTitle,
+                        trailing: IconButton(
+                          tooltip: l10n.jobAnalysisCopyAiCompatibilityTooltip,
+                          onPressed: () => _copyText(
+                            context,
+                            score.aiScoreJustificationText,
+                            l10n.jobAnalysisAiCompatibilityCopied,
+                          ),
+                          icon: const Icon(Icons.content_copy_rounded),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SelectableText(
+                        score.aiScoreJustificationText,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          height: 1.55,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: 0.82,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                     _SectionHeading(
                       title: l10n.jobAnalysisDescriptionSectionTitle,
                       trailing: IconButton(
@@ -140,31 +165,7 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
                         const SizedBox(height: 18),
                       ],
                     ],
-                    if (score != null) ...[
-                      _SectionHeading(
-                        title: l10n.jobAnalysisAiCompatibilitySectionTitle,
-                        trailing: IconButton(
-                          tooltip: l10n.jobAnalysisCopyAiCompatibilityTooltip,
-                          onPressed: () => _copyText(
-                            context,
-                            score.aiScoreJustificationText,
-                            l10n.jobAnalysisAiCompatibilityCopied,
-                          ),
-                          icon: const Icon(Icons.content_copy_rounded),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SelectableText(
-                        score.aiScoreJustificationText,
-                        style: theme.textTheme.bodyLarge?.copyWith(
-                          height: 1.55,
-                          color: theme.colorScheme.onSurface.withValues(
-                            alpha: 0.82,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+
                     if (proposal != null) ...[
                       _CopyableTextSection(
                         title: l10n.jobAnalysisCoverLetterSectionTitle,

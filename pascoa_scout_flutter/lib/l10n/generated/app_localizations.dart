@@ -188,6 +188,156 @@ abstract class AppLocalizations {
   /// **'Highest client total spent'**
   String get jobListOrderByHighestClientTotalSpent;
 
+  /// Title for the local setting that refreshes the job list automatically while the automation loop is running.
+  ///
+  /// In en, this message translates to:
+  /// **'Live refresh job list'**
+  String get jobListLiveRefreshSettingTitle;
+
+  /// Checkbox label for enabling or disabling automatic refresh of the job list.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get jobListLiveRefreshSettingToggle;
+
+  /// Description shown when automatic job list refresh is disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Keeps the job list on manual refresh only.'**
+  String get jobListLiveRefreshSettingDisabledDescription;
+
+  /// Description shown when automatic job list refresh is enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Refreshes the job list every {seconds} seconds while the automation loop is running.'**
+  String jobListLiveRefreshSettingEnabledDescription(int seconds);
+
+  /// Title for the automation card that controls the Codex model and reasoning effort.
+  ///
+  /// In en, this message translates to:
+  /// **'AI generation'**
+  String get jobAutomationAiSettingsTitle;
+
+  /// Description for the automation card that controls the Codex model and reasoning effort.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the Codex model and thinking effort used for scoring and proposal generation.'**
+  String get jobAutomationAiSettingsDescription;
+
+  /// Label for the Codex model dropdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get jobAutomationAiModelLabel;
+
+  /// Dropdown option for the GPT-5.4 Codex model.
+  ///
+  /// In en, this message translates to:
+  /// **'GPT-5.4'**
+  String get jobAutomationAiModelGpt54;
+
+  /// Dropdown option for the GPT-5.4 mini Codex model.
+  ///
+  /// In en, this message translates to:
+  /// **'GPT-5.4 mini'**
+  String get jobAutomationAiModelGpt54Mini;
+
+  /// Label for the automation setting that controls the Codex reasoning effort.
+  ///
+  /// In en, this message translates to:
+  /// **'Thinking effort'**
+  String get jobAutomationThinkingEffortTitle;
+
+  /// Description for the automation setting that controls the Codex reasoning effort.
+  ///
+  /// In en, this message translates to:
+  /// **'Controls the Codex model profile used for scoring and proposal generation. Current model: {model}.'**
+  String jobAutomationThinkingEffortDescription(Object model);
+
+  /// Dropdown option for the lowest Codex thinking effort.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get jobAutomationThinkingEffortLow;
+
+  /// Dropdown option for the medium Codex thinking effort.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get jobAutomationThinkingEffortMedium;
+
+  /// Dropdown option for the high Codex thinking effort.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get jobAutomationThinkingEffortHigh;
+
+  /// Dropdown option for the highest Codex thinking effort.
+  ///
+  /// In en, this message translates to:
+  /// **'Very high'**
+  String get jobAutomationThinkingEffortXhigh;
+
+  /// Status copy shown when the automation loop is not active.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation is idle until you resume job fetching.'**
+  String get jobAutomationStatusIdle;
+
+  /// Status copy shown when the automation loop is active on the server but not currently processing a fetch, scoring, or proposal step.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation is active and waiting to queue the next loop cycle.'**
+  String get jobAutomationStatusWaitingNextCycle;
+
+  /// Status copy shown while the automation loop is synchronizing jobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting more jobs from Upwork.'**
+  String get jobAutomationStatusFetchingJobs;
+
+  /// Status copy shown while the automation loop is generating missing scores.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating compatibility scores for jobs without an AI score yet.'**
+  String get jobAutomationStatusGeneratingScores;
+
+  /// Status copy shown while the automation loop is generating proposals.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating cover letters and question answers for the strongest matches.'**
+  String get jobAutomationStatusGeneratingProposals;
+
+  /// Status copy shown when the automation loop is paused by the user.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation is paused. Resume job fetching to queue the next loop cycle.'**
+  String get jobAutomationStatusPaused;
+
+  /// Status copy shown when the latest automation step failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Automation hit an error. The latest failure is shown below.'**
+  String get jobAutomationStatusError;
+
+  /// Suffix appended to the automation status card to show how long the current step has been in its latest state.
+  ///
+  /// In en, this message translates to:
+  /// **'Current step elapsed time: {elapsed}.'**
+  String jobAutomationStatusElapsedText(Object elapsed);
+
+  /// Button label for pausing the automation loop.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause job fetching'**
+  String get jobAutomationPauseButton;
+
+  /// Button label for resuming the automation loop.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume job fetching'**
+  String get jobAutomationResumeButton;
+
   /// Compensation label for hourly jobs with only a minimum rate.
   ///
   /// In en, this message translates to:
@@ -445,6 +595,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Milestone {index}'**
   String jobAnalysisMilestoneTitle(int index);
+
+  /// Tooltip for copying a milestone title.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy milestone title'**
+  String get jobAnalysisCopyMilestoneTitleTooltip;
+
+  /// Snackbar message shown after copying a milestone title.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone title copied.'**
+  String get jobAnalysisMilestoneTitleCopied;
+
+  /// Tooltip for copying the suggested milestone value.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy suggested value'**
+  String get jobAnalysisCopyMilestoneSuggestedPriceTooltip;
+
+  /// Snackbar message shown after copying the suggested milestone value.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested value copied.'**
+  String get jobAnalysisMilestoneSuggestedPriceCopied;
+
+  /// Tooltip for copying a milestone description.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy milestone description'**
+  String get jobAnalysisCopyMilestoneDescriptionTooltip;
+
+  /// Snackbar message shown after copying a milestone description.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestone description copied.'**
+  String get jobAnalysisMilestoneDescriptionCopied;
 
   /// Section title for the AI-generated answers to the job questions.
   ///

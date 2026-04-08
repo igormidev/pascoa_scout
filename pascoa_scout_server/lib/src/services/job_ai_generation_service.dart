@@ -5,6 +5,7 @@ import 'package:result_dart/result_dart.dart';
 import 'package:serverpod/serverpod.dart';
 
 import '../core/job_automation_constants.dart';
+import '../core/job_automation_logging.dart';
 import '../core/pascoa_result.dart';
 import '../generated/protocol.dart';
 import 'job_ai_orchestrator.dart';
@@ -28,6 +29,8 @@ class JobAiGenerationService {
   Future<PascoaResult<int>> generateMissingScores(
     Session session, {
     required int limit,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
   }) async {
     if (limit < 1) {
       return Success(0);
@@ -46,8 +49,18 @@ class JobAiGenerationService {
             include: buildJobAnalysisStateInclude(),
           );
           if (candidates.isEmpty) {
+            logAutomation(
+              session,
+              'score',
+              'no jobs are waiting for score generation',
+            );
             return Success(0);
           }
+          logAutomation(
+            session,
+            'score',
+            'processing ${candidates.length} job(s) that are missing scores',
+          );
 
           final results = await _orchestrator.runQueued(
             candidates.map(
@@ -56,8 +69,11 @@ class JobAiGenerationService {
                     session,
                     (taskSession) => _generateScoreForAnalysis(
                       taskSession,
+                      session,
                       candidate,
                       knowledge,
+                      aiModel,
+                      aiThinkingEffort,
                     ),
                   ),
             ),
@@ -68,6 +84,11 @@ class JobAiGenerationService {
           for (final result in results) {
             result.fold((_) => successCount += 1, (_) {});
           }
+          logAutomation(
+            session,
+            'score',
+            'completed $successCount/${results.length} score generation(s)',
+          );
           return Success(successCount);
         } catch (error, stackTrace) {
           return Failure(
@@ -89,6 +110,8 @@ class JobAiGenerationService {
     Session session, {
     required int limit,
     required int minimumScorePercentage,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
   }) async {
     if (limit < 1) {
       return Success(0);
@@ -110,8 +133,18 @@ class JobAiGenerationService {
             include: buildJobAnalysisStateInclude(),
           );
           if (candidates.isEmpty) {
+            logAutomation(
+              session,
+              'proposal',
+              'no jobs are waiting for proposal generation',
+            );
             return Success(0);
           }
+          logAutomation(
+            session,
+            'proposal',
+            'processing ${candidates.length} job(s) that are missing proposals',
+          );
 
           final results = await _orchestrator.runQueued(
             candidates.map(
@@ -120,8 +153,11 @@ class JobAiGenerationService {
                     session,
                     (taskSession) => _generateProposalForAnalysis(
                       taskSession,
+                      session,
                       candidate,
                       knowledge,
+                      aiModel,
+                      aiThinkingEffort,
                     ),
                   ),
             ),
@@ -132,6 +168,11 @@ class JobAiGenerationService {
           for (final result in results) {
             result.fold((_) => successCount += 1, (_) {});
           }
+          logAutomation(
+            session,
+            'proposal',
+            'completed $successCount/${results.length} proposal generation(s)',
+          );
           return Success(successCount);
         } catch (error, stackTrace) {
           return Failure(
@@ -151,8 +192,11 @@ class JobAiGenerationService {
 
   Future<PascoaResult<int>> _generateScoreForAnalysis(
     Session session,
+    Session logSession,
     JobAnalysisState analysis,
     JobKnowledgeBundle knowledge,
+    JobAutomationAiModel aiModel,
+    JobAutomationAiThinkingEffort aiThinkingEffort,
   ) async {
     final validationError = _validateAnalysis(analysis);
     if (validationError != null) {
@@ -202,6 +246,8 @@ Scoring rules:
         workingDirectory: workDirectory.path,
         prompt: prompt,
         schema: _scoreSchema,
+        aiModel: aiModel,
+        aiThinkingEffort: aiThinkingEffort,
       );
 
       return await generationResult.fold(
@@ -248,6 +294,11 @@ Scoring rules:
                   transaction: transaction,
                 );
               });
+              logAutomation(
+                logSession,
+                'score',
+                '${formatAutomationAnalysisLabel(analysis)} score=${parsed.scorePercentage}',
+              );
 
               return Success(1);
             },
@@ -271,8 +322,11 @@ Scoring rules:
 
   Future<PascoaResult<int>> _generateProposalForAnalysis(
     Session session,
+    Session logSession,
     JobAnalysisState analysis,
     JobKnowledgeBundle knowledge,
+    JobAutomationAiModel aiModel,
+    JobAutomationAiThinkingEffort aiThinkingEffort,
   ) async {
     final validationError = _validateAnalysis(analysis);
     if (validationError != null) {
@@ -330,6 +384,8 @@ Rules:
         workingDirectory: workDirectory.path,
         prompt: prompt,
         schema: _proposalSchema,
+        aiModel: aiModel,
+        aiThinkingEffort: aiThinkingEffort,
         enableWebSearch: true,
       );
 
@@ -424,6 +480,11 @@ Rules:
                   transaction: transaction,
                 );
               });
+              logAutomation(
+                logSession,
+                'proposal',
+                '${formatAutomationAnalysisLabel(analysis)} answers=${parsed.answers.length} milestones=${parsed.milestones.length}',
+              );
 
               return Success(1);
             },

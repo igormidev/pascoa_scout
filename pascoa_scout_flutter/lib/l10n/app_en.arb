@@ -60,6 +60,117 @@
   "@jobListOrderByHighestClientTotalSpent": {
     "description": "Order-by label for sorting jobs by the highest client total spent."
   },
+  "jobListLiveRefreshSettingTitle": "Live refresh job list",
+  "@jobListLiveRefreshSettingTitle": {
+    "description": "Title for the local setting that refreshes the job list automatically while the automation loop is running."
+  },
+  "jobListLiveRefreshSettingToggle": "Enable",
+  "@jobListLiveRefreshSettingToggle": {
+    "description": "Checkbox label for enabling or disabling automatic refresh of the job list."
+  },
+  "jobListLiveRefreshSettingDisabledDescription": "Keeps the job list on manual refresh only.",
+  "@jobListLiveRefreshSettingDisabledDescription": {
+    "description": "Description shown when automatic job list refresh is disabled."
+  },
+  "jobListLiveRefreshSettingEnabledDescription": "Refreshes the job list every {seconds} seconds while the automation loop is running.",
+  "@jobListLiveRefreshSettingEnabledDescription": {
+    "description": "Description shown when automatic job list refresh is enabled.",
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "jobAutomationAiSettingsTitle": "AI generation",
+  "@jobAutomationAiSettingsTitle": {
+    "description": "Title for the automation card that controls the Codex model and reasoning effort."
+  },
+  "jobAutomationAiSettingsDescription": "Choose the Codex model and thinking effort used for scoring and proposal generation.",
+  "@jobAutomationAiSettingsDescription": {
+    "description": "Description for the automation card that controls the Codex model and reasoning effort."
+  },
+  "jobAutomationAiModelLabel": "Model",
+  "@jobAutomationAiModelLabel": {
+    "description": "Label for the Codex model dropdown."
+  },
+  "jobAutomationAiModelGpt54": "GPT-5.4",
+  "@jobAutomationAiModelGpt54": {
+    "description": "Dropdown option for the GPT-5.4 Codex model."
+  },
+  "jobAutomationAiModelGpt54Mini": "GPT-5.4 mini",
+  "@jobAutomationAiModelGpt54Mini": {
+    "description": "Dropdown option for the GPT-5.4 mini Codex model."
+  },
+  "jobAutomationThinkingEffortTitle": "Thinking effort",
+  "@jobAutomationThinkingEffortTitle": {
+    "description": "Label for the automation setting that controls the Codex reasoning effort."
+  },
+  "jobAutomationThinkingEffortDescription": "Controls the Codex model profile used for scoring and proposal generation. Current model: {model}.",
+  "@jobAutomationThinkingEffortDescription": {
+    "description": "Description for the automation setting that controls the Codex reasoning effort.",
+    "placeholders": {
+      "model": {}
+    }
+  },
+  "jobAutomationThinkingEffortLow": "Low",
+  "@jobAutomationThinkingEffortLow": {
+    "description": "Dropdown option for the lowest Codex thinking effort."
+  },
+  "jobAutomationThinkingEffortMedium": "Medium",
+  "@jobAutomationThinkingEffortMedium": {
+    "description": "Dropdown option for the medium Codex thinking effort."
+  },
+  "jobAutomationThinkingEffortHigh": "High",
+  "@jobAutomationThinkingEffortHigh": {
+    "description": "Dropdown option for the high Codex thinking effort."
+  },
+  "jobAutomationThinkingEffortXhigh": "Very high",
+  "@jobAutomationThinkingEffortXhigh": {
+    "description": "Dropdown option for the highest Codex thinking effort."
+  },
+  "jobAutomationStatusIdle": "Automation is idle until you resume job fetching.",
+  "@jobAutomationStatusIdle": {
+    "description": "Status copy shown when the automation loop is not active."
+  },
+  "jobAutomationStatusWaitingNextCycle": "Automation is active and waiting to queue the next loop cycle.",
+  "@jobAutomationStatusWaitingNextCycle": {
+    "description": "Status copy shown when the automation loop is active on the server but not currently processing a fetch, scoring, or proposal step."
+  },
+  "jobAutomationStatusFetchingJobs": "Getting more jobs from Upwork.",
+  "@jobAutomationStatusFetchingJobs": {
+    "description": "Status copy shown while the automation loop is synchronizing jobs."
+  },
+  "jobAutomationStatusGeneratingScores": "Generating compatibility scores for jobs without an AI score yet.",
+  "@jobAutomationStatusGeneratingScores": {
+    "description": "Status copy shown while the automation loop is generating missing scores."
+  },
+  "jobAutomationStatusGeneratingProposals": "Generating cover letters and question answers for the strongest matches.",
+  "@jobAutomationStatusGeneratingProposals": {
+    "description": "Status copy shown while the automation loop is generating proposals."
+  },
+  "jobAutomationStatusPaused": "Automation is paused. Resume job fetching to queue the next loop cycle.",
+  "@jobAutomationStatusPaused": {
+    "description": "Status copy shown when the automation loop is paused by the user."
+  },
+  "jobAutomationStatusError": "Automation hit an error. The latest failure is shown below.",
+  "@jobAutomationStatusError": {
+    "description": "Status copy shown when the latest automation step failed."
+  },
+  "jobAutomationStatusElapsedText": "Current step elapsed time: {elapsed}.",
+  "@jobAutomationStatusElapsedText": {
+    "description": "Suffix appended to the automation status card to show how long the current step has been in its latest state.",
+    "placeholders": {
+      "elapsed": {}
+    }
+  },
+  "jobAutomationPauseButton": "Pause job fetching",
+  "@jobAutomationPauseButton": {
+    "description": "Button label for pausing the automation loop."
+  },
+  "jobAutomationResumeButton": "Resume job fetching",
+  "@jobAutomationResumeButton": {
+    "description": "Button label for resuming the automation loop."
+  },
   "jobAnalysisHourlyFromLabel": "From {amount}",
   "@jobAnalysisHourlyFromLabel": {
     "description": "Compensation label for hourly jobs with only a minimum rate.",
@@ -288,6 +399,30 @@
         "type": "int"
       }
     }
+  },
+  "jobAnalysisCopyMilestoneTitleTooltip": "Copy milestone title",
+  "@jobAnalysisCopyMilestoneTitleTooltip": {
+    "description": "Tooltip for copying a milestone title."
+  },
+  "jobAnalysisMilestoneTitleCopied": "Milestone title copied.",
+  "@jobAnalysisMilestoneTitleCopied": {
+    "description": "Snackbar message shown after copying a milestone title."
+  },
+  "jobAnalysisCopyMilestoneSuggestedPriceTooltip": "Copy suggested value",
+  "@jobAnalysisCopyMilestoneSuggestedPriceTooltip": {
+    "description": "Tooltip for copying the suggested milestone value."
+  },
+  "jobAnalysisMilestoneSuggestedPriceCopied": "Suggested value copied.",
+  "@jobAnalysisMilestoneSuggestedPriceCopied": {
+    "description": "Snackbar message shown after copying the suggested milestone value."
+  },
+  "jobAnalysisCopyMilestoneDescriptionTooltip": "Copy milestone description",
+  "@jobAnalysisCopyMilestoneDescriptionTooltip": {
+    "description": "Tooltip for copying a milestone description."
+  },
+  "jobAnalysisMilestoneDescriptionCopied": "Milestone description copied.",
+  "@jobAnalysisMilestoneDescriptionCopied": {
+    "description": "Snackbar message shown after copying a milestone description."
   },
   "jobAnalysisAiAnswersSectionTitle": "AI-generated answers",
   "@jobAnalysisAiAnswersSectionTitle": {

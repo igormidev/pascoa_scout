@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../core/job_automation_constants.dart';
+import '../core/job_automation_logging.dart';
 import '../generated/protocol.dart';
 import '../services/job_ai_generation_service.dart';
 import '../services/job_automation_loop_scheduler.dart';
@@ -30,6 +31,7 @@ class JobAutomationProposalFutureCall extends FutureCall {
     );
 
     if (settings.isJobFetchingPaused) {
+      logAutomation(session, 'proposal', 'skipped: job fetching is paused');
       await _automationService.setCurrentStep(
         session,
         JobAutomationStep.pausedWaiting,
@@ -41,10 +43,18 @@ class JobAutomationProposalFutureCall extends FutureCall {
       session,
       JobAutomationStep.generatingProposals,
     );
+    logAutomation(
+      session,
+      'proposal',
+      'starting batch (limit=${settings.proposalBatchSize}, minScore=${settings.proposalMinimumScorePercentage}, model=${(settings.aiModel ?? JobAutomationAiModel.gpt54).name}, effort=${(settings.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh).name})',
+    );
     final generationResult = await _generationService.generateMissingProposals(
       session,
       limit: settings.proposalBatchSize,
       minimumScorePercentage: settings.proposalMinimumScorePercentage,
+      aiModel: settings.aiModel ?? JobAutomationAiModel.gpt54,
+      aiThinkingEffort:
+          settings.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh,
     );
     await generationResult.fold(
       (_) => _automationService.markProposalSuccess(session),
@@ -59,6 +69,11 @@ class JobAutomationProposalFutureCall extends FutureCall {
       (error) => throw error,
     );
     if (latestSettings.isJobFetchingPaused) {
+      logAutomation(
+        session,
+        'proposal',
+        'paused after proposal generation; next step not queued',
+      );
       await _automationService.setCurrentStep(
         session,
         JobAutomationStep.pausedWaiting,
@@ -71,6 +86,11 @@ class JobAutomationProposalFutureCall extends FutureCall {
       callName: jobAutomationSyncFutureCallName,
       identifier: jobAutomationSyncFutureCallIdentifier,
       delay: Duration(minutes: latestSettings.loopDelayMinutes),
+    );
+    logAutomation(
+      session,
+      'loop',
+      'queued sync step in ${latestSettings.loopDelayMinutes} minute(s)',
     );
   }
 }

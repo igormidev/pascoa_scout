@@ -12,7 +12,9 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod/serverpod.dart' as _i1;
 import '../entities/upwork_scrap/job_filter.dart' as _i2;
-import 'package:pascoa_scout_server/src/generated/protocol.dart' as _i3;
+import '../entities/job_automation_ai_model.dart' as _i3;
+import '../entities/job_automation_ai_thinking_effort.dart' as _i4;
+import 'package:pascoa_scout_server/src/generated/protocol.dart' as _i5;
 
 abstract class JobAutomationSettingsUpdate
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
@@ -23,6 +25,8 @@ abstract class JobAutomationSettingsUpdate
     required this.upworkSyncResultsPerPage,
     required this.proposalMinimumScorePercentage,
     required this.loopDelayMinutes,
+    required this.aiModel,
+    required this.aiThinkingEffort,
   });
 
   factory JobAutomationSettingsUpdate({
@@ -32,13 +36,15 @@ abstract class JobAutomationSettingsUpdate
     required int upworkSyncResultsPerPage,
     required int proposalMinimumScorePercentage,
     required int loopDelayMinutes,
+    required _i3.JobAutomationAiModel aiModel,
+    required _i4.JobAutomationAiThinkingEffort aiThinkingEffort,
   }) = _JobAutomationSettingsUpdateImpl;
 
   factory JobAutomationSettingsUpdate.fromJson(
     Map<String, dynamic> jsonSerialization,
   ) {
     return JobAutomationSettingsUpdate(
-      jobFilter: _i3.Protocol().deserialize<_i2.JobFilter>(
+      jobFilter: _i5.Protocol().deserialize<_i2.JobFilter>(
         jsonSerialization['jobFilter'],
       ),
       scoreBatchSize: jsonSerialization['scoreBatchSize'] as int,
@@ -48,6 +54,12 @@ abstract class JobAutomationSettingsUpdate
       proposalMinimumScorePercentage:
           jsonSerialization['proposalMinimumScorePercentage'] as int,
       loopDelayMinutes: jsonSerialization['loopDelayMinutes'] as int,
+      aiModel: _i3.JobAutomationAiModel.fromJson(
+        (jsonSerialization['aiModel'] as String),
+      ),
+      aiThinkingEffort: _i4.JobAutomationAiThinkingEffort.fromJson(
+        (jsonSerialization['aiThinkingEffort'] as String),
+      ),
     );
   }
 
@@ -63,6 +75,10 @@ abstract class JobAutomationSettingsUpdate
 
   int loopDelayMinutes;
 
+  _i3.JobAutomationAiModel aiModel;
+
+  _i4.JobAutomationAiThinkingEffort aiThinkingEffort;
+
   /// Returns a shallow copy of this [JobAutomationSettingsUpdate]
   /// with some or all fields replaced by the given arguments.
   @_i1.useResult
@@ -73,6 +89,8 @@ abstract class JobAutomationSettingsUpdate
     int? upworkSyncResultsPerPage,
     int? proposalMinimumScorePercentage,
     int? loopDelayMinutes,
+    _i3.JobAutomationAiModel? aiModel,
+    _i4.JobAutomationAiThinkingEffort? aiThinkingEffort,
   });
   @override
   Map<String, dynamic> toJson() {
@@ -84,6 +102,8 @@ abstract class JobAutomationSettingsUpdate
       'upworkSyncResultsPerPage': upworkSyncResultsPerPage,
       'proposalMinimumScorePercentage': proposalMinimumScorePercentage,
       'loopDelayMinutes': loopDelayMinutes,
+      'aiModel': aiModel.toJson(),
+      'aiThinkingEffort': aiThinkingEffort.toJson(),
     };
   }
 
@@ -97,6 +117,8 @@ abstract class JobAutomationSettingsUpdate
       'upworkSyncResultsPerPage': upworkSyncResultsPerPage,
       'proposalMinimumScorePercentage': proposalMinimumScorePercentage,
       'loopDelayMinutes': loopDelayMinutes,
+      'aiModel': aiModel.toJson(),
+      'aiThinkingEffort': aiThinkingEffort.toJson(),
     };
   }
 
@@ -114,6 +136,8 @@ class _JobAutomationSettingsUpdateImpl extends JobAutomationSettingsUpdate {
     required int upworkSyncResultsPerPage,
     required int proposalMinimumScorePercentage,
     required int loopDelayMinutes,
+    required _i3.JobAutomationAiModel aiModel,
+    required _i4.JobAutomationAiThinkingEffort aiThinkingEffort,
   }) : super._(
          jobFilter: jobFilter,
          scoreBatchSize: scoreBatchSize,
@@ -121,6 +145,8 @@ class _JobAutomationSettingsUpdateImpl extends JobAutomationSettingsUpdate {
          upworkSyncResultsPerPage: upworkSyncResultsPerPage,
          proposalMinimumScorePercentage: proposalMinimumScorePercentage,
          loopDelayMinutes: loopDelayMinutes,
+         aiModel: aiModel,
+         aiThinkingEffort: aiThinkingEffort,
        );
 
   /// Returns a shallow copy of this [JobAutomationSettingsUpdate]
@@ -134,6 +160,8 @@ class _JobAutomationSettingsUpdateImpl extends JobAutomationSettingsUpdate {
     int? upworkSyncResultsPerPage,
     int? proposalMinimumScorePercentage,
     int? loopDelayMinutes,
+    _i3.JobAutomationAiModel? aiModel,
+    _i4.JobAutomationAiThinkingEffort? aiThinkingEffort,
   }) {
     return JobAutomationSettingsUpdate(
       jobFilter: jobFilter ?? this.jobFilter.copyWith(),
@@ -144,6 +172,8 @@ class _JobAutomationSettingsUpdateImpl extends JobAutomationSettingsUpdate {
       proposalMinimumScorePercentage:
           proposalMinimumScorePercentage ?? this.proposalMinimumScorePercentage,
       loopDelayMinutes: loopDelayMinutes ?? this.loopDelayMinutes,
+      aiModel: aiModel ?? this.aiModel,
+      aiThinkingEffort: aiThinkingEffort ?? this.aiThinkingEffort,
     );
   }
 }

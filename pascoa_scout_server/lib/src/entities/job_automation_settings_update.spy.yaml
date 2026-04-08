@@ -6,3 +6,5 @@ fields:
   upworkSyncResultsPerPage: int
   proposalMinimumScorePercentage: int
   loopDelayMinutes: int
+  aiModel: JobAutomationAiModel
+  aiThinkingEffort: JobAutomationAiThinkingEffort

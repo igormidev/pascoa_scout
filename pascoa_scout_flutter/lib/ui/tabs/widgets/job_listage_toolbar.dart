@@ -6,6 +6,7 @@ class JobListageToolbar extends StatelessWidget {
     super.key,
     required this.searchController,
     required this.currentOrderBy,
+    required this.activeFilterCount,
     required this.onRefresh,
     required this.onSearchSubmitted,
     required this.onClearSearch,
@@ -16,6 +17,7 @@ class JobListageToolbar extends StatelessWidget {
 
   final TextEditingController searchController;
   final JobAnalysisOrderBy currentOrderBy;
+  final int activeFilterCount;
   final VoidCallback onRefresh;
   final Future<void> Function() onSearchSubmitted;
   final VoidCallback onClearSearch;
@@ -31,33 +33,30 @@ class JobListageToolbar extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Expanded(
-                child: TextField(
-                  controller: searchController,
-                  decoration: InputDecoration(
-                    hintText:
-                        'Search job titles, descriptions, or client names',
-                    border: InputBorder.none,
-                    prefixIcon: Padding(
-                      padding: EdgeInsets.only(left: 12.0),
-                      child: Icon(Icons.search_rounded),
-                    ),
-                    suffixIcon: ListenableBuilder(
-                      listenable: searchController,
-                      builder: (context, _) {
-                        if (searchController.text.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-
-                        return IconButton(
-                          onPressed: onClearSearch,
-                          icon: const Icon(Icons.close_rounded),
-                        );
-                      },
-                    ),
+              child: TextField(
+                controller: searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search job titles, descriptions, or client names',
+                  border: InputBorder.none,
+                  prefixIcon: Padding(
+                    padding: EdgeInsets.only(left: 12.0),
+                    child: Icon(Icons.search_rounded),
                   ),
-                  onSubmitted: (_) => onSearchSubmitted(),
+                  suffixIcon: ListenableBuilder(
+                    listenable: searchController,
+                    builder: (context, _) {
+                      if (searchController.text.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return IconButton(
+                        onPressed: onClearSearch,
+                        icon: const Icon(Icons.close_rounded),
+                      );
+                    },
+                  ),
                 ),
+                onSubmitted: (_) => onSearchSubmitted(),
               ),
             ),
 
@@ -72,10 +71,15 @@ class JobListageToolbar extends StatelessWidget {
         const SizedBox(height: 12),
         Row(
           children: [
-            OutlinedButton.icon(
-              onPressed: onOpenFilters,
-              icon: const Icon(Icons.filter_alt_rounded),
-              label: const Text('Filters'),
+            Badge.count(
+              count: activeFilterCount,
+              isLabelVisible: activeFilterCount > 0,
+              offset: const Offset(-6, 6),
+              child: OutlinedButton.icon(
+                onPressed: onOpenFilters,
+                icon: const Icon(Icons.filter_alt_rounded),
+                label: const Text('Filters'),
+              ),
             ),
             const Spacer(),
             _OrderByMenu(

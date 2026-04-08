@@ -1,6 +1,7 @@
 import 'package:result_dart/result_dart.dart';
 import 'package:serverpod/serverpod.dart';
 
+import '../core/job_automation_logging.dart';
 import '../core/pascoa_result.dart';
 import '../generated/protocol.dart';
 import '../repository/get_upwork_jobs_repository.dart';
@@ -77,10 +78,30 @@ class JobUpworkSyncService {
     return await result.fold(
       (jobs) async {
         var processedCount = 0;
+        var insertedCount = 0;
+        var refreshedCount = 0;
+        logAutomation(
+          session,
+          'sync',
+          'received ${jobs.length} job(s) from the Upwork provider',
+        );
+
         for (final job in jobs) {
-          await _upsertJob(session, job);
+          final outcome = await _upsertJob(session, job);
           processedCount += 1;
+          switch (outcome) {
+            case _JobUpsertOutcome.inserted:
+              insertedCount += 1;
+            case _JobUpsertOutcome.updated:
+              refreshedCount += 1;
+          }
         }
+
+        logAutomation(
+          session,
+          'sync',
+          'synchronized $processedCount job(s) (new=$insertedCount, refreshed=$refreshedCount)',
+        );
 
         return Success(processedCount);
       },
@@ -88,8 +109,11 @@ class JobUpworkSyncService {
     );
   }
 
-  Future<void> _upsertJob(Session session, JobInfo incomingJob) async {
-    await session.db.transaction((transaction) async {
+  Future<_JobUpsertOutcome> _upsertJob(
+    Session session,
+    JobInfo incomingJob,
+  ) async {
+    return session.db.transaction((transaction) async {
       final existingJob = await JobInfo.db.findFirstRow(
         session,
         where: (table) => table.upworkId.equals(incomingJob.upworkId),
@@ -99,7 +123,7 @@ class JobUpworkSyncService {
 
       if (existingJob == null) {
         await _insertNewJob(session, incomingJob, transaction);
-        return;
+        return _JobUpsertOutcome.inserted;
       }
 
       final existingAnalysisState = await JobAnalysisState.db.findFirstRow(
@@ -116,6 +140,8 @@ class JobUpworkSyncService {
         incomingJob: incomingJob,
         transaction: transaction,
       );
+
+      return _JobUpsertOutcome.updated;
     });
   }
 
@@ -367,4 +393,9 @@ class JobUpworkSyncService {
       );
     }
   }
+}
+
+enum _JobUpsertOutcome {
+  inserted,
+  updated,
 }

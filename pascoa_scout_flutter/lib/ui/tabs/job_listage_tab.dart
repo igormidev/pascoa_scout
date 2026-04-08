@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pascoa_scout/core/global_providers.dart';
 import 'package:pascoa_scout/interactor/app_notification/app_notification_providers.dart';
 import 'package:pascoa_scout/interactor/job_analysis_selection/selected_job_analysis_provider.dart';
+import 'package:pascoa_scout/interactor/job_listage/job_listage_live_refresh_preferences.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_applied_filters.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
@@ -30,17 +31,24 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
   JobAnalysisPagination? _pageData;
   Object? _loadError;
   bool _isLoading = true;
+  bool _isPageLoadInFlight = false;
+  bool _isAutomationStepActive = false;
   final Set<int> _refreshingCards = <int>{};
+  StreamSubscription<JobAutomationOverview>? _automationOverviewSubscription;
+  Timer? _autoRefreshTimer;
 
   @override
   void initState() {
     super.initState();
     _filters = _restorePersistedFilters();
-    _loadPage(resetReference: true);
+    unawaited(_loadPage(resetReference: true));
+    unawaited(_subscribeToAutomationOverview());
   }
 
   @override
   void dispose() {
+    _autoRefreshTimer?.cancel();
+    unawaited(_automationOverviewSubscription?.cancel());
     _searchController.dispose();
     super.dispose();
   }
@@ -49,6 +57,19 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final selectedAnalysis = ref.watch(selectedJobAnalysisProvider);
+    ref.listen<JobListageLiveRefreshPreferences>(
+      jobListageLiveRefreshPreferencesProvider,
+      (_, next) {
+        if (!next.isEnabled) {
+          _stopAutoRefreshPolling();
+          return;
+        }
+
+        if (_isAutomationStepActive) {
+          _scheduleAutoRefresh(immediate: true);
+        }
+      },
+    );
     ref.listen<JobAnalysisState?>(selectedJobAnalysisProvider, (
       previous,
       next,
@@ -58,9 +79,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
       }
       _mergeUpdatedAnalysis(next);
     });
-    final appliedFilterLabels = <String>[
-      if (_filters.searchTerm?.isNotEmpty ?? false)
-        'Search: ${_filters.searchTerm}',
+    final activeDialogFilterLabels = <String>[
       if (_filters.analysisFilter != JobAnalysisFilterMode.all)
         _analysisFilterLabel(_filters.analysisFilter),
       if (_filters.hasQuestions != null)
@@ -73,6 +92,11 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         'Scoring ≤ ${_filters.maxAgeScoringHours}h old',
       if (_filters.maxAgeAiResponsesHours != null)
         'AI responses ≤ ${_filters.maxAgeAiResponsesHours}h old',
+    ];
+    final appliedFilterLabels = <String>[
+      if (_filters.searchTerm?.isNotEmpty ?? false)
+        'Search: ${_filters.searchTerm}',
+      ...activeDialogFilterLabels,
       _orderByLabel(context, _filters.orderBy),
     ];
 
@@ -99,6 +123,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         toolbar: JobListageToolbar(
           searchController: _searchController,
           currentOrderBy: _filters.orderBy,
+          activeFilterCount: activeDialogFilterLabels.length,
           onRefresh: () => _refreshList(resetReference: true, page: 1),
           onSearchSubmitted: _applySearch,
           onClearSearch: () {
@@ -174,11 +199,91 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
     await _refreshList(resetReference: true, page: 1);
   }
 
-  Future<void> _loadPage({bool resetReference = false, int? page}) async {
-    setState(() {
-      _isLoading = true;
-      _loadError = null;
-    });
+  Future<void> _subscribeToAutomationOverview() async {
+    await _automationOverviewSubscription?.cancel();
+    _automationOverviewSubscription = ref
+        .read(clientProvider)
+        .jobAutomation
+        .watchOverview()
+        .listen(
+          _handleAutomationOverview,
+          onError: (_, _) => _stopAutoRefreshPolling(),
+        );
+  }
+
+  void _handleAutomationOverview(JobAutomationOverview overview) {
+    final isActive = switch (overview.runtime.currentStep) {
+      JobAutomationStep.fetchingJobs ||
+      JobAutomationStep.generatingScores ||
+      JobAutomationStep.generatingProposals => true,
+      _ => false,
+    };
+
+    if (_isAutomationStepActive == isActive) {
+      return;
+    }
+
+    _isAutomationStepActive = isActive;
+    if (isActive &&
+        ref.read(jobListageLiveRefreshPreferencesProvider).isEnabled) {
+      _scheduleAutoRefresh(immediate: true);
+      return;
+    }
+
+    _stopAutoRefreshPolling();
+  }
+
+  void _scheduleAutoRefresh({bool immediate = false}) {
+    final preferences = ref.read(jobListageLiveRefreshPreferencesProvider);
+    if (!preferences.isEnabled) {
+      _stopAutoRefreshPolling();
+      return;
+    }
+
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = Timer(
+      immediate
+          ? Duration.zero
+          : Duration(seconds: preferences.intervalSeconds),
+      () async {
+        if (!mounted || !_isAutomationStepActive) {
+          return;
+        }
+
+        await _loadPage(
+          resetReference: true,
+          page: _pageData?.paginationMetadata.currentPage ?? 1,
+          showLoadingIndicator: false,
+        );
+
+        if (mounted && _isAutomationStepActive) {
+          _scheduleAutoRefresh();
+        }
+      },
+    );
+  }
+
+  void _stopAutoRefreshPolling() {
+    _autoRefreshTimer?.cancel();
+    _autoRefreshTimer = null;
+  }
+
+  Future<void> _loadPage({
+    bool resetReference = false,
+    int? page,
+    bool showLoadingIndicator = true,
+  }) async {
+    if (_isPageLoadInFlight) {
+      return;
+    }
+
+    _isPageLoadInFlight = true;
+    if (showLoadingIndicator) {
+      setState(() {
+        _isLoading = true;
+        _loadError = null;
+      });
+    }
 
     try {
       final request = JobAnalysisListFilter(
@@ -216,16 +321,23 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
           .syncWithVisibleItems(pageData.items);
       setState(() {
         _pageData = pageData;
-        _isLoading = false;
+        if (showLoadingIndicator) {
+          _isLoading = false;
+        }
+        _loadError = null;
       });
     } catch (error) {
       if (!mounted) {
         return;
       }
-      setState(() {
-        _loadError = error;
-        _isLoading = false;
-      });
+      if (showLoadingIndicator || _pageData == null) {
+        setState(() {
+          _loadError = error;
+          _isLoading = false;
+        });
+      }
+    } finally {
+      _isPageLoadInFlight = false;
     }
   }
 
@@ -388,7 +500,7 @@ class _LocalJobAnalysisFilters {
   const _LocalJobAnalysisFilters({
     this.searchTerm,
     this.analysisFilter = JobAnalysisFilterMode.all,
-    this.orderBy = JobAnalysisOrderBy.highestScore,
+    this.orderBy = JobAnalysisOrderBy.mostRecentJobInfoCreatedAt,
     this.hasQuestions,
     this.useScoreRange = false,
     this.minimumScorePercentage = 0,
@@ -530,11 +642,11 @@ JobAnalysisOrderBy _jobAnalysisOrderByFromJsonValue(Object? value) {
     try {
       return JobAnalysisOrderBy.fromJson(value);
     } on ArgumentError {
-      return JobAnalysisOrderBy.highestScore;
+      return JobAnalysisOrderBy.mostRecentJobInfoCreatedAt;
     }
   }
 
-  return JobAnalysisOrderBy.highestScore;
+  return JobAnalysisOrderBy.mostRecentJobInfoCreatedAt;
 }
 
 String _analysisFilterLabel(JobAnalysisFilterMode mode) {

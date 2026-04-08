@@ -57,6 +57,96 @@ class AppLocalizationsEn extends AppLocalizations {
       'Highest client total spent';
 
   @override
+  String get jobListLiveRefreshSettingTitle => 'Live refresh job list';
+
+  @override
+  String get jobListLiveRefreshSettingToggle => 'Enable';
+
+  @override
+  String get jobListLiveRefreshSettingDisabledDescription =>
+      'Keeps the job list on manual refresh only.';
+
+  @override
+  String jobListLiveRefreshSettingEnabledDescription(int seconds) {
+    return 'Refreshes the job list every $seconds seconds while the automation loop is running.';
+  }
+
+  @override
+  String get jobAutomationAiSettingsTitle => 'AI generation';
+
+  @override
+  String get jobAutomationAiSettingsDescription =>
+      'Choose the Codex model and thinking effort used for scoring and proposal generation.';
+
+  @override
+  String get jobAutomationAiModelLabel => 'Model';
+
+  @override
+  String get jobAutomationAiModelGpt54 => 'GPT-5.4';
+
+  @override
+  String get jobAutomationAiModelGpt54Mini => 'GPT-5.4 mini';
+
+  @override
+  String get jobAutomationThinkingEffortTitle => 'Thinking effort';
+
+  @override
+  String jobAutomationThinkingEffortDescription(Object model) {
+    return 'Controls the Codex model profile used for scoring and proposal generation. Current model: $model.';
+  }
+
+  @override
+  String get jobAutomationThinkingEffortLow => 'Low';
+
+  @override
+  String get jobAutomationThinkingEffortMedium => 'Medium';
+
+  @override
+  String get jobAutomationThinkingEffortHigh => 'High';
+
+  @override
+  String get jobAutomationThinkingEffortXhigh => 'Very high';
+
+  @override
+  String get jobAutomationStatusIdle =>
+      'Automation is idle until you resume job fetching.';
+
+  @override
+  String get jobAutomationStatusWaitingNextCycle =>
+      'Automation is active and waiting to queue the next loop cycle.';
+
+  @override
+  String get jobAutomationStatusFetchingJobs =>
+      'Getting more jobs from Upwork.';
+
+  @override
+  String get jobAutomationStatusGeneratingScores =>
+      'Generating compatibility scores for jobs without an AI score yet.';
+
+  @override
+  String get jobAutomationStatusGeneratingProposals =>
+      'Generating cover letters and question answers for the strongest matches.';
+
+  @override
+  String get jobAutomationStatusPaused =>
+      'Automation is paused. Resume job fetching to queue the next loop cycle.';
+
+  @override
+  String get jobAutomationStatusError =>
+      'Automation hit an error. The latest failure is shown below.';
+
+  @override
+  String jobAutomationStatusElapsedText(Object elapsed) {
+    return 'Current step elapsed time: $elapsed.';
+  }
+
+  @override
+  String get jobAutomationPauseButton => 'Pause job fetching';
+
+  @override
+  String get jobAutomationResumeButton => 'Resume job fetching';
+
+  @override
   String jobAnalysisHourlyFromLabel(Object amount) {
     return 'From $amount';
   }
@@ -222,6 +312,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String jobAnalysisMilestoneTitle(int index) {
     return 'Milestone $index';
   }
+
+  @override
+  String get jobAnalysisCopyMilestoneTitleTooltip => 'Copy milestone title';
+
+  @override
+  String get jobAnalysisMilestoneTitleCopied => 'Milestone title copied.';
+
+  @override
+  String get jobAnalysisCopyMilestoneSuggestedPriceTooltip =>
+      'Copy suggested value';
+
+  @override
+  String get jobAnalysisMilestoneSuggestedPriceCopied =>
+      'Suggested value copied.';
+
+  @override
+  String get jobAnalysisCopyMilestoneDescriptionTooltip =>
+      'Copy milestone description';
+
+  @override
+  String get jobAnalysisMilestoneDescriptionCopied =>
+      'Milestone description copied.';
 
   @override
   String get jobAnalysisAiAnswersSectionTitle => 'AI-generated answers';

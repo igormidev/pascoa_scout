@@ -9,6 +9,8 @@ fields:
   upworkSyncResultsPerPage: int
   proposalMinimumScorePercentage: int
   loopDelayMinutes: int
+  aiModel: JobAutomationAiModel?
+  aiThinkingEffort: JobAutomationAiThinkingEffort?
   updatedAt: DateTime
 indexes:
   job_automation_settings_singleton_key_unique_idx:

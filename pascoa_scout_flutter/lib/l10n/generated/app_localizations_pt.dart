@@ -60,6 +60,97 @@ class AppLocalizationsPt extends AppLocalizations {
       'Maior total gasto pelo cliente';
 
   @override
+  String get jobListLiveRefreshSettingTitle =>
+      'Atualização automática da lista';
+
+  @override
+  String get jobListLiveRefreshSettingToggle => 'Ativar';
+
+  @override
+  String get jobListLiveRefreshSettingDisabledDescription =>
+      'Mantém a lista de vagas apenas com atualização manual.';
+
+  @override
+  String jobListLiveRefreshSettingEnabledDescription(int seconds) {
+    return 'Atualiza a lista de vagas a cada $seconds segundos enquanto o loop de automação estiver rodando.';
+  }
+
+  @override
+  String get jobAutomationAiSettingsTitle => 'Geração por IA';
+
+  @override
+  String get jobAutomationAiSettingsDescription =>
+      'Escolha o modelo do Codex e o esforço de raciocínio usados para pontuação e geração de propostas.';
+
+  @override
+  String get jobAutomationAiModelLabel => 'Modelo';
+
+  @override
+  String get jobAutomationAiModelGpt54 => 'GPT-5.4';
+
+  @override
+  String get jobAutomationAiModelGpt54Mini => 'GPT-5.4 mini';
+
+  @override
+  String get jobAutomationThinkingEffortTitle => 'Esforço de raciocínio';
+
+  @override
+  String jobAutomationThinkingEffortDescription(Object model) {
+    return 'Controla o perfil de modelo do Codex usado para pontuação e geração de propostas. Modelo atual: $model.';
+  }
+
+  @override
+  String get jobAutomationThinkingEffortLow => 'Baixo';
+
+  @override
+  String get jobAutomationThinkingEffortMedium => 'Médio';
+
+  @override
+  String get jobAutomationThinkingEffortHigh => 'Alto';
+
+  @override
+  String get jobAutomationThinkingEffortXhigh => 'Muito alto';
+
+  @override
+  String get jobAutomationStatusIdle =>
+      'A automação fica inativa até você retomar a busca de vagas.';
+
+  @override
+  String get jobAutomationStatusWaitingNextCycle =>
+      'A automação está ativa e aguardando o próximo ciclo da fila.';
+
+  @override
+  String get jobAutomationStatusFetchingJobs =>
+      'Buscando mais vagas na Upwork.';
+
+  @override
+  String get jobAutomationStatusGeneratingScores =>
+      'Gerando pontuações de compatibilidade para vagas que ainda não têm nota da IA.';
+
+  @override
+  String get jobAutomationStatusGeneratingProposals =>
+      'Gerando cartas de apresentação e respostas para as melhores vagas.';
+
+  @override
+  String get jobAutomationStatusPaused =>
+      'A automação está pausada. Retome a busca de vagas para enfileirar o próximo ciclo.';
+
+  @override
+  String get jobAutomationStatusError =>
+      'A automação encontrou um erro. A falha mais recente aparece abaixo.';
+
+  @override
+  String jobAutomationStatusElapsedText(Object elapsed) {
+    return 'Tempo decorrido da etapa atual: $elapsed.';
+  }
+
+  @override
+  String get jobAutomationPauseButton => 'Pausar busca de vagas';
+
+  @override
+  String get jobAutomationResumeButton => 'Retomar busca de vagas';
+
+  @override
   String jobAnalysisHourlyFromLabel(Object amount) {
     return 'A partir de $amount';
   }
@@ -229,6 +320,28 @@ class AppLocalizationsPt extends AppLocalizations {
   String jobAnalysisMilestoneTitle(int index) {
     return 'Marco $index';
   }
+
+  @override
+  String get jobAnalysisCopyMilestoneTitleTooltip => 'Copiar título do marco';
+
+  @override
+  String get jobAnalysisMilestoneTitleCopied => 'Título do marco copiado.';
+
+  @override
+  String get jobAnalysisCopyMilestoneSuggestedPriceTooltip =>
+      'Copiar valor sugerido';
+
+  @override
+  String get jobAnalysisMilestoneSuggestedPriceCopied =>
+      'Valor sugerido copiado.';
+
+  @override
+  String get jobAnalysisCopyMilestoneDescriptionTooltip =>
+      'Copiar descrição do marco';
+
+  @override
+  String get jobAnalysisMilestoneDescriptionCopied =>
+      'Descrição do marco copiada.';
 
   @override
   String get jobAnalysisAiAnswersSectionTitle => 'Respostas geradas por IA';

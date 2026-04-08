@@ -2,6 +2,7 @@ import 'package:result_dart/result_dart.dart';
 import 'package:serverpod/serverpod.dart';
 
 import '../core/job_automation_constants.dart';
+import '../core/job_automation_logging.dart';
 import '../core/pascoa_result.dart';
 import '../generated/protocol.dart';
 
@@ -14,7 +15,8 @@ class JobAutomationService {
     try {
       final settings = await _getOrCreateSettingsInternal(session);
       final runtime = await _getOrCreateRuntimeInternal(session);
-      final overview = JobAutomationOverview(
+      final overview = await _buildOverview(
+        session,
         settings: settings,
         runtime: runtime,
       );
@@ -86,6 +88,8 @@ class JobAutomationService {
         upworkSyncResultsPerPage: update.upworkSyncResultsPerPage,
         proposalMinimumScorePercentage: update.proposalMinimumScorePercentage,
         loopDelayMinutes: update.loopDelayMinutes,
+        aiModel: update.aiModel,
+        aiThinkingEffort: update.aiThinkingEffort,
         updatedAt: DateTime.now().toUtc(),
       );
       final persisted = await JobAutomationSettings.db.updateRow(
@@ -93,10 +97,13 @@ class JobAutomationService {
         updated,
       );
       final runtime = await _getOrCreateRuntimeInternal(session);
-      await _publishOverview(session, persisted, runtime);
-      return Success(
-        JobAutomationOverview(settings: persisted, runtime: runtime),
+      final overview = await _buildOverview(
+        session,
+        settings: persisted,
+        runtime: runtime,
       );
+      await _publishOverview(session, overview);
+      return Success(overview);
     } catch (error, stackTrace) {
       return Failure(
         _buildException(
@@ -125,10 +132,12 @@ class JobAutomationService {
         updated,
       );
       final runtime = await _getOrCreateRuntimeInternal(session);
-      await _publishOverview(session, persisted, runtime);
-      return Success(
-        JobAutomationOverview(settings: persisted, runtime: runtime),
+      final overview = await _buildOverview(
+        session,
+        settings: persisted,
+        runtime: runtime,
       );
+      return Success(overview);
     } catch (error, stackTrace) {
       return Failure(
         _buildException(
@@ -158,7 +167,12 @@ class JobAutomationService {
         updated,
       );
       final settings = await _getOrCreateSettingsInternal(session);
-      await _publishOverview(session, settings, persisted);
+      final overview = await _buildOverview(
+        session,
+        settings: settings,
+        runtime: persisted,
+      );
+      await _publishOverview(session, overview);
       return Success(persisted);
     } catch (error, stackTrace) {
       return Failure(
@@ -243,7 +257,13 @@ class JobAutomationService {
         updated,
       );
       final settings = await _getOrCreateSettingsInternal(session);
-      await _publishOverview(session, settings, persisted);
+      final overview = await _buildOverview(
+        session,
+        settings: settings,
+        runtime: persisted,
+      );
+      await _publishOverview(session, overview);
+      logAutomation(session, 'error', message);
       return Success(persisted);
     } catch (error, stackTrace) {
       return Failure(
@@ -280,6 +300,8 @@ class JobAutomationService {
         upworkSyncResultsPerPage: defaultUpworkSyncResultsPerPage,
         proposalMinimumScorePercentage: defaultProposalMinimumScorePercentage,
         loopDelayMinutes: defaultLoopDelayMinutes,
+        aiModel: JobAutomationAiModel.gpt54,
+        aiThinkingEffort: JobAutomationAiThinkingEffort.xhigh,
         updatedAt: DateTime.now().toUtc(),
       ),
     );
@@ -325,7 +347,12 @@ class JobAutomationService {
         update(runtime, now),
       );
       final settings = await _getOrCreateSettingsInternal(session);
-      await _publishOverview(session, settings, persisted);
+      final overview = await _buildOverview(
+        session,
+        settings: settings,
+        runtime: persisted,
+      );
+      await _publishOverview(session, overview);
       return Success(persisted);
     } catch (error, stackTrace) {
       return Failure(
@@ -374,13 +401,104 @@ class JobAutomationService {
 
   Future<void> _publishOverview(
     Session session,
-    JobAutomationSettings settings,
-    JobAutomationRuntime runtime,
+    JobAutomationOverview overview,
   ) async {
     await session.messages.postMessage(
       jobAutomationOverviewChannel,
-      JobAutomationOverview(settings: settings, runtime: runtime),
+      overview,
     );
+  }
+
+  Future<PascoaResult<JobAutomationOverview>> publishCurrentOverview(
+    Session session,
+  ) async {
+    try {
+      final settings = await _getOrCreateSettingsInternal(session);
+      final runtime = await _getOrCreateRuntimeInternal(session);
+      final overview = await _buildOverview(
+        session,
+        settings: settings,
+        runtime: runtime,
+      );
+      await _publishOverview(session, overview);
+      return Success(overview);
+    } catch (error, stackTrace) {
+      return Failure(
+        _buildException(
+          message: 'Unable to publish automation overview',
+          description:
+              'The server could not publish the latest automation overview to subscribers.',
+          error: error,
+          stackTrace: stackTrace,
+        ),
+      );
+    }
+  }
+
+  Future<JobAutomationOverview> _buildOverview(
+    Session session, {
+    required JobAutomationSettings settings,
+    required JobAutomationRuntime runtime,
+  }) async {
+    return JobAutomationOverview(
+      settings: settings,
+      runtime: runtime,
+      isLoopActive: await _computeIsLoopActive(
+        session,
+        settings: settings,
+        runtime: runtime,
+      ),
+    );
+  }
+
+  Future<bool> _computeIsLoopActive(
+    Session session, {
+    required JobAutomationSettings settings,
+    required JobAutomationRuntime runtime,
+  }) async {
+    if (settings.isJobFetchingPaused) {
+      return false;
+    }
+
+    if (_isRuntimeStepActive(runtime.currentStep)) {
+      return true;
+    }
+
+    return _hasScheduledAutomationFutureCalls(session);
+  }
+
+  bool _isRuntimeStepActive(JobAutomationStep step) {
+    return switch (step) {
+      JobAutomationStep.fetchingJobs ||
+      JobAutomationStep.generatingScores ||
+      JobAutomationStep.generatingProposals => true,
+      _ => false,
+    };
+  }
+
+  Future<bool> _hasScheduledAutomationFutureCalls(Session session) async {
+    final rows = await session.db.unsafeQuery(
+      '''
+      SELECT COUNT(*)::int
+      FROM serverpod_future_call
+      WHERE identifier IN (
+        @syncIdentifier,
+        @scoreIdentifier,
+        @proposalIdentifier
+      )
+      ''',
+      parameters: QueryParameters.named({
+        'syncIdentifier': jobAutomationSyncFutureCallIdentifier,
+        'scoreIdentifier': jobAutomationScoreFutureCallIdentifier,
+        'proposalIdentifier': jobAutomationProposalFutureCallIdentifier,
+      }),
+    );
+
+    if (rows.isEmpty) {
+      return false;
+    }
+
+    return (rows.first[0] as int) > 0;
   }
 
   PascoaException _buildException({

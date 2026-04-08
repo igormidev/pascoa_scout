@@ -1,6 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
 import '../core/job_automation_constants.dart';
+import '../core/job_automation_logging.dart';
 import '../generated/protocol.dart';
 import '../services/job_automation_loop_scheduler.dart';
 import '../services/job_automation_service.dart';
@@ -50,7 +51,7 @@ class JobAutomationEndpoint extends Endpoint {
       isPaused: isPaused,
     );
 
-    final overview = result.fold((value) => value, (error) => throw error);
+    result.fold((_) {}, (error) => throw error);
     if (isPaused) {
       await _scheduler.cancelAll(
         session,
@@ -64,14 +65,10 @@ class JobAutomationEndpoint extends Endpoint {
         session,
         JobAutomationStep.pausedWaiting,
       );
-      final runtime = runtimeResult.fold(
-        (value) => value,
-        (error) => throw error,
-      );
-      return JobAutomationOverview(
-        settings: overview.settings,
-        runtime: runtime,
-      );
+      runtimeResult.fold((_) {}, (error) => throw error);
+      logAutomation(session, 'control', 'job fetching paused');
+      final overviewResult = await _service.getOverview(session);
+      return overviewResult.fold((value) => value, (error) => throw error);
     }
 
     await _scheduler.reschedule(
@@ -81,6 +78,8 @@ class JobAutomationEndpoint extends Endpoint {
       delay: Duration.zero,
     );
 
-    return overview;
+    logAutomation(session, 'control', 'job fetching resumed');
+    final overviewResult = await _service.publishCurrentOverview(session);
+    return overviewResult.fold((value) => value, (error) => throw error);
   }
 }
