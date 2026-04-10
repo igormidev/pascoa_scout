@@ -1,5 +1,15 @@
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
+enum JobAutomationStatusKind {
+  idle,
+  waitingNextCycle,
+  fetchingJobs,
+  generatingScores,
+  generatingProposals,
+  paused,
+  error,
+}
+
 class JobSyncState {
   const JobSyncState({
     required this.isBusy,
@@ -26,8 +36,10 @@ class JobSyncState {
   JobAutomationRuntime? get runtime => overview?.runtime;
 
   bool get isRunning => overview?.isLoopActive ?? false;
+  bool get isPaused => settings?.isJobFetchingPaused ?? false;
   bool get isPulling => currentStep == JobAutomationStep.fetchingJobs;
   bool get isLocked => isBusy || isRunning;
+  bool get shouldShowPauseAction => isRunning && !isPaused;
 
   int get intervalMinutes => settings?.loopDelayMinutes ?? 5;
   int get scoreBatchSize => settings?.scoreBatchSize ?? 20;
@@ -47,6 +59,28 @@ class JobSyncState {
   DateTime? get lastPullStartedAt =>
       isPulling ? runtime?.currentStepStartedAt : null;
   DateTime? get lastPullSucceededAt => runtime?.lastSuccessfulJobSyncAt;
+  JobAutomationStatusKind get statusKind {
+    if (isPaused && currentStep == JobAutomationStep.pausedWaiting) {
+      return JobAutomationStatusKind.paused;
+    }
+
+    return switch ((currentStep, isRunning)) {
+      (JobAutomationStep.idle, true) ||
+      (
+        JobAutomationStep.pausedWaiting,
+        true,
+      ) => JobAutomationStatusKind.waitingNextCycle,
+      (JobAutomationStep.idle, false) ||
+      (JobAutomationStep.pausedWaiting, false) => JobAutomationStatusKind.idle,
+      (JobAutomationStep.fetchingJobs, _) =>
+        JobAutomationStatusKind.fetchingJobs,
+      (JobAutomationStep.generatingScores, _) =>
+        JobAutomationStatusKind.generatingScores,
+      (JobAutomationStep.generatingProposals, _) =>
+        JobAutomationStatusKind.generatingProposals,
+      (JobAutomationStep.error, _) => JobAutomationStatusKind.error,
+    };
+  }
 
   JobSyncState copyWith({
     bool? isBusy,

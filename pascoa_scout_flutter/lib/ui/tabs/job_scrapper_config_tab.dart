@@ -1237,31 +1237,26 @@ class _CompactAutomationStatusCard extends ConsumerWidget {
     final syncState = ref.watch(
       jobSyncControllerProvider.select(
         (state) => (
-          currentStep: state.currentStep,
+          statusKind: state.statusKind,
           currentStepStartedAt: state.currentStepStartedAt,
           isPulling: state.isPulling,
           isBusy: state.isBusy,
-          isRunning: state.isRunning,
         ),
       ),
     );
 
-    final stepCopy = switch ((syncState.currentStep, syncState.isRunning)) {
-      (JobAutomationStep.idle, true) ||
-      (
-        JobAutomationStep.pausedWaiting,
-        true,
-      ) => l10n.jobAutomationStatusWaitingNextCycle,
-      (JobAutomationStep.idle, false) => l10n.jobAutomationStatusIdle,
-      (JobAutomationStep.fetchingJobs, _) =>
+    final stepCopy = switch (syncState.statusKind) {
+      JobAutomationStatusKind.idle => l10n.jobAutomationStatusIdle,
+      JobAutomationStatusKind.waitingNextCycle =>
+        l10n.jobAutomationStatusWaitingNextCycle,
+      JobAutomationStatusKind.fetchingJobs =>
         l10n.jobAutomationStatusFetchingJobs,
-      (JobAutomationStep.generatingScores, _) =>
+      JobAutomationStatusKind.generatingScores =>
         l10n.jobAutomationStatusGeneratingScores,
-      (JobAutomationStep.generatingProposals, _) =>
+      JobAutomationStatusKind.generatingProposals =>
         l10n.jobAutomationStatusGeneratingProposals,
-      (JobAutomationStep.pausedWaiting, false) =>
-        l10n.jobAutomationStatusPaused,
-      (JobAutomationStep.error, _) => l10n.jobAutomationStatusError,
+      JobAutomationStatusKind.paused => l10n.jobAutomationStatusPaused,
+      JobAutomationStatusKind.error => l10n.jobAutomationStatusError,
     };
 
     final elapsedText = syncState.currentStepStartedAt == null
@@ -1296,7 +1291,10 @@ class _CompactAutomationToggleButton extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final snapshot = ref.watch(
       jobSyncControllerProvider.select(
-        (state) => (isRunning: state.isRunning, isBusy: state.isBusy),
+        (state) => (
+          shouldShowPauseAction: state.shouldShowPauseAction,
+          isBusy: state.isBusy,
+        ),
       ),
     );
 
@@ -1306,19 +1304,19 @@ class _CompactAutomationToggleButton extends ConsumerWidget {
         onPressed: snapshot.isBusy
             ? null
             : () {
-                if (snapshot.isRunning) {
+                if (snapshot.shouldShowPauseAction) {
                   ref.read(jobSyncControllerProvider.notifier).stopSync();
                 } else {
                   ref.read(jobSyncControllerProvider.notifier).startSync();
                 }
               },
         icon: Icon(
-          snapshot.isRunning
+          snapshot.shouldShowPauseAction
               ? Icons.pause_circle_rounded
               : Icons.play_circle_fill_rounded,
         ),
         label: Text(
-          snapshot.isRunning
+          snapshot.shouldShowPauseAction
               ? l10n.jobAutomationPauseButton
               : l10n.jobAutomationResumeButton,
         ),
