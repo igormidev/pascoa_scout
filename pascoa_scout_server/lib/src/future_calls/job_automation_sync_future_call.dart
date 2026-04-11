@@ -31,10 +31,10 @@ class JobAutomationSyncFutureCall extends FutureCall {
     );
 
     if (settings.jobFilter.searchQueryTerm.trim().isEmpty) {
-      logAutomation(
+      logAutomationDone(
         session,
-        'sync',
-        'skipped: server-side filter search query is empty',
+        AutomationLogScope.sync,
+        'step fetch skipped | reason=empty server filter query',
       );
       await _automationService.markError(
         session,
@@ -43,15 +43,24 @@ class JobAutomationSyncFutureCall extends FutureCall {
       );
       await _scheduler.reschedule(
         session,
-        callName: jobAutomationScoreFutureCallName,
-        identifier: jobAutomationScoreFutureCallIdentifier,
+        callName: jobAutomationSyncFutureCallName,
+        identifier: jobAutomationSyncFutureCallIdentifier,
         delay: Duration(minutes: settings.loopDelayMinutes),
+      );
+      logAutomationStart(
+        session,
+        AutomationLogScope.loop,
+        'sync step queued | delay=${settings.loopDelayMinutes}m reason=empty-query',
       );
       return;
     }
 
     if (settings.isJobFetchingPaused) {
-      logAutomation(session, 'sync', 'skipped: job fetching is paused');
+      logAutomationDone(
+        session,
+        AutomationLogScope.sync,
+        'step fetch skipped | reason=paused',
+      );
       await _automationService.setCurrentStep(
         session,
         JobAutomationStep.pausedWaiting,
@@ -63,20 +72,35 @@ class JobAutomationSyncFutureCall extends FutureCall {
       session,
       JobAutomationStep.fetchingJobs,
     );
-    logAutomation(
+    logAutomationStart(
       session,
-      'sync',
-      'starting fetch (resultsPerPage=${settings.upworkSyncResultsPerPage}, query="${summarizeAutomationQuery(settings.jobFilter.searchQueryTerm)}")',
+      AutomationLogScope.sync,
+      'step fetch started | perPage=${settings.upworkSyncResultsPerPage} query="${summarizeAutomationQuery(settings.jobFilter.searchQueryTerm)}"',
     );
     final syncResult = await _syncService.syncLatestJobs(
       session,
       filter: settings.jobFilter,
       resultsPerPage: settings.upworkSyncResultsPerPage,
     );
-    await syncResult.fold(
-      (_) => _automationService.markJobSyncSuccess(session),
-      (error) => _automationService.markError(session, message: error.message),
+
+    final processedCount = await syncResult.fold(
+      (count) async {
+        await _automationService.markJobSyncSuccess(session);
+        return count;
+      },
+      (error) async {
+        logAutomationFail(
+          session,
+          AutomationLogScope.sync,
+          'step fetch failed | ${error.message}',
+        );
+        await _automationService.markError(session, message: error.message);
+        return null;
+      },
     );
+    if (processedCount == null) {
+      return;
+    }
 
     final latestSettingsResult = await _automationService.getOrCreateSettings(
       session,
@@ -86,10 +110,10 @@ class JobAutomationSyncFutureCall extends FutureCall {
       (error) => throw error,
     );
     if (latestSettings.isJobFetchingPaused) {
-      logAutomation(
+      logAutomationDone(
         session,
-        'sync',
-        'paused after fetch; next step not queued',
+        AutomationLogScope.sync,
+        'step fetch finished | jobs=$processedCount next=none reason=paused',
       );
       await _automationService.setCurrentStep(
         session,
@@ -102,12 +126,17 @@ class JobAutomationSyncFutureCall extends FutureCall {
       session,
       callName: jobAutomationScoreFutureCallName,
       identifier: jobAutomationScoreFutureCallIdentifier,
-      delay: Duration(minutes: latestSettings.loopDelayMinutes),
+      delay: Duration.zero,
     );
-    logAutomation(
+    logAutomationDone(
       session,
-      'loop',
-      'queued score step in ${latestSettings.loopDelayMinutes} minute(s)',
+      AutomationLogScope.sync,
+      'step fetch finished | jobs=$processedCount next=score delay=0m',
+    );
+    logAutomationStart(
+      session,
+      AutomationLogScope.loop,
+      'score step queued | delay=0m',
     );
   }
 }

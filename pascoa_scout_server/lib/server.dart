@@ -4,6 +4,7 @@ import 'package:serverpod/serverpod.dart';
 import 'package:serverpod_auth_idp_server/core.dart';
 import 'package:serverpod_auth_idp_server/providers/email.dart';
 
+import 'src/core/job_automation_logging.dart';
 import 'src/future_calls/job_automation_proposal_future_call.dart';
 import 'src/future_calls/job_automation_score_future_call.dart';
 import 'src/future_calls/job_automation_sync_future_call.dart';
@@ -74,6 +75,8 @@ void run(List<String> args) async {
     JobAutomationProposalFutureCall(),
     'jobAutomationProposalFutureCall',
   );
+
+  printAutomationLogLegend();
 
   // Start the server.
   await pod.start();

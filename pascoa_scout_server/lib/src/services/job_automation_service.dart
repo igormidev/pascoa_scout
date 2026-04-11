@@ -263,7 +263,7 @@ class JobAutomationService {
         runtime: persisted,
       );
       await _publishOverview(session, overview);
-      logAutomation(session, 'error', message);
+      logAutomationFail(session, AutomationLogScope.error, message);
       return Success(persisted);
     } catch (error, stackTrace) {
       return Failure(

@@ -19,10 +19,20 @@ class JobUpworkSyncService {
     required int resultsPerPage,
   }) async {
     try {
+      logAutomationStart(
+        session,
+        AutomationLogScope.sync,
+        'provider request started | perPage=$resultsPerPage query="${summarizeAutomationQuery(filter.searchQueryTerm)}"',
+      );
       final repository = _repository;
       if (repository == null) {
         final apifyToken = Serverpod.instance.getPassword('apifyToken');
         if (apifyToken == null || apifyToken.isEmpty) {
+          logAutomationFail(
+            session,
+            AutomationLogScope.sync,
+            'provider request failed | missing Apify token',
+          );
           return Failure(
             PascoaException(
               message: 'Missing Apify token',
@@ -47,6 +57,11 @@ class JobUpworkSyncService {
         resultsPerPage: resultsPerPage,
       );
     } catch (error, stackTrace) {
+      logAutomationFail(
+        session,
+        AutomationLogScope.sync,
+        'provider request failed | ${error.runtimeType}',
+      );
       return Failure(
         PascoaException(
           message: 'Unable to synchronize Upwork jobs',
@@ -80,27 +95,43 @@ class JobUpworkSyncService {
         var processedCount = 0;
         var insertedCount = 0;
         var refreshedCount = 0;
-        logAutomation(
+        logAutomationDone(
           session,
-          'sync',
-          'received ${jobs.length} job(s) from the Upwork provider',
+          AutomationLogScope.sync,
+          'provider request finished | received=${jobs.length}',
         );
 
         for (final job in jobs) {
-          final outcome = await _upsertJob(session, job);
+          final jobLabel = formatAutomationJobLabel(job);
+          final questionCount = job.questions?.length ?? 0;
+          logAutomationStart(
+            session,
+            AutomationLogScope.sync,
+            '$jobLabel upsert started | questions=$questionCount',
+          );
+          final summary = await _upsertJob(session, job);
           processedCount += 1;
-          switch (outcome) {
+          switch (summary.outcome) {
             case _JobUpsertOutcome.inserted:
               insertedCount += 1;
             case _JobUpsertOutcome.updated:
               refreshedCount += 1;
           }
+          final questionSummary = summary.questionSyncSummary;
+          final questionText = questionSummary == null
+              ? 'questions=unchanged'
+              : 'questions=changed inserted=${questionSummary.inserted} updated=${questionSummary.updated} deleted=${questionSummary.deleted}';
+          logAutomationDone(
+            session,
+            AutomationLogScope.sync,
+            '$jobLabel upsert finished | status=${summary.outcome.name} $questionText proposalReset=${summary.proposalReset}',
+          );
         }
 
-        logAutomation(
+        logAutomationDone(
           session,
-          'sync',
-          'synchronized $processedCount job(s) (new=$insertedCount, refreshed=$refreshedCount)',
+          AutomationLogScope.sync,
+          'job sync finished | processed=$processedCount new=$insertedCount refreshed=$refreshedCount',
         );
 
         return Success(processedCount);
@@ -109,7 +140,7 @@ class JobUpworkSyncService {
     );
   }
 
-  Future<_JobUpsertOutcome> _upsertJob(
+  Future<_JobUpsertSummary> _upsertJob(
     Session session,
     JobInfo incomingJob,
   ) async {
@@ -123,7 +154,15 @@ class JobUpworkSyncService {
 
       if (existingJob == null) {
         await _insertNewJob(session, incomingJob, transaction);
-        return _JobUpsertOutcome.inserted;
+        return _JobUpsertSummary(
+          outcome: _JobUpsertOutcome.inserted,
+          proposalReset: false,
+          questionSyncSummary: _QuestionSyncSummary(
+            inserted: incomingJob.questions?.length ?? 0,
+            updated: 0,
+            deleted: 0,
+          ),
+        );
       }
 
       final existingAnalysisState = await JobAnalysisState.db.findFirstRow(
@@ -133,7 +172,7 @@ class JobUpworkSyncService {
         lockMode: LockMode.forUpdate,
       );
 
-      await _updateExistingJob(
+      final updateSummary = await _updateExistingJob(
         session,
         existingJob: existingJob,
         existingAnalysisState: existingAnalysisState,
@@ -141,7 +180,11 @@ class JobUpworkSyncService {
         transaction: transaction,
       );
 
-      return _JobUpsertOutcome.updated;
+      return _JobUpsertSummary(
+        outcome: _JobUpsertOutcome.updated,
+        proposalReset: updateSummary.proposalReset,
+        questionSyncSummary: updateSummary.questionSyncSummary,
+      );
     });
   }
 
@@ -180,7 +223,7 @@ class JobUpworkSyncService {
     }
   }
 
-  Future<void> _updateExistingJob(
+  Future<_JobUpdateSummary> _updateExistingJob(
     Session session, {
     required JobInfo existingJob,
     required JobAnalysisState? existingAnalysisState,
@@ -234,6 +277,8 @@ class JobUpworkSyncService {
       ...?incomingJob.questions,
     ]..sort((left, right) => left.positionIndex.compareTo(right.positionIndex));
 
+    var proposalReset = false;
+    _QuestionSyncSummary? questionSyncSummary;
     if (_didQuestionsChange(
       existingQuestions: existingQuestions,
       incomingQuestions: incomingQuestions,
@@ -243,8 +288,9 @@ class JobUpworkSyncService {
         existingAnalysisState: existingAnalysisState,
         transaction: transaction,
       );
+      proposalReset = true;
 
-      await _syncQuestions(
+      questionSyncSummary = await _syncQuestions(
         session,
         jobInfoId: jobId,
         existingQuestions: existingQuestions,
@@ -263,6 +309,11 @@ class JobUpworkSyncService {
         transaction: transaction,
       );
     }
+
+    return _JobUpdateSummary(
+      proposalReset: proposalReset,
+      questionSyncSummary: questionSyncSummary,
+    );
   }
 
   bool _didQuestionsChange({
@@ -330,7 +381,7 @@ class JobUpworkSyncService {
     }
   }
 
-  Future<void> _syncQuestions(
+  Future<_QuestionSyncSummary> _syncQuestions(
     Session session, {
     required int jobInfoId,
     required List<Question> existingQuestions,
@@ -392,10 +443,50 @@ class JobUpworkSyncService {
         transaction: transaction,
       );
     }
+
+    return _QuestionSyncSummary(
+      inserted: questionsToInsert.length,
+      updated: questionsToUpdate.length,
+      deleted: questionsToDelete.length,
+    );
   }
 }
 
 enum _JobUpsertOutcome {
   inserted,
   updated,
+}
+
+class _JobUpsertSummary {
+  const _JobUpsertSummary({
+    required this.outcome,
+    required this.proposalReset,
+    required this.questionSyncSummary,
+  });
+
+  final _JobUpsertOutcome outcome;
+  final bool proposalReset;
+  final _QuestionSyncSummary? questionSyncSummary;
+}
+
+class _JobUpdateSummary {
+  const _JobUpdateSummary({
+    required this.proposalReset,
+    required this.questionSyncSummary,
+  });
+
+  final bool proposalReset;
+  final _QuestionSyncSummary? questionSyncSummary;
+}
+
+class _QuestionSyncSummary {
+  const _QuestionSyncSummary({
+    required this.inserted,
+    required this.updated,
+    required this.deleted,
+  });
+
+  final int inserted;
+  final int updated;
+  final int deleted;
 }

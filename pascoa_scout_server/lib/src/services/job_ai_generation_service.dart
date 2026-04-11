@@ -49,34 +49,36 @@ class JobAiGenerationService {
             include: buildJobAnalysisStateInclude(),
           );
           if (candidates.isEmpty) {
-            logAutomation(
+            logAutomationDone(
               session,
-              'score',
-              'no jobs are waiting for score generation',
+              AutomationLogScope.score,
+              'batch skipped | no score candidates',
             );
             return Success(0);
           }
-          logAutomation(
+          logAutomationStart(
             session,
-            'score',
-            'processing ${candidates.length} job(s) that are missing scores',
+            AutomationLogScope.score,
+            'batch queued | jobs=${candidates.length} concurrency=$maxConcurrentAiExecutions',
           );
 
           final results = await _orchestrator.runQueued(
-            candidates.map(
-              (candidate) =>
-                  () => _withTaskSession<int>(
+            [
+              for (var index = 0; index < candidates.length; index++)
+                () => _withTaskSession<int>(
+                  session,
+                  (taskSession) => _generateScoreForAnalysis(
+                    taskSession,
                     session,
-                    (taskSession) => _generateScoreForAnalysis(
-                      taskSession,
-                      session,
-                      candidate,
-                      knowledge,
-                      aiModel,
-                      aiThinkingEffort,
-                    ),
+                    candidates[index],
+                    knowledge,
+                    aiModel,
+                    aiThinkingEffort,
+                    queueIndex: index + 1,
+                    totalJobs: candidates.length,
                   ),
-            ),
+                ),
+            ],
             concurrency: maxConcurrentAiExecutions,
           );
 
@@ -84,10 +86,10 @@ class JobAiGenerationService {
           for (final result in results) {
             result.fold((_) => successCount += 1, (_) {});
           }
-          logAutomation(
+          logAutomationDone(
             session,
-            'score',
-            'completed $successCount/${results.length} score generation(s)',
+            AutomationLogScope.score,
+            'batch finished | generated=$successCount/${results.length}',
           );
           return Success(successCount);
         } catch (error, stackTrace) {
@@ -133,34 +135,36 @@ class JobAiGenerationService {
             include: buildJobAnalysisStateInclude(),
           );
           if (candidates.isEmpty) {
-            logAutomation(
+            logAutomationDone(
               session,
-              'proposal',
-              'no jobs are waiting for proposal generation',
+              AutomationLogScope.proposal,
+              'batch skipped | no proposal candidates',
             );
             return Success(0);
           }
-          logAutomation(
+          logAutomationStart(
             session,
-            'proposal',
-            'processing ${candidates.length} job(s) that are missing proposals',
+            AutomationLogScope.proposal,
+            'batch queued | jobs=${candidates.length} concurrency=$maxConcurrentAiExecutions minScore=$minimumScorePercentage',
           );
 
           final results = await _orchestrator.runQueued(
-            candidates.map(
-              (candidate) =>
-                  () => _withTaskSession<int>(
+            [
+              for (var index = 0; index < candidates.length; index++)
+                () => _withTaskSession<int>(
+                  session,
+                  (taskSession) => _generateProposalForAnalysis(
+                    taskSession,
                     session,
-                    (taskSession) => _generateProposalForAnalysis(
-                      taskSession,
-                      session,
-                      candidate,
-                      knowledge,
-                      aiModel,
-                      aiThinkingEffort,
-                    ),
+                    candidates[index],
+                    knowledge,
+                    aiModel,
+                    aiThinkingEffort,
+                    queueIndex: index + 1,
+                    totalJobs: candidates.length,
                   ),
-            ),
+                ),
+            ],
             concurrency: maxConcurrentAiExecutions,
           );
 
@@ -168,10 +172,10 @@ class JobAiGenerationService {
           for (final result in results) {
             result.fold((_) => successCount += 1, (_) {});
           }
-          logAutomation(
+          logAutomationDone(
             session,
-            'proposal',
-            'completed $successCount/${results.length} proposal generation(s)',
+            AutomationLogScope.proposal,
+            'batch finished | generated=$successCount/${results.length}',
           );
           return Success(successCount);
         } catch (error, stackTrace) {
@@ -196,12 +200,26 @@ class JobAiGenerationService {
     JobAnalysisState analysis,
     JobKnowledgeBundle knowledge,
     JobAutomationAiModel aiModel,
-    JobAutomationAiThinkingEffort aiThinkingEffort,
-  ) async {
+    JobAutomationAiThinkingEffort aiThinkingEffort, {
+    required int queueIndex,
+    required int totalJobs,
+  }) async {
     final validationError = _validateAnalysis(analysis);
+    final analysisLabel = formatAutomationAnalysisLabel(analysis);
     if (validationError != null) {
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.score,
+        '$analysisLabel queue=$queueIndex/$totalJobs failed | ${validationError.message}',
+      );
       return Failure(validationError);
     }
+
+    logAutomationStart(
+      logSession,
+      AutomationLogScope.score,
+      '$analysisLabel queue=$queueIndex/$totalJobs started',
+    );
 
     try {
       final workDirectory = await _prepareWorkDirectory(
@@ -294,20 +312,39 @@ Scoring rules:
                   transaction: transaction,
                 );
               });
-              logAutomation(
+              logAutomationDone(
                 logSession,
-                'score',
-                '${formatAutomationAnalysisLabel(analysis)} score=${parsed.scorePercentage}',
+                AutomationLogScope.score,
+                '$analysisLabel queue=$queueIndex/$totalJobs finished | score=${parsed.scorePercentage}',
               );
 
               return Success(1);
             },
-            (error) async => Failure(error),
+            (error) async {
+              logAutomationFail(
+                logSession,
+                AutomationLogScope.score,
+                '$analysisLabel queue=$queueIndex/$totalJobs failed | ${error.message}',
+              );
+              return Failure(error);
+            },
           );
         },
-        (error) async => Failure(error),
+        (error) async {
+          logAutomationFail(
+            logSession,
+            AutomationLogScope.score,
+            '$analysisLabel queue=$queueIndex/$totalJobs failed | ${error.message}',
+          );
+          return Failure(error);
+        },
       );
     } catch (error, stackTrace) {
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.score,
+        '$analysisLabel queue=$queueIndex/$totalJobs failed | ${error.runtimeType}',
+      );
       return Failure(
         PascoaException(
           message: 'Unable to score the job',
@@ -326,12 +363,43 @@ Scoring rules:
     JobAnalysisState analysis,
     JobKnowledgeBundle knowledge,
     JobAutomationAiModel aiModel,
-    JobAutomationAiThinkingEffort aiThinkingEffort,
-  ) async {
+    JobAutomationAiThinkingEffort aiThinkingEffort, {
+    required int queueIndex,
+    required int totalJobs,
+  }) async {
     final validationError = _validateAnalysis(analysis);
+    final analysisLabel = formatAutomationAnalysisLabel(analysis);
     if (validationError != null) {
+      _logProposalFailure(
+        logSession,
+        analysisLabel: analysisLabel,
+        queueIndex: queueIndex,
+        totalJobs: totalJobs,
+        message: validationError.message,
+      );
       return Failure(validationError);
     }
+
+    final questionCount = analysis.jobInfo?.questions?.length ?? 0;
+    final isFixedPriceJob = analysis.jobInfo?.jobType == JobType.fixed;
+    final contractType = analysis.jobInfo?.jobType.name ?? 'unknown';
+    logAutomationStart(
+      logSession,
+      AutomationLogScope.proposal,
+      '$analysisLabel queue=$queueIndex/$totalJobs started | questions=$questionCount contract=$contractType',
+    );
+    logAutomationStart(
+      logSession,
+      AutomationLogScope.answers,
+      '$analysisLabel queue=$queueIndex/$totalJobs started | expectedQuestions=$questionCount',
+    );
+    logAutomationStart(
+      logSession,
+      AutomationLogScope.milestones,
+      isFixedPriceJob
+          ? '$analysisLabel queue=$queueIndex/$totalJobs started | fixed-price milestone plan requested'
+          : '$analysisLabel queue=$queueIndex/$totalJobs started | hourly contract so milestones may be skipped',
+    );
 
     try {
       final workDirectory = await _prepareWorkDirectory(
@@ -480,20 +548,61 @@ Rules:
                   transaction: transaction,
                 );
               });
-              logAutomation(
+              final milestoneTotal = parsed.milestones.fold<double>(
+                0,
+                (total, milestone) => total + milestone.suggestedPrice,
+              );
+              logAutomationDone(
                 logSession,
-                'proposal',
-                '${formatAutomationAnalysisLabel(analysis)} answers=${parsed.answers.length} milestones=${parsed.milestones.length}',
+                AutomationLogScope.proposal,
+                '$analysisLabel queue=$queueIndex/$totalJobs finished | coverLetter=yes',
+              );
+              logAutomationDone(
+                logSession,
+                AutomationLogScope.answers,
+                '$analysisLabel queue=$queueIndex/$totalJobs finished | generated=${parsed.answers.length}/$questionCount',
+              );
+              logAutomationDone(
+                logSession,
+                AutomationLogScope.milestones,
+                isFixedPriceJob
+                    ? '$analysisLabel queue=$queueIndex/$totalJobs finished | generated=${parsed.milestones.length} total=${_formatCurrency(milestoneTotal)}'
+                    : '$analysisLabel queue=$queueIndex/$totalJobs finished | skipped=hourly-contract',
               );
 
               return Success(1);
             },
-            (error) async => Failure(error),
+            (error) async {
+              _logProposalFailure(
+                logSession,
+                analysisLabel: analysisLabel,
+                queueIndex: queueIndex,
+                totalJobs: totalJobs,
+                message: error.message,
+              );
+              return Failure(error);
+            },
           );
         },
-        (error) async => Failure(error),
+        (error) async {
+          _logProposalFailure(
+            logSession,
+            analysisLabel: analysisLabel,
+            queueIndex: queueIndex,
+            totalJobs: totalJobs,
+            message: error.message,
+          );
+          return Failure(error);
+        },
       );
     } catch (error, stackTrace) {
+      _logProposalFailure(
+        logSession,
+        analysisLabel: analysisLabel,
+        queueIndex: queueIndex,
+        totalJobs: totalJobs,
+        message: error.runtimeType.toString(),
+      );
       return Failure(
         PascoaException(
           message: 'Unable to generate the job proposal',
@@ -518,6 +627,31 @@ Rules:
     } finally {
       await taskSession.close();
     }
+  }
+
+  void _logProposalFailure(
+    Session logSession, {
+    required String analysisLabel,
+    required int queueIndex,
+    required int totalJobs,
+    required String message,
+  }) {
+    final normalizedMessage = message.trim();
+    logAutomationFail(
+      logSession,
+      AutomationLogScope.proposal,
+      '$analysisLabel queue=$queueIndex/$totalJobs failed | $normalizedMessage',
+    );
+    logAutomationFail(
+      logSession,
+      AutomationLogScope.answers,
+      '$analysisLabel queue=$queueIndex/$totalJobs failed | proposal output missing',
+    );
+    logAutomationFail(
+      logSession,
+      AutomationLogScope.milestones,
+      '$analysisLabel queue=$queueIndex/$totalJobs failed | proposal output missing',
+    );
   }
 
   PascoaException? _validateAnalysis(JobAnalysisState analysis) {

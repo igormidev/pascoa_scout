@@ -46,6 +46,11 @@ class JobAutomationEndpoint extends Endpoint {
     Session session, {
     required bool isPaused,
   }) async {
+    logAutomationStart(
+      session,
+      AutomationLogScope.control,
+      isPaused ? 'pause requested' : 'resume requested',
+    );
     final result = await _service.setJobFetchingPaused(
       session,
       isPaused: isPaused,
@@ -66,7 +71,11 @@ class JobAutomationEndpoint extends Endpoint {
         JobAutomationStep.pausedWaiting,
       );
       runtimeResult.fold((_) {}, (error) => throw error);
-      logAutomation(session, 'control', 'job fetching paused');
+      logAutomationDone(
+        session,
+        AutomationLogScope.control,
+        'job fetching paused | currentStep=pausedWaiting next=none',
+      );
       final overviewResult = await _service.getOverview(session);
       return overviewResult.fold((value) => value, (error) => throw error);
     }
@@ -78,7 +87,11 @@ class JobAutomationEndpoint extends Endpoint {
       delay: Duration.zero,
     );
 
-    logAutomation(session, 'control', 'job fetching resumed');
+    logAutomationDone(
+      session,
+      AutomationLogScope.control,
+      'job fetching resumed | next=sync delay=0m',
+    );
     final overviewResult = await _service.publishCurrentOverview(session);
     return overviewResult.fold((value) => value, (error) => throw error);
   }

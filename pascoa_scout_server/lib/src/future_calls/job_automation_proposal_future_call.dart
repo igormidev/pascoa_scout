@@ -31,7 +31,11 @@ class JobAutomationProposalFutureCall extends FutureCall {
     );
 
     if (settings.isJobFetchingPaused) {
-      logAutomation(session, 'proposal', 'skipped: job fetching is paused');
+      logAutomationDone(
+        session,
+        AutomationLogScope.proposal,
+        'step proposal skipped | reason=paused',
+      );
       await _automationService.setCurrentStep(
         session,
         JobAutomationStep.pausedWaiting,
@@ -43,10 +47,10 @@ class JobAutomationProposalFutureCall extends FutureCall {
       session,
       JobAutomationStep.generatingProposals,
     );
-    logAutomation(
+    logAutomationStart(
       session,
-      'proposal',
-      'starting batch (limit=${settings.proposalBatchSize}, minScore=${settings.proposalMinimumScorePercentage}, model=${(settings.aiModel ?? JobAutomationAiModel.gpt54).name}, effort=${(settings.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh).name})',
+      AutomationLogScope.proposal,
+      'step proposal started | limit=${settings.proposalBatchSize} minScore=${settings.proposalMinimumScorePercentage} concurrency=$maxConcurrentAiExecutions model=${(settings.aiModel ?? JobAutomationAiModel.gpt54).name} effort=${(settings.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh).name}',
     );
     final generationResult = await _generationService.generateMissingProposals(
       session,
@@ -56,10 +60,24 @@ class JobAutomationProposalFutureCall extends FutureCall {
       aiThinkingEffort:
           settings.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh,
     );
-    await generationResult.fold(
-      (_) => _automationService.markProposalSuccess(session),
-      (error) => _automationService.markError(session, message: error.message),
+    final generatedCount = await generationResult.fold(
+      (count) async {
+        await _automationService.markProposalSuccess(session);
+        return count;
+      },
+      (error) async {
+        logAutomationFail(
+          session,
+          AutomationLogScope.proposal,
+          'step proposal failed | ${error.message}',
+        );
+        await _automationService.markError(session, message: error.message);
+        return null;
+      },
     );
+    if (generatedCount == null) {
+      return;
+    }
 
     final latestSettingsResult = await _automationService.getOrCreateSettings(
       session,
@@ -69,10 +87,10 @@ class JobAutomationProposalFutureCall extends FutureCall {
       (error) => throw error,
     );
     if (latestSettings.isJobFetchingPaused) {
-      logAutomation(
+      logAutomationDone(
         session,
-        'proposal',
-        'paused after proposal generation; next step not queued',
+        AutomationLogScope.proposal,
+        'step proposal finished | generated=$generatedCount next=none reason=paused',
       );
       await _automationService.setCurrentStep(
         session,
@@ -87,10 +105,15 @@ class JobAutomationProposalFutureCall extends FutureCall {
       identifier: jobAutomationSyncFutureCallIdentifier,
       delay: Duration(minutes: latestSettings.loopDelayMinutes),
     );
-    logAutomation(
+    logAutomationDone(
       session,
-      'loop',
-      'queued sync step in ${latestSettings.loopDelayMinutes} minute(s)',
+      AutomationLogScope.proposal,
+      'step proposal finished | generated=$generatedCount next=sync delay=${latestSettings.loopDelayMinutes}m',
+    );
+    logAutomationStart(
+      session,
+      AutomationLogScope.loop,
+      'sync step queued | delay=${latestSettings.loopDelayMinutes}m',
     );
   }
 }
