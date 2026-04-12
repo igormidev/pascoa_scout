@@ -1,0 +1,11 @@
+enum: JobAnalysisForceSyncStage
+serialized: byName
+values:
+  - preparing
+  - score
+  - proposal
+  - answers
+  - milestones
+  - reloadingCard
+  - completed
+  - failed

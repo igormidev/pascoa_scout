@@ -549,4 +549,79 @@ class AppLocalizationsEn extends AppLocalizations {
   String jobKnowledgeEditorValidationMax(int maximum) {
     return 'Please keep the text under $maximum characters.';
   }
+
+  @override
+  String get jobAnalysisRefreshTooltip => 'Refresh this card';
+
+  @override
+  String get jobAnalysisForceSyncTooltip => 'Force sync this job';
+
+  @override
+  String get jobAnalysisForceSyncDialogTitle => 'Force sync job';
+
+  @override
+  String get jobAnalysisForceSyncDialogDescription =>
+      'Regenerating the score and all AI responses for this job card.';
+
+  @override
+  String get jobAnalysisForceSyncDoneButton => 'Done';
+
+  @override
+  String get jobAnalysisForceSyncCloseButton => 'Close';
+
+  @override
+  String get jobAnalysisForceSyncUnexpectedFailure =>
+      'The force-sync stream ended unexpectedly.';
+
+  @override
+  String get jobAnalysisForceSyncStepScore => 'Score';
+
+  @override
+  String get jobAnalysisForceSyncStepProposal => 'Cover letter';
+
+  @override
+  String get jobAnalysisForceSyncStepAnswers => 'Answers';
+
+  @override
+  String get jobAnalysisForceSyncStepMilestones => 'Milestones';
+
+  @override
+  String get jobAnalysisForceSyncCurrentPreparing => 'Preparing force sync';
+
+  @override
+  String get jobAnalysisForceSyncCurrentScore => 'Generating score';
+
+  @override
+  String get jobAnalysisForceSyncCurrentProposal =>
+      'Generating proposal package';
+
+  @override
+  String get jobAnalysisForceSyncCurrentAnswers => 'Generating answers';
+
+  @override
+  String get jobAnalysisForceSyncCurrentMilestones => 'Generating milestones';
+
+  @override
+  String get jobAnalysisForceSyncCurrentReloading => 'Reloading card';
+
+  @override
+  String get jobAnalysisForceSyncCurrentCompleted => 'Force sync completed';
+
+  @override
+  String get jobAnalysisForceSyncCurrentFailed => 'Force sync failed';
+
+  @override
+  String get jobAnalysisForceSyncStatusPending => 'Pending';
+
+  @override
+  String get jobAnalysisForceSyncStatusRunning => 'Running';
+
+  @override
+  String get jobAnalysisForceSyncStatusCompleted => 'Done';
+
+  @override
+  String get jobAnalysisForceSyncStatusSkipped => 'Skipped';
+
+  @override
+  String get jobAnalysisForceSyncStatusFailed => 'Failed';
 }

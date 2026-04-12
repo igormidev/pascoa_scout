@@ -8,6 +8,7 @@ import 'package:pascoa_scout/interactor/app_notification/app_notification_provid
 import 'package:pascoa_scout/interactor/job_analysis_selection/selected_job_analysis_provider.dart';
 import 'package:pascoa_scout/interactor/job_listage/job_listage_live_refresh_preferences.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_force_sync_dialog.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_applied_filters.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_results_view.dart';
@@ -34,6 +35,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
   bool _isPageLoadInFlight = false;
   bool _isAutomationStepActive = false;
   final Set<int> _refreshingCards = <int>{};
+  final Set<int> _forceSyncingCards = <int>{};
   StreamSubscription<JobAutomationOverview>? _automationOverviewSubscription;
   Timer? _autoRefreshTimer;
 
@@ -141,11 +143,13 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         pageData: _pageData,
         visiblePagesBuilder: _buildVisiblePages,
         refreshingCards: _refreshingCards,
+        forceSyncingCards: _forceSyncingCards,
         selectedAnalysis: selectedAnalysis,
         onRetry: () => _refreshList(resetReference: true),
         onRefreshEmptyState: () => _refreshList(resetReference: true, page: 1),
         onLoadPage: (page) => _loadPage(page: page),
         onRefreshCard: _refreshCard,
+        onForceSyncCard: _forceSyncCard,
         onMarkJobViewed: _markJobViewed,
         onSelectAnalysis: _selectAnalysis,
       ),
@@ -373,6 +377,53 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
       if (mounted) {
         setState(() {
           _refreshingCards.remove(id);
+        });
+      }
+    }
+  }
+
+  Future<void> _forceSyncCard(int id) async {
+    final analysis = _pageData?.items.cast<JobAnalysisState?>().firstWhere(
+      (item) => item?.id == id,
+      orElse: () => null,
+    );
+
+    setState(() {
+      _forceSyncingCards.add(id);
+    });
+
+    try {
+      final updatedAnalysis = await showDialog<JobAnalysisState?>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => JobAnalysisForceSyncDialog(
+          progressStream: ref
+              .read(clientProvider)
+              .jobAnalysis
+              .forceSync(jobAnalysisStateId: id),
+          jobAnalysisStateId: id,
+          jobTitle: analysis?.jobInfo?.title,
+        ),
+      );
+      if (!mounted || updatedAnalysis == null) {
+        return;
+      }
+
+      ref.read(selectedJobAnalysisProvider.notifier).update(updatedAnalysis);
+      _mergeUpdatedAnalysis(updatedAnalysis);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      notifySnackbarWithContext(
+        context,
+        message: error.toString(),
+        tone: AppNotificationTone.error,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _forceSyncingCards.remove(id);
         });
       }
     }

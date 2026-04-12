@@ -1021,6 +1021,150 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Please keep the text under {maximum} characters.'**
   String jobKnowledgeEditorValidationMax(int maximum);
+
+  /// Tooltip for the manual refresh action on a job analysis card.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh this card'**
+  String get jobAnalysisRefreshTooltip;
+
+  /// Tooltip for the forced sync action on a job analysis card.
+  ///
+  /// In en, this message translates to:
+  /// **'Force sync this job'**
+  String get jobAnalysisForceSyncTooltip;
+
+  /// Title of the dialog that shows the forced sync progress for one job card.
+  ///
+  /// In en, this message translates to:
+  /// **'Force sync job'**
+  String get jobAnalysisForceSyncDialogTitle;
+
+  /// Supporting description shown in the forced sync progress dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerating the score and all AI responses for this job card.'**
+  String get jobAnalysisForceSyncDialogDescription;
+
+  /// Button label used to close the forced sync dialog after a successful run.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get jobAnalysisForceSyncDoneButton;
+
+  /// Button label used to close the forced sync dialog after a failed run.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get jobAnalysisForceSyncCloseButton;
+
+  /// Fallback message shown when the forced sync dialog finishes without a clear terminal error.
+  ///
+  /// In en, this message translates to:
+  /// **'The force-sync stream ended unexpectedly.'**
+  String get jobAnalysisForceSyncUnexpectedFailure;
+
+  /// Label for the score generation step in the forced sync progress dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Score'**
+  String get jobAnalysisForceSyncStepScore;
+
+  /// Label for the proposal generation step in the forced sync progress dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Cover letter'**
+  String get jobAnalysisForceSyncStepProposal;
+
+  /// Label for the question-answer generation step in the forced sync progress dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Answers'**
+  String get jobAnalysisForceSyncStepAnswers;
+
+  /// Label for the milestone generation step in the forced sync progress dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Milestones'**
+  String get jobAnalysisForceSyncStepMilestones;
+
+  /// Current-stage label while the forced sync process is starting.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing force sync'**
+  String get jobAnalysisForceSyncCurrentPreparing;
+
+  /// Current-stage label while the forced sync process is generating the job score.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating score'**
+  String get jobAnalysisForceSyncCurrentScore;
+
+  /// Current-stage label while the forced sync process is generating the proposal, answers, and milestones.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating proposal package'**
+  String get jobAnalysisForceSyncCurrentProposal;
+
+  /// Current-stage label while the forced sync process is focused on the answers step.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating answers'**
+  String get jobAnalysisForceSyncCurrentAnswers;
+
+  /// Current-stage label while the forced sync process is focused on the milestones step.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating milestones'**
+  String get jobAnalysisForceSyncCurrentMilestones;
+
+  /// Current-stage label while the forced sync process is reloading the updated job card.
+  ///
+  /// In en, this message translates to:
+  /// **'Reloading card'**
+  String get jobAnalysisForceSyncCurrentReloading;
+
+  /// Current-stage label after the forced sync process completes successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Force sync completed'**
+  String get jobAnalysisForceSyncCurrentCompleted;
+
+  /// Current-stage label after the forced sync process fails.
+  ///
+  /// In en, this message translates to:
+  /// **'Force sync failed'**
+  String get jobAnalysisForceSyncCurrentFailed;
+
+  /// Status label for a forced sync step that has not started yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get jobAnalysisForceSyncStatusPending;
+
+  /// Status label for a forced sync step that is currently running.
+  ///
+  /// In en, this message translates to:
+  /// **'Running'**
+  String get jobAnalysisForceSyncStatusRunning;
+
+  /// Status label for a forced sync step that completed successfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get jobAnalysisForceSyncStatusCompleted;
+
+  /// Status label for a forced sync step that was intentionally skipped.
+  ///
+  /// In en, this message translates to:
+  /// **'Skipped'**
+  String get jobAnalysisForceSyncStatusSkipped;
+
+  /// Status label for a forced sync step that failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get jobAnalysisForceSyncStatusFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -16,16 +16,20 @@ class JobAnalysisCard extends StatelessWidget {
     required this.analysis,
     required this.onSelect,
     this.onRefresh,
+    this.onForceSync,
     this.onMarkJobViewed,
     this.isRefreshing = false,
+    this.isForceSyncing = false,
     this.isSelected = false,
   });
 
   final JobAnalysisState analysis;
   final VoidCallback onSelect;
   final Future<void> Function(int id)? onRefresh;
+  final Future<void> Function(int id)? onForceSync;
   final Future<void> Function(JobAnalysisState analysis)? onMarkJobViewed;
   final bool isRefreshing;
+  final bool isForceSyncing;
   final bool isSelected;
 
   @override
@@ -35,6 +39,7 @@ class JobAnalysisCard extends StatelessWidget {
     final job = analysis.jobInfo!;
     final score = analysis.score;
     final canRefresh = analysis.id != null && onRefresh != null;
+    final canForceSync = analysis.id != null && onForceSync != null;
     final selectedBorderColor = isSelected
         ? theme.colorScheme.primary
         : theme.colorScheme.outline.withValues(alpha: 0.22);
@@ -240,16 +245,39 @@ class JobAnalysisCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (canRefresh || score != null) const SizedBox(width: 12),
-                if (canRefresh || score != null)
+                if (canRefresh || canForceSync || score != null)
+                  const SizedBox(width: 12),
+                if (canRefresh || canForceSync || score != null)
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       if (canRefresh)
-                        _RefreshCircleButton(
-                          isRefreshing: isRefreshing,
+                        _ActionCircleButton(
+                          tooltip: l10n.jobAnalysisRefreshTooltip,
+                          icon: Icons.refresh_rounded,
+                          isBusy: isRefreshing,
+                          isEnabled: !isForceSyncing,
+                          busyKey: const ValueKey('job-card-refresh-loading'),
+                          idleKey: const ValueKey('job-card-refresh'),
+                          progressColor: theme.colorScheme.primary,
                           onTap: () => onRefresh!(analysis.id!),
                         ),
+                      if (canForceSync) ...[
+                        const SizedBox(width: 10),
+                        _ActionCircleButton(
+                          tooltip: l10n.jobAnalysisForceSyncTooltip,
+                          icon: Icons.download_rounded,
+                          isBusy: isForceSyncing,
+                          isEnabled: !isRefreshing,
+                          busyKey: const ValueKey(
+                            'job-card-force-sync-loading',
+                          ),
+                          idleKey: const ValueKey('job-card-force-sync'),
+                          progressColor: theme.colorScheme.primary,
+                          iconColor: theme.colorScheme.primary,
+                          onTap: () => onForceSync!(analysis.id!),
+                        ),
+                      ],
                       if (score != null) ...[
                         const SizedBox(width: 10),
                         _ScoreCircle(score: score.scorePercentage),
@@ -341,47 +369,68 @@ class _ClientRatingBadge extends StatelessWidget {
   }
 }
 
-class _RefreshCircleButton extends StatelessWidget {
-  const _RefreshCircleButton({required this.isRefreshing, required this.onTap});
+class _ActionCircleButton extends StatelessWidget {
+  const _ActionCircleButton({
+    required this.tooltip,
+    required this.icon,
+    required this.isBusy,
+    required this.isEnabled,
+    required this.busyKey,
+    required this.idleKey,
+    required this.onTap,
+    this.progressColor,
+    this.iconColor,
+  });
 
-  final bool isRefreshing;
+  final String tooltip;
+  final IconData icon;
+  final bool isBusy;
+  final bool isEnabled;
+  final Key busyKey;
+  final Key idleKey;
   final VoidCallback onTap;
+  final Color? progressColor;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surface,
-      shape: const CircleBorder(),
-      elevation: 6,
-      child: InkWell(
-        customBorder: const CircleBorder(),
-        onTap: isRefreshing ? null : onTap,
-        child: SizedBox(
-          width: 40,
-          height: 40,
-          child: Center(
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 220),
-              switchInCurve: Curves.easeOutCubic,
-              switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (child, animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: ScaleTransition(scale: animation, child: child),
-                );
-              },
-              child: isRefreshing
-                  ? const SizedBox(
-                      key: ValueKey('job-card-loading'),
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2.4),
-                    )
-                  : const Icon(
-                      key: ValueKey('job-card-refresh'),
-                      Icons.refresh_rounded,
-                      size: 28,
-                    ),
+    final theme = Theme.of(context);
+
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: theme.colorScheme.surface,
+        shape: const CircleBorder(),
+        elevation: 6,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: isBusy || !isEnabled ? null : onTap,
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: Center(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: animation, child: child),
+                  );
+                },
+                child: isBusy
+                    ? SizedBox(
+                        key: busyKey,
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.4,
+                          color: progressColor,
+                        ),
+                      )
+                    : Icon(key: idleKey, icon, size: 24, color: iconColor),
+              ),
             ),
           ),
         ),

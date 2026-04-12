@@ -564,4 +564,82 @@ class AppLocalizationsPt extends AppLocalizations {
   String jobKnowledgeEditorValidationMax(int maximum) {
     return 'Mantenha o texto abaixo de $maximum caracteres.';
   }
+
+  @override
+  String get jobAnalysisRefreshTooltip => 'Atualizar este card';
+
+  @override
+  String get jobAnalysisForceSyncTooltip => 'Forçar sincronização desta vaga';
+
+  @override
+  String get jobAnalysisForceSyncDialogTitle => 'Forçar sincronização da vaga';
+
+  @override
+  String get jobAnalysisForceSyncDialogDescription =>
+      'Regenerando a pontuação e todas as respostas de IA deste card.';
+
+  @override
+  String get jobAnalysisForceSyncDoneButton => 'Concluir';
+
+  @override
+  String get jobAnalysisForceSyncCloseButton => 'Fechar';
+
+  @override
+  String get jobAnalysisForceSyncUnexpectedFailure =>
+      'O stream de sincronização forçada terminou sem um estado final claro.';
+
+  @override
+  String get jobAnalysisForceSyncStepScore => 'Pontuação';
+
+  @override
+  String get jobAnalysisForceSyncStepProposal => 'Carta';
+
+  @override
+  String get jobAnalysisForceSyncStepAnswers => 'Respostas';
+
+  @override
+  String get jobAnalysisForceSyncStepMilestones => 'Marcos';
+
+  @override
+  String get jobAnalysisForceSyncCurrentPreparing =>
+      'Preparando sincronização forçada';
+
+  @override
+  String get jobAnalysisForceSyncCurrentScore => 'Gerando pontuação';
+
+  @override
+  String get jobAnalysisForceSyncCurrentProposal =>
+      'Gerando pacote da proposta';
+
+  @override
+  String get jobAnalysisForceSyncCurrentAnswers => 'Gerando respostas';
+
+  @override
+  String get jobAnalysisForceSyncCurrentMilestones => 'Gerando marcos';
+
+  @override
+  String get jobAnalysisForceSyncCurrentReloading => 'Recarregando card';
+
+  @override
+  String get jobAnalysisForceSyncCurrentCompleted =>
+      'Sincronização forçada concluída';
+
+  @override
+  String get jobAnalysisForceSyncCurrentFailed =>
+      'Sincronização forçada falhou';
+
+  @override
+  String get jobAnalysisForceSyncStatusPending => 'Pendente';
+
+  @override
+  String get jobAnalysisForceSyncStatusRunning => 'Executando';
+
+  @override
+  String get jobAnalysisForceSyncStatusCompleted => 'Concluído';
+
+  @override
+  String get jobAnalysisForceSyncStatusSkipped => 'Ignorado';
+
+  @override
+  String get jobAnalysisForceSyncStatusFailed => 'Falhou';
 }

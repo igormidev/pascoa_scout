@@ -1,0 +1,11 @@
+class: JobAnalysisForceSyncProgress
+fields:
+  jobAnalysisStateId: int
+  currentStage: JobAnalysisForceSyncStage
+  isFixedPriceJob: bool
+  scoreStatus: JobAnalysisForceSyncStageStatus
+  proposalStatus: JobAnalysisForceSyncStageStatus
+  answersStatus: JobAnalysisForceSyncStageStatus
+  milestonesStatus: JobAnalysisForceSyncStageStatus
+  errorMessage: String?
+  analysis: JobAnalysisState?

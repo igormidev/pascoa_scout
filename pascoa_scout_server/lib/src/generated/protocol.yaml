@@ -2,6 +2,7 @@ jobAnalysis:
   - getPage:
   - refreshCard:
   - markJobViewed:
+  - forceSync:
 jobAutomation:
   - getOverview:
   - watchOverview:

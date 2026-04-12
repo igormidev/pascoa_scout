@@ -26,6 +26,51 @@ class JobAiGenerationService {
   final JobKnowledgeService _knowledgeService;
   final JobAiOrchestrator _orchestrator;
 
+  Future<PascoaResult<JobScoreGenerationSummary>> generateScoreForAnalysis(
+    Session session, {
+    required JobAnalysisState analysis,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
+    String runLabel = 'mode=force',
+  }) async {
+    final knowledgeResult = await _knowledgeService.getKnowledgeBundle(session);
+    return await knowledgeResult.fold(
+      (knowledge) async => _generateScoreForAnalysis(
+        session,
+        session,
+        analysis,
+        knowledge,
+        aiModel,
+        aiThinkingEffort,
+        runLabel: runLabel,
+      ),
+      (error) async => Failure(error),
+    );
+  }
+
+  Future<PascoaResult<JobProposalGenerationSummary>>
+  generateProposalForAnalysis(
+    Session session, {
+    required JobAnalysisState analysis,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
+    String runLabel = 'mode=force',
+  }) async {
+    final knowledgeResult = await _knowledgeService.getKnowledgeBundle(session);
+    return await knowledgeResult.fold(
+      (knowledge) async => _generateProposalForAnalysis(
+        session,
+        session,
+        analysis,
+        knowledge,
+        aiModel,
+        aiThinkingEffort,
+        runLabel: runLabel,
+      ),
+      (error) async => Failure(error),
+    );
+  }
+
   Future<PascoaResult<int>> generateMissingScores(
     Session session, {
     required int limit,
@@ -65,7 +110,7 @@ class JobAiGenerationService {
           final results = await _orchestrator.runQueued(
             [
               for (var index = 0; index < candidates.length; index++)
-                () => _withTaskSession<int>(
+                () => _withTaskSession<JobScoreGenerationSummary>(
                   session,
                   (taskSession) => _generateScoreForAnalysis(
                     taskSession,
@@ -74,8 +119,7 @@ class JobAiGenerationService {
                     knowledge,
                     aiModel,
                     aiThinkingEffort,
-                    queueIndex: index + 1,
-                    totalJobs: candidates.length,
+                    runLabel: 'queue=${index + 1}/${candidates.length}',
                   ),
                 ),
             ],
@@ -151,7 +195,7 @@ class JobAiGenerationService {
           final results = await _orchestrator.runQueued(
             [
               for (var index = 0; index < candidates.length; index++)
-                () => _withTaskSession<int>(
+                () => _withTaskSession<JobProposalGenerationSummary>(
                   session,
                   (taskSession) => _generateProposalForAnalysis(
                     taskSession,
@@ -160,8 +204,7 @@ class JobAiGenerationService {
                     knowledge,
                     aiModel,
                     aiThinkingEffort,
-                    queueIndex: index + 1,
-                    totalJobs: candidates.length,
+                    runLabel: 'queue=${index + 1}/${candidates.length}',
                   ),
                 ),
             ],
@@ -194,15 +237,14 @@ class JobAiGenerationService {
     );
   }
 
-  Future<PascoaResult<int>> _generateScoreForAnalysis(
+  Future<PascoaResult<JobScoreGenerationSummary>> _generateScoreForAnalysis(
     Session session,
     Session logSession,
     JobAnalysisState analysis,
     JobKnowledgeBundle knowledge,
     JobAutomationAiModel aiModel,
     JobAutomationAiThinkingEffort aiThinkingEffort, {
-    required int queueIndex,
-    required int totalJobs,
+    required String runLabel,
   }) async {
     final validationError = _validateAnalysis(analysis);
     final analysisLabel = formatAutomationAnalysisLabel(analysis);
@@ -210,7 +252,7 @@ class JobAiGenerationService {
       logAutomationFail(
         logSession,
         AutomationLogScope.score,
-        '$analysisLabel queue=$queueIndex/$totalJobs failed | ${validationError.message}',
+        '$analysisLabel $runLabel failed | ${validationError.message}',
       );
       return Failure(validationError);
     }
@@ -218,7 +260,7 @@ class JobAiGenerationService {
     logAutomationStart(
       logSession,
       AutomationLogScope.score,
-      '$analysisLabel queue=$queueIndex/$totalJobs started',
+      '$analysisLabel $runLabel started',
     );
 
     try {
@@ -315,16 +357,20 @@ Scoring rules:
               logAutomationDone(
                 logSession,
                 AutomationLogScope.score,
-                '$analysisLabel queue=$queueIndex/$totalJobs finished | score=${parsed.scorePercentage}',
+                '$analysisLabel $runLabel finished | score=${parsed.scorePercentage}',
               );
 
-              return Success(1);
+              return Success(
+                JobScoreGenerationSummary(
+                  scorePercentage: parsed.scorePercentage,
+                ),
+              );
             },
             (error) async {
               logAutomationFail(
                 logSession,
                 AutomationLogScope.score,
-                '$analysisLabel queue=$queueIndex/$totalJobs failed | ${error.message}',
+                '$analysisLabel $runLabel failed | ${error.message}',
               );
               return Failure(error);
             },
@@ -334,7 +380,7 @@ Scoring rules:
           logAutomationFail(
             logSession,
             AutomationLogScope.score,
-            '$analysisLabel queue=$queueIndex/$totalJobs failed | ${error.message}',
+            '$analysisLabel $runLabel failed | ${error.message}',
           );
           return Failure(error);
         },
@@ -343,7 +389,7 @@ Scoring rules:
       logAutomationFail(
         logSession,
         AutomationLogScope.score,
-        '$analysisLabel queue=$queueIndex/$totalJobs failed | ${error.runtimeType}',
+        '$analysisLabel $runLabel failed | ${error.runtimeType}',
       );
       return Failure(
         PascoaException(
@@ -357,15 +403,15 @@ Scoring rules:
     }
   }
 
-  Future<PascoaResult<int>> _generateProposalForAnalysis(
+  Future<PascoaResult<JobProposalGenerationSummary>>
+  _generateProposalForAnalysis(
     Session session,
     Session logSession,
     JobAnalysisState analysis,
     JobKnowledgeBundle knowledge,
     JobAutomationAiModel aiModel,
     JobAutomationAiThinkingEffort aiThinkingEffort, {
-    required int queueIndex,
-    required int totalJobs,
+    required String runLabel,
   }) async {
     final validationError = _validateAnalysis(analysis);
     final analysisLabel = formatAutomationAnalysisLabel(analysis);
@@ -373,8 +419,7 @@ Scoring rules:
       _logProposalFailure(
         logSession,
         analysisLabel: analysisLabel,
-        queueIndex: queueIndex,
-        totalJobs: totalJobs,
+        runLabel: runLabel,
         message: validationError.message,
       );
       return Failure(validationError);
@@ -386,19 +431,19 @@ Scoring rules:
     logAutomationStart(
       logSession,
       AutomationLogScope.proposal,
-      '$analysisLabel queue=$queueIndex/$totalJobs started | questions=$questionCount contract=$contractType',
+      '$analysisLabel $runLabel started | questions=$questionCount contract=$contractType',
     );
     logAutomationStart(
       logSession,
       AutomationLogScope.answers,
-      '$analysisLabel queue=$queueIndex/$totalJobs started | expectedQuestions=$questionCount',
+      '$analysisLabel $runLabel started | expectedQuestions=$questionCount',
     );
     logAutomationStart(
       logSession,
       AutomationLogScope.milestones,
       isFixedPriceJob
-          ? '$analysisLabel queue=$queueIndex/$totalJobs started | fixed-price milestone plan requested'
-          : '$analysisLabel queue=$queueIndex/$totalJobs started | hourly contract so milestones may be skipped',
+          ? '$analysisLabel $runLabel started | fixed-price milestone plan requested'
+          : '$analysisLabel $runLabel started | hourly contract so milestones may be skipped',
     );
 
     try {
@@ -555,29 +600,34 @@ Rules:
               logAutomationDone(
                 logSession,
                 AutomationLogScope.proposal,
-                '$analysisLabel queue=$queueIndex/$totalJobs finished | coverLetter=yes',
+                '$analysisLabel $runLabel finished | coverLetter=yes',
               );
               logAutomationDone(
                 logSession,
                 AutomationLogScope.answers,
-                '$analysisLabel queue=$queueIndex/$totalJobs finished | generated=${parsed.answers.length}/$questionCount',
+                '$analysisLabel $runLabel finished | generated=${parsed.answers.length}/$questionCount',
               );
               logAutomationDone(
                 logSession,
                 AutomationLogScope.milestones,
                 isFixedPriceJob
-                    ? '$analysisLabel queue=$queueIndex/$totalJobs finished | generated=${parsed.milestones.length} total=${_formatCurrency(milestoneTotal)}'
-                    : '$analysisLabel queue=$queueIndex/$totalJobs finished | skipped=hourly-contract',
+                    ? '$analysisLabel $runLabel finished | generated=${parsed.milestones.length} total=${_formatCurrency(milestoneTotal)}'
+                    : '$analysisLabel $runLabel finished | skipped=hourly-contract',
               );
 
-              return Success(1);
+              return Success(
+                JobProposalGenerationSummary(
+                  answerCount: parsed.answers.length,
+                  milestoneCount: parsed.milestones.length,
+                  isFixedPriceJob: isFixedPriceJob,
+                ),
+              );
             },
             (error) async {
               _logProposalFailure(
                 logSession,
                 analysisLabel: analysisLabel,
-                queueIndex: queueIndex,
-                totalJobs: totalJobs,
+                runLabel: runLabel,
                 message: error.message,
               );
               return Failure(error);
@@ -588,8 +638,7 @@ Rules:
           _logProposalFailure(
             logSession,
             analysisLabel: analysisLabel,
-            queueIndex: queueIndex,
-            totalJobs: totalJobs,
+            runLabel: runLabel,
             message: error.message,
           );
           return Failure(error);
@@ -599,8 +648,7 @@ Rules:
       _logProposalFailure(
         logSession,
         analysisLabel: analysisLabel,
-        queueIndex: queueIndex,
-        totalJobs: totalJobs,
+        runLabel: runLabel,
         message: error.runtimeType.toString(),
       );
       return Failure(
@@ -632,25 +680,24 @@ Rules:
   void _logProposalFailure(
     Session logSession, {
     required String analysisLabel,
-    required int queueIndex,
-    required int totalJobs,
+    required String runLabel,
     required String message,
   }) {
     final normalizedMessage = message.trim();
     logAutomationFail(
       logSession,
       AutomationLogScope.proposal,
-      '$analysisLabel queue=$queueIndex/$totalJobs failed | $normalizedMessage',
+      '$analysisLabel $runLabel failed | $normalizedMessage',
     );
     logAutomationFail(
       logSession,
       AutomationLogScope.answers,
-      '$analysisLabel queue=$queueIndex/$totalJobs failed | proposal output missing',
+      '$analysisLabel $runLabel failed | proposal output missing',
     );
     logAutomationFail(
       logSession,
       AutomationLogScope.milestones,
-      '$analysisLabel queue=$queueIndex/$totalJobs failed | proposal output missing',
+      '$analysisLabel $runLabel failed | proposal output missing',
     );
   }
 
@@ -1257,6 +1304,26 @@ class _ParsedScorePayload {
 
   final int scorePercentage;
   final String justification;
+}
+
+class JobScoreGenerationSummary {
+  const JobScoreGenerationSummary({
+    required this.scorePercentage,
+  });
+
+  final int scorePercentage;
+}
+
+class JobProposalGenerationSummary {
+  const JobProposalGenerationSummary({
+    required this.answerCount,
+    required this.milestoneCount,
+    required this.isFixedPriceJob,
+  });
+
+  final int answerCount;
+  final int milestoneCount;
+  final bool isFixedPriceJob;
 }
 
 class _ParsedProposalPayload {

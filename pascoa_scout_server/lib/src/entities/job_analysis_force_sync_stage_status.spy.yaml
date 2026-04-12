@@ -1,0 +1,8 @@
+enum: JobAnalysisForceSyncStageStatus
+serialized: byName
+values:
+  - pending
+  - running
+  - completed
+  - skipped
+  - failed

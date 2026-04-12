@@ -118,6 +118,28 @@ class Endpoints extends _i1.EndpointDispatch {
                     jobAnalysisStateId: params['jobAnalysisStateId'],
                   ),
         ),
+        'forceSync': _i1.MethodStreamConnector(
+          name: 'forceSync',
+          params: {
+            'jobAnalysisStateId': _i1.ParameterDescription(
+              name: 'jobAnalysisStateId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          streamParams: {},
+          returnType: _i1.MethodStreamReturnType.streamType,
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+                Map<String, Stream> streamParams,
+              ) => (endpoints['jobAnalysis'] as _i2.JobAnalysisEndpoint)
+                  .forceSync(
+                    session,
+                    jobAnalysisStateId: params['jobAnalysisStateId'],
+                  ),
+        ),
       },
     );
     connectors['jobAutomation'] = _i1.EndpointConnector(

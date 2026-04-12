@@ -704,5 +704,101 @@
         "type": "int"
       }
     }
+  },
+  "jobAnalysisRefreshTooltip": "Refresh this card",
+  "@jobAnalysisRefreshTooltip": {
+    "description": "Tooltip for the manual refresh action on a job analysis card."
+  },
+  "jobAnalysisForceSyncTooltip": "Force sync this job",
+  "@jobAnalysisForceSyncTooltip": {
+    "description": "Tooltip for the forced sync action on a job analysis card."
+  },
+  "jobAnalysisForceSyncDialogTitle": "Force sync job",
+  "@jobAnalysisForceSyncDialogTitle": {
+    "description": "Title of the dialog that shows the forced sync progress for one job card."
+  },
+  "jobAnalysisForceSyncDialogDescription": "Regenerating the score and all AI responses for this job card.",
+  "@jobAnalysisForceSyncDialogDescription": {
+    "description": "Supporting description shown in the forced sync progress dialog."
+  },
+  "jobAnalysisForceSyncDoneButton": "Done",
+  "@jobAnalysisForceSyncDoneButton": {
+    "description": "Button label used to close the forced sync dialog after a successful run."
+  },
+  "jobAnalysisForceSyncCloseButton": "Close",
+  "@jobAnalysisForceSyncCloseButton": {
+    "description": "Button label used to close the forced sync dialog after a failed run."
+  },
+  "jobAnalysisForceSyncUnexpectedFailure": "The force-sync stream ended unexpectedly.",
+  "@jobAnalysisForceSyncUnexpectedFailure": {
+    "description": "Fallback message shown when the forced sync dialog finishes without a clear terminal error."
+  },
+  "jobAnalysisForceSyncStepScore": "Score",
+  "@jobAnalysisForceSyncStepScore": {
+    "description": "Label for the score generation step in the forced sync progress dialog."
+  },
+  "jobAnalysisForceSyncStepProposal": "Cover letter",
+  "@jobAnalysisForceSyncStepProposal": {
+    "description": "Label for the proposal generation step in the forced sync progress dialog."
+  },
+  "jobAnalysisForceSyncStepAnswers": "Answers",
+  "@jobAnalysisForceSyncStepAnswers": {
+    "description": "Label for the question-answer generation step in the forced sync progress dialog."
+  },
+  "jobAnalysisForceSyncStepMilestones": "Milestones",
+  "@jobAnalysisForceSyncStepMilestones": {
+    "description": "Label for the milestone generation step in the forced sync progress dialog."
+  },
+  "jobAnalysisForceSyncCurrentPreparing": "Preparing force sync",
+  "@jobAnalysisForceSyncCurrentPreparing": {
+    "description": "Current-stage label while the forced sync process is starting."
+  },
+  "jobAnalysisForceSyncCurrentScore": "Generating score",
+  "@jobAnalysisForceSyncCurrentScore": {
+    "description": "Current-stage label while the forced sync process is generating the job score."
+  },
+  "jobAnalysisForceSyncCurrentProposal": "Generating proposal package",
+  "@jobAnalysisForceSyncCurrentProposal": {
+    "description": "Current-stage label while the forced sync process is generating the proposal, answers, and milestones."
+  },
+  "jobAnalysisForceSyncCurrentAnswers": "Generating answers",
+  "@jobAnalysisForceSyncCurrentAnswers": {
+    "description": "Current-stage label while the forced sync process is focused on the answers step."
+  },
+  "jobAnalysisForceSyncCurrentMilestones": "Generating milestones",
+  "@jobAnalysisForceSyncCurrentMilestones": {
+    "description": "Current-stage label while the forced sync process is focused on the milestones step."
+  },
+  "jobAnalysisForceSyncCurrentReloading": "Reloading card",
+  "@jobAnalysisForceSyncCurrentReloading": {
+    "description": "Current-stage label while the forced sync process is reloading the updated job card."
+  },
+  "jobAnalysisForceSyncCurrentCompleted": "Force sync completed",
+  "@jobAnalysisForceSyncCurrentCompleted": {
+    "description": "Current-stage label after the forced sync process completes successfully."
+  },
+  "jobAnalysisForceSyncCurrentFailed": "Force sync failed",
+  "@jobAnalysisForceSyncCurrentFailed": {
+    "description": "Current-stage label after the forced sync process fails."
+  },
+  "jobAnalysisForceSyncStatusPending": "Pending",
+  "@jobAnalysisForceSyncStatusPending": {
+    "description": "Status label for a forced sync step that has not started yet."
+  },
+  "jobAnalysisForceSyncStatusRunning": "Running",
+  "@jobAnalysisForceSyncStatusRunning": {
+    "description": "Status label for a forced sync step that is currently running."
+  },
+  "jobAnalysisForceSyncStatusCompleted": "Done",
+  "@jobAnalysisForceSyncStatusCompleted": {
+    "description": "Status label for a forced sync step that completed successfully."
+  },
+  "jobAnalysisForceSyncStatusSkipped": "Skipped",
+  "@jobAnalysisForceSyncStatusSkipped": {
+    "description": "Status label for a forced sync step that was intentionally skipped."
+  },
+  "jobAnalysisForceSyncStatusFailed": "Failed",
+  "@jobAnalysisForceSyncStatusFailed": {
+    "description": "Status label for a forced sync step that failed."
   }
 }

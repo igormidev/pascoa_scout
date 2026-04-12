@@ -19,11 +19,13 @@ class JobListageResultsView extends StatefulWidget {
     required this.pageData,
     required this.visiblePagesBuilder,
     required this.refreshingCards,
+    required this.forceSyncingCards,
     required this.selectedAnalysis,
     required this.onRetry,
     required this.onRefreshEmptyState,
     required this.onLoadPage,
     required this.onRefreshCard,
+    required this.onForceSyncCard,
     required this.onMarkJobViewed,
     required this.onSelectAnalysis,
   });
@@ -37,11 +39,13 @@ class JobListageResultsView extends StatefulWidget {
   final JobAnalysisPagination? pageData;
   final List<int> Function(int currentPage, int totalPages) visiblePagesBuilder;
   final Set<int> refreshingCards;
+  final Set<int> forceSyncingCards;
   final JobAnalysisState? selectedAnalysis;
   final VoidCallback onRetry;
   final VoidCallback onRefreshEmptyState;
   final ValueChanged<int> onLoadPage;
   final Future<void> Function(int id) onRefreshCard;
+  final Future<void> Function(int id) onForceSyncCard;
   final Future<void> Function(JobAnalysisState analysis) onMarkJobViewed;
   final ValueChanged<JobAnalysisState> onSelectAnalysis;
 
@@ -164,9 +168,15 @@ class _JobListageResultsViewState extends State<JobListageResultsView> {
                         isRefreshing: widget.refreshingCards.contains(
                           analysis.id,
                         ),
+                        isForceSyncing: widget.forceSyncingCards.contains(
+                          analysis.id,
+                        ),
                         onRefresh: analysis.id == null
                             ? null
                             : widget.onRefreshCard,
+                        onForceSync: analysis.id == null
+                            ? null
+                            : widget.onForceSyncCard,
                         onMarkJobViewed: widget.onMarkJobViewed,
                         onSelect: () => widget.onSelectAnalysis(analysis),
                       ),
