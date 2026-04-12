@@ -76,6 +76,51 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get jobListHeaderTitle => 'Vagas compatíveis';
+
+  @override
+  String get jobListHeaderDescription =>
+      'Pesquise análises persistidas, inspecione pontuações e respostas geradas por IA, e atualize apenas os cards que ainda estão incompletos.';
+
+  @override
+  String get jobListManualFetchButton => 'Busca manual';
+
+  @override
+  String get jobListManualFetchDialogTitle => 'Busca manual';
+
+  @override
+  String get jobListManualFetchDialogDescription =>
+      'Cole um link de busca da Upwork para buscar e persistir imediatamente as vagas retornadas por essa URL.';
+
+  @override
+  String get jobListManualFetchFieldLabel => 'Link de busca da Upwork';
+
+  @override
+  String get jobListManualFetchFieldHint =>
+      'https://www.upwork.com/nx/search/jobs/...';
+
+  @override
+  String get jobListManualFetchCancelButton => 'Cancelar';
+
+  @override
+  String get jobListManualFetchSubmitButton => 'Buscar vagas';
+
+  @override
+  String get jobListManualFetchSubmittingButton => 'Buscando...';
+
+  @override
+  String get jobListManualFetchValidationRequired =>
+      'Cole um link de busca da Upwork antes de buscar.';
+
+  @override
+  String get jobListManualFetchValidationInvalid =>
+      'Use um link de busca da Upwork em upwork.com que contenha \"nx/search/jobs\".';
+
+  @override
+  String get jobListManualFetchSuccess =>
+      'A busca manual foi concluída e a lista foi atualizada.';
+
+  @override
   String get jobAutomationAiSettingsTitle => 'Geração por IA';
 
   @override

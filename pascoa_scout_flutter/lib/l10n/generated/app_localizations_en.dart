@@ -72,6 +72,51 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get jobListHeaderTitle => 'Job matches';
+
+  @override
+  String get jobListHeaderDescription =>
+      'Search persisted analyses, inspect scores and AI-generated responses, and refresh only the rows that are still incomplete.';
+
+  @override
+  String get jobListManualFetchButton => 'Manual fetch';
+
+  @override
+  String get jobListManualFetchDialogTitle => 'Manual fetch';
+
+  @override
+  String get jobListManualFetchDialogDescription =>
+      'Paste an Upwork search link to fetch and persist the jobs from that URL immediately.';
+
+  @override
+  String get jobListManualFetchFieldLabel => 'Upwork search link';
+
+  @override
+  String get jobListManualFetchFieldHint =>
+      'https://www.upwork.com/nx/search/jobs/...';
+
+  @override
+  String get jobListManualFetchCancelButton => 'Cancel';
+
+  @override
+  String get jobListManualFetchSubmitButton => 'Fetch jobs';
+
+  @override
+  String get jobListManualFetchSubmittingButton => 'Fetching...';
+
+  @override
+  String get jobListManualFetchValidationRequired =>
+      'Paste an Upwork search link before fetching.';
+
+  @override
+  String get jobListManualFetchValidationInvalid =>
+      'Use an Upwork search link from upwork.com that contains \"nx/search/jobs\".';
+
+  @override
+  String get jobListManualFetchSuccess =>
+      'Manual fetch completed and the list was refreshed.';
+
+  @override
   String get jobAutomationAiSettingsTitle => 'AI generation';
 
   @override

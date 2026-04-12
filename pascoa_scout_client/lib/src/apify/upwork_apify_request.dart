@@ -59,10 +59,15 @@ Map<String, dynamic> buildUpworkApifyRequestBody({
   required Map<String, dynamic> filterJson,
   required Map<String, dynamic> paginationJson,
 }) {
+  final rawUrl = (filterJson['rawUrl'] ?? '').toString().trim();
   final json = <String, dynamic>{
-    'query': (filterJson['searchQueryTerm'] ?? '').toString(),
     'paymentVerified': filterJson['paymentVerified'] == true,
   };
+  if (rawUrl.isNotEmpty) {
+    json['rawUrl'] = rawUrl;
+  } else {
+    json['query'] = (filterJson['searchQueryTerm'] ?? '').toString();
+  }
 
   final clientHistory = _mapEnumList(
     filterJson['clientHistory'],

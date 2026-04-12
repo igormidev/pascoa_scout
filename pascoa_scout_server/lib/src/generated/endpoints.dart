@@ -118,6 +118,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     jobAnalysisStateId: params['jobAnalysisStateId'],
                   ),
         ),
+        'manualFetch': _i1.MethodConnector(
+          name: 'manualFetch',
+          params: {
+            'rawUrl': _i1.ParameterDescription(
+              name: 'rawUrl',
+              type: _i1.getType<String>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['jobAnalysis'] as _i2.JobAnalysisEndpoint)
+                  .manualFetch(
+                    session,
+                    rawUrl: params['rawUrl'],
+                  ),
+        ),
         'forceSync': _i1.MethodStreamConnector(
           name: 'forceSync',
           params: {

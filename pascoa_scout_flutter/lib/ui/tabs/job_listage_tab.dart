@@ -11,6 +11,8 @@ import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_force_sync_dialog.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_applied_filters.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_listage_header.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_listage_manual_fetch_dialog.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_results_view.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_listage_toolbar.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
@@ -57,7 +59,6 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final selectedAnalysis = ref.watch(selectedJobAnalysisProvider);
     ref.listen<JobListageLiveRefreshPreferences>(
       jobListageLiveRefreshPreferencesProvider,
@@ -105,23 +106,7 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: JobListageResultsView(
-        header: Padding(
-          padding: const EdgeInsets.only(top: 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Job matches', style: theme.textTheme.headlineMedium),
-              const SizedBox(height: 8),
-              Text(
-                'Search persisted analyses, inspect scores and AI-generated responses, and refresh only the rows that are still incomplete.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.72),
-                ),
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
+        header: JobListageHeader(onManualFetch: _openManualFetchDialog),
         toolbar: JobListageToolbar(
           searchController: _searchController,
           currentOrderBy: _filters.orderBy,
@@ -427,6 +412,38 @@ class _JobListageTabState extends ConsumerState<JobListageTab> {
         });
       }
     }
+  }
+
+  Future<void> _openManualFetchDialog() async {
+    final fetchedAnalysis = await showDialog<JobAnalysisState?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const JobListageManualFetchDialog(),
+    );
+    if (!mounted || fetchedAnalysis == null) {
+      return;
+    }
+
+    await _refreshList(resetReference: true, page: 1);
+    if (!mounted) {
+      return;
+    }
+
+    JobAnalysisState? refreshedAnalysis;
+    for (final item in _pageData?.items ?? const <JobAnalysisState>[]) {
+      if (isSameJobAnalysis(item, fetchedAnalysis)) {
+        refreshedAnalysis = item;
+        break;
+      }
+    }
+    if (refreshedAnalysis != null) {
+      _selectAnalysis(refreshedAnalysis);
+    }
+
+    notifySnackbarWithContext(
+      context,
+      message: AppLocalizations.of(context).jobListManualFetchSuccess,
+    );
   }
 
   Future<void> _markJobViewed(JobAnalysisState analysis) async {

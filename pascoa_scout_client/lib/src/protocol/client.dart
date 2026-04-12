@@ -77,6 +77,13 @@ class EndpointJobAnalysis extends _i1.EndpointRef {
     {'jobAnalysisStateId': jobAnalysisStateId},
   );
 
+  _i2.Future<_i5.JobAnalysisState> manualFetch({required String rawUrl}) =>
+      caller.callServerEndpoint<_i5.JobAnalysisState>(
+        'jobAnalysis',
+        'manualFetch',
+        {'rawUrl': rawUrl},
+      );
+
   _i2.Stream<_i6.JobAnalysisForceSyncProgress> forceSync({
     required int jobAnalysisStateId,
   }) =>

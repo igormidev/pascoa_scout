@@ -1,6 +1,7 @@
 class: JobFilter
 fields:
   searchQueryTerm: String
+  rawUrl: String?
   experienceLevel: List<ExperienceLevel>?
   clientHistory: List<ClientHistory>?
   jobType: List<JobType>?

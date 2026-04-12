@@ -95,6 +95,15 @@ String summarizeAutomationQuery(String query) {
   return '${normalized.substring(0, 57)}...';
 }
 
+String summarizeAutomationRawUrl(String rawUrl) {
+  final normalized = rawUrl.trim().replaceAll(RegExp(r'\s+'), ' ');
+  if (normalized.length <= 88) {
+    return normalized;
+  }
+
+  return '${normalized.substring(0, 85)}...';
+}
+
 String summarizeAutomationTitle(String? title) {
   final normalized = title?.trim().replaceAll(RegExp(r'\s+'), ' ');
   if (normalized == null || normalized.isEmpty) {

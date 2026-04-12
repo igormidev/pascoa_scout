@@ -81,6 +81,58 @@
       }
     }
   },
+  "jobListHeaderTitle": "Job matches",
+  "@jobListHeaderTitle": {
+    "description": "Main title shown above the persisted job analyses list."
+  },
+  "jobListHeaderDescription": "Search persisted analyses, inspect scores and AI-generated responses, and refresh only the rows that are still incomplete.",
+  "@jobListHeaderDescription": {
+    "description": "Supporting description shown under the job matches title."
+  },
+  "jobListManualFetchButton": "Manual fetch",
+  "@jobListManualFetchButton": {
+    "description": "Button label for opening the manual Upwork fetch dialog."
+  },
+  "jobListManualFetchDialogTitle": "Manual fetch",
+  "@jobListManualFetchDialogTitle": {
+    "description": "Title for the dialog that lets the user fetch jobs from a pasted Upwork link."
+  },
+  "jobListManualFetchDialogDescription": "Paste an Upwork search link to fetch and persist the jobs from that URL immediately.",
+  "@jobListManualFetchDialogDescription": {
+    "description": "Description shown inside the manual fetch dialog."
+  },
+  "jobListManualFetchFieldLabel": "Upwork search link",
+  "@jobListManualFetchFieldLabel": {
+    "description": "Label for the raw Upwork URL input used by the manual fetch dialog."
+  },
+  "jobListManualFetchFieldHint": "https://www.upwork.com/nx/search/jobs/...",
+  "@jobListManualFetchFieldHint": {
+    "description": "Hint text for the raw Upwork URL input in the manual fetch dialog."
+  },
+  "jobListManualFetchCancelButton": "Cancel",
+  "@jobListManualFetchCancelButton": {
+    "description": "Secondary action button for dismissing the manual fetch dialog."
+  },
+  "jobListManualFetchSubmitButton": "Fetch jobs",
+  "@jobListManualFetchSubmitButton": {
+    "description": "Primary action button for starting the manual fetch from a pasted Upwork URL."
+  },
+  "jobListManualFetchSubmittingButton": "Fetching...",
+  "@jobListManualFetchSubmittingButton": {
+    "description": "Busy button label shown while the manual fetch request is running."
+  },
+  "jobListManualFetchValidationRequired": "Paste an Upwork search link before fetching.",
+  "@jobListManualFetchValidationRequired": {
+    "description": "Validation message shown when the manual fetch URL field is empty."
+  },
+  "jobListManualFetchValidationInvalid": "Use an Upwork search link from upwork.com that contains \"nx/search/jobs\".",
+  "@jobListManualFetchValidationInvalid": {
+    "description": "Validation message shown when the manual fetch URL is not a valid Upwork search URL."
+  },
+  "jobListManualFetchSuccess": "Manual fetch completed and the list was refreshed.",
+  "@jobListManualFetchSuccess": {
+    "description": "Snackbar message shown after a manual fetch succeeds."
+  },
   "jobAutomationAiSettingsTitle": "AI generation",
   "@jobAutomationAiSettingsTitle": {
     "description": "Title for the automation card that controls the Codex model and reasoning effort."

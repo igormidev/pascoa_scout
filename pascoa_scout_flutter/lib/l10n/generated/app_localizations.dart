@@ -212,6 +212,84 @@ abstract class AppLocalizations {
   /// **'Refreshes the job list every {seconds} seconds while the automation loop is running.'**
   String jobListLiveRefreshSettingEnabledDescription(int seconds);
 
+  /// Main title shown above the persisted job analyses list.
+  ///
+  /// In en, this message translates to:
+  /// **'Job matches'**
+  String get jobListHeaderTitle;
+
+  /// Supporting description shown under the job matches title.
+  ///
+  /// In en, this message translates to:
+  /// **'Search persisted analyses, inspect scores and AI-generated responses, and refresh only the rows that are still incomplete.'**
+  String get jobListHeaderDescription;
+
+  /// Button label for opening the manual Upwork fetch dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual fetch'**
+  String get jobListManualFetchButton;
+
+  /// Title for the dialog that lets the user fetch jobs from a pasted Upwork link.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual fetch'**
+  String get jobListManualFetchDialogTitle;
+
+  /// Description shown inside the manual fetch dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste an Upwork search link to fetch and persist the jobs from that URL immediately.'**
+  String get jobListManualFetchDialogDescription;
+
+  /// Label for the raw Upwork URL input used by the manual fetch dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Upwork search link'**
+  String get jobListManualFetchFieldLabel;
+
+  /// Hint text for the raw Upwork URL input in the manual fetch dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'https://www.upwork.com/nx/search/jobs/...'**
+  String get jobListManualFetchFieldHint;
+
+  /// Secondary action button for dismissing the manual fetch dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get jobListManualFetchCancelButton;
+
+  /// Primary action button for starting the manual fetch from a pasted Upwork URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch jobs'**
+  String get jobListManualFetchSubmitButton;
+
+  /// Busy button label shown while the manual fetch request is running.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching...'**
+  String get jobListManualFetchSubmittingButton;
+
+  /// Validation message shown when the manual fetch URL field is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste an Upwork search link before fetching.'**
+  String get jobListManualFetchValidationRequired;
+
+  /// Validation message shown when the manual fetch URL is not a valid Upwork search URL.
+  ///
+  /// In en, this message translates to:
+  /// **'Use an Upwork search link from upwork.com that contains \"nx/search/jobs\".'**
+  String get jobListManualFetchValidationInvalid;
+
+  /// Snackbar message shown after a manual fetch succeeds.
+  ///
+  /// In en, this message translates to:
+  /// **'Manual fetch completed and the list was refreshed.'**
+  String get jobListManualFetchSuccess;
+
   /// Title for the automation card that controls the Codex model and reasoning effort.
   ///
   /// In en, this message translates to:

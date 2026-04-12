@@ -26,6 +26,7 @@ abstract class JobFilter
     implements _i1.SerializableModel, _i1.ProtocolSerialization {
   JobFilter._({
     required this.searchQueryTerm,
+    this.rawUrl,
     this.experienceLevel,
     this.clientHistory,
     this.jobType,
@@ -41,6 +42,7 @@ abstract class JobFilter
 
   factory JobFilter({
     required String searchQueryTerm,
+    String? rawUrl,
     List<_i2.ExperienceLevel>? experienceLevel,
     List<_i3.ClientHistory>? clientHistory,
     List<_i4.JobType>? jobType,
@@ -57,6 +59,7 @@ abstract class JobFilter
   factory JobFilter.fromJson(Map<String, dynamic> jsonSerialization) {
     return JobFilter(
       searchQueryTerm: jsonSerialization['searchQueryTerm'] as String,
+      rawUrl: jsonSerialization['rawUrl'] as String?,
       experienceLevel: jsonSerialization['experienceLevel'] == null
           ? null
           : _i11.Protocol().deserialize<List<_i2.ExperienceLevel>>(
@@ -117,6 +120,8 @@ abstract class JobFilter
 
   String searchQueryTerm;
 
+  String? rawUrl;
+
   List<_i2.ExperienceLevel>? experienceLevel;
 
   List<_i3.ClientHistory>? clientHistory;
@@ -144,6 +149,7 @@ abstract class JobFilter
   @_i1.useResult
   JobFilter copyWith({
     String? searchQueryTerm,
+    String? rawUrl,
     List<_i2.ExperienceLevel>? experienceLevel,
     List<_i3.ClientHistory>? clientHistory,
     List<_i4.JobType>? jobType,
@@ -161,6 +167,7 @@ abstract class JobFilter
     return {
       '__className__': 'JobFilter',
       'searchQueryTerm': searchQueryTerm,
+      if (rawUrl != null) 'rawUrl': rawUrl,
       if (experienceLevel != null)
         'experienceLevel': experienceLevel?.toJson(
           valueToJson: (v) => v.toJson(),
@@ -189,6 +196,7 @@ abstract class JobFilter
     return {
       '__className__': 'JobFilter',
       'searchQueryTerm': searchQueryTerm,
+      if (rawUrl != null) 'rawUrl': rawUrl,
       if (experienceLevel != null)
         'experienceLevel': experienceLevel?.toJson(
           valueToJson: (v) => v.toJson(),
@@ -228,6 +236,7 @@ class _Undefined {}
 class _JobFilterImpl extends JobFilter {
   _JobFilterImpl({
     required String searchQueryTerm,
+    String? rawUrl,
     List<_i2.ExperienceLevel>? experienceLevel,
     List<_i3.ClientHistory>? clientHistory,
     List<_i4.JobType>? jobType,
@@ -241,6 +250,7 @@ class _JobFilterImpl extends JobFilter {
     List<_i10.CustomFilter>? customFilters,
   }) : super._(
          searchQueryTerm: searchQueryTerm,
+         rawUrl: rawUrl,
          experienceLevel: experienceLevel,
          clientHistory: clientHistory,
          jobType: jobType,
@@ -260,6 +270,7 @@ class _JobFilterImpl extends JobFilter {
   @override
   JobFilter copyWith({
     String? searchQueryTerm,
+    Object? rawUrl = _Undefined,
     Object? experienceLevel = _Undefined,
     Object? clientHistory = _Undefined,
     Object? jobType = _Undefined,
@@ -274,6 +285,7 @@ class _JobFilterImpl extends JobFilter {
   }) {
     return JobFilter(
       searchQueryTerm: searchQueryTerm ?? this.searchQueryTerm,
+      rawUrl: rawUrl is String? ? rawUrl : this.rawUrl,
       experienceLevel: experienceLevel is List<_i2.ExperienceLevel>?
           ? experienceLevel
           : this.experienceLevel?.map((e0) => e0).toList(),

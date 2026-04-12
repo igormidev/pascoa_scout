@@ -18,11 +18,28 @@ class JobUpworkSyncService {
     required JobFilter filter,
     required int resultsPerPage,
   }) async {
+    final result = await syncLatestJobsDetailed(
+      session,
+      filter: filter,
+      resultsPerPage: resultsPerPage,
+    );
+
+    return result.fold(
+      (summary) => Success(summary.processedCount),
+      Failure.new,
+    );
+  }
+
+  Future<PascoaResult<JobUpworkSyncSummary>> syncLatestJobsDetailed(
+    Session session, {
+    required JobFilter filter,
+    required int resultsPerPage,
+  }) async {
     try {
       logAutomationStart(
         session,
         AutomationLogScope.sync,
-        'provider request started | perPage=$resultsPerPage query="${summarizeAutomationQuery(filter.searchQueryTerm)}"',
+        'provider request started | perPage=$resultsPerPage ${_requestSourceSummary(filter)}',
       );
       final repository = _repository;
       if (repository == null) {
@@ -74,7 +91,7 @@ class JobUpworkSyncService {
     }
   }
 
-  Future<PascoaResult<int>> _syncWithRepository(
+  Future<PascoaResult<JobUpworkSyncSummary>> _syncWithRepository(
     Session session, {
     required IGetUpworkJobsRepository repository,
     required JobFilter filter,
@@ -95,6 +112,7 @@ class JobUpworkSyncService {
         var processedCount = 0;
         var insertedCount = 0;
         var refreshedCount = 0;
+        final affectedJobAnalysisStateIds = <int>[];
         logAutomationDone(
           session,
           AutomationLogScope.sync,
@@ -117,6 +135,7 @@ class JobUpworkSyncService {
             case _JobUpsertOutcome.updated:
               refreshedCount += 1;
           }
+          affectedJobAnalysisStateIds.add(summary.jobAnalysisStateId);
           final questionSummary = summary.questionSyncSummary;
           final questionText = questionSummary == null
               ? 'questions=unchanged'
@@ -134,7 +153,14 @@ class JobUpworkSyncService {
           'job sync finished | processed=$processedCount new=$insertedCount refreshed=$refreshedCount',
         );
 
-        return Success(processedCount);
+        return Success(
+          JobUpworkSyncSummary(
+            processedCount: processedCount,
+            insertedCount: insertedCount,
+            refreshedCount: refreshedCount,
+            affectedJobAnalysisStateIds: affectedJobAnalysisStateIds,
+          ),
+        );
       },
       Failure.new,
     );
@@ -153,9 +179,14 @@ class JobUpworkSyncService {
       );
 
       if (existingJob == null) {
-        await _insertNewJob(session, incomingJob, transaction);
+        final jobAnalysisStateId = await _insertNewJob(
+          session,
+          incomingJob,
+          transaction,
+        );
         return _JobUpsertSummary(
           outcome: _JobUpsertOutcome.inserted,
+          jobAnalysisStateId: jobAnalysisStateId,
           proposalReset: false,
           questionSyncSummary: _QuestionSyncSummary(
             inserted: incomingJob.questions?.length ?? 0,
@@ -182,13 +213,14 @@ class JobUpworkSyncService {
 
       return _JobUpsertSummary(
         outcome: _JobUpsertOutcome.updated,
+        jobAnalysisStateId: updateSummary.jobAnalysisStateId,
         proposalReset: updateSummary.proposalReset,
         questionSyncSummary: updateSummary.questionSyncSummary,
       );
     });
   }
 
-  Future<void> _insertNewJob(
+  Future<int> _insertNewJob(
     Session session,
     JobInfo incomingJob,
     Transaction transaction,
@@ -202,7 +234,7 @@ class JobUpworkSyncService {
       transaction: transaction,
     );
 
-    await JobAnalysisState.db.insertRow(
+    final insertedAnalysis = await JobAnalysisState.db.insertRow(
       session,
       JobAnalysisState(
         jobInfoId: insertedJob.id!,
@@ -221,6 +253,8 @@ class JobUpworkSyncService {
         transaction: transaction,
       );
     }
+
+    return insertedAnalysis.id!;
   }
 
   Future<_JobUpdateSummary> _updateExistingJob(
@@ -299,8 +333,9 @@ class JobUpworkSyncService {
       );
     }
 
+    var jobAnalysisStateId = existingAnalysisState?.id;
     if (existingAnalysisState == null) {
-      await JobAnalysisState.db.insertRow(
+      final insertedAnalysis = await JobAnalysisState.db.insertRow(
         session,
         JobAnalysisState(
           jobInfoId: jobId,
@@ -308,9 +343,11 @@ class JobUpworkSyncService {
         ),
         transaction: transaction,
       );
+      jobAnalysisStateId = insertedAnalysis.id!;
     }
 
     return _JobUpdateSummary(
+      jobAnalysisStateId: jobAnalysisStateId!,
       proposalReset: proposalReset,
       questionSyncSummary: questionSyncSummary,
     );
@@ -460,21 +497,25 @@ enum _JobUpsertOutcome {
 class _JobUpsertSummary {
   const _JobUpsertSummary({
     required this.outcome,
+    required this.jobAnalysisStateId,
     required this.proposalReset,
     required this.questionSyncSummary,
   });
 
   final _JobUpsertOutcome outcome;
+  final int jobAnalysisStateId;
   final bool proposalReset;
   final _QuestionSyncSummary? questionSyncSummary;
 }
 
 class _JobUpdateSummary {
   const _JobUpdateSummary({
+    required this.jobAnalysisStateId,
     required this.proposalReset,
     required this.questionSyncSummary,
   });
 
+  final int jobAnalysisStateId;
   final bool proposalReset;
   final _QuestionSyncSummary? questionSyncSummary;
 }
@@ -489,4 +530,31 @@ class _QuestionSyncSummary {
   final int inserted;
   final int updated;
   final int deleted;
+}
+
+class JobUpworkSyncSummary {
+  const JobUpworkSyncSummary({
+    required this.processedCount,
+    required this.insertedCount,
+    required this.refreshedCount,
+    required this.affectedJobAnalysisStateIds,
+  });
+
+  final int processedCount;
+  final int insertedCount;
+  final int refreshedCount;
+  final List<int> affectedJobAnalysisStateIds;
+
+  int? get primaryJobAnalysisStateId => affectedJobAnalysisStateIds.isEmpty
+      ? null
+      : affectedJobAnalysisStateIds.first;
+}
+
+String _requestSourceSummary(JobFilter filter) {
+  final rawUrl = filter.rawUrl?.trim();
+  if (rawUrl != null && rawUrl.isNotEmpty) {
+    return 'rawUrl="${summarizeAutomationRawUrl(rawUrl)}"';
+  }
+
+  return 'query="${summarizeAutomationQuery(filter.searchQueryTerm)}"';
 }
