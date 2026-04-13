@@ -199,6 +199,7 @@ class JobAutomationService {
         updatedAt: now,
         lastSuccessfulJobSyncAt: now,
         lastErrorMessage: null,
+        lastError: null,
         lastErrorAt: null,
       ),
     );
@@ -216,6 +217,7 @@ class JobAutomationService {
         updatedAt: now,
         lastSuccessfulScoringAt: now,
         lastErrorMessage: null,
+        lastError: null,
         lastErrorAt: null,
       ),
     );
@@ -233,6 +235,7 @@ class JobAutomationService {
         updatedAt: now,
         lastSuccessfulProposalGenerationAt: now,
         lastErrorMessage: null,
+        lastError: null,
         lastErrorAt: null,
       ),
     );
@@ -240,7 +243,7 @@ class JobAutomationService {
 
   Future<PascoaResult<JobAutomationRuntime>> markError(
     Session session, {
-    required String message,
+    required PascoaException error,
   }) async {
     try {
       final runtime = await _getOrCreateRuntimeInternal(session);
@@ -249,7 +252,8 @@ class JobAutomationService {
         currentStep: JobAutomationStep.error,
         currentStepStartedAt: now,
         updatedAt: now,
-        lastErrorMessage: message,
+        lastErrorMessage: error.message,
+        lastError: error,
         lastErrorAt: now,
       );
       final persisted = await JobAutomationRuntime.db.updateRow(
@@ -263,7 +267,7 @@ class JobAutomationService {
         runtime: persisted,
       );
       await _publishOverview(session, overview);
-      logAutomationFail(session, AutomationLogScope.error, message);
+      logAutomationFail(session, AutomationLogScope.error, error.message);
       return Success(persisted);
     } catch (error, stackTrace) {
       return Failure(

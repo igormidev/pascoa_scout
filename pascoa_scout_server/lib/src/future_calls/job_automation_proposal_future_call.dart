@@ -71,7 +71,7 @@ class JobAutomationProposalFutureCall extends FutureCall {
           AutomationLogScope.proposal,
           'step proposal failed | ${error.message}',
         );
-        await _automationService.markError(session, message: error.message);
+        await _automationService.markError(session, error: error);
         return null;
       },
     );

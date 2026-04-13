@@ -208,6 +208,30 @@
   "@jobAutomationStatusError": {
     "description": "Status copy shown when the latest automation step failed."
   },
+  "jobAutomationErrorCardCopyTooltip": "Copy error details",
+  "@jobAutomationErrorCardCopyTooltip": {
+    "description": "Tooltip and semantics label for copying the automation error details."
+  },
+  "jobAutomationErrorCardCopied": "Error details copied.",
+  "@jobAutomationErrorCardCopied": {
+    "description": "Snackbar message shown after copying the automation error details."
+  },
+  "jobAutomationErrorCardShowDetailsTooltip": "Show error details",
+  "@jobAutomationErrorCardShowDetailsTooltip": {
+    "description": "Tooltip and semantics label for expanding the automation error card details."
+  },
+  "jobAutomationErrorCardHideDetailsTooltip": "Hide error details",
+  "@jobAutomationErrorCardHideDetailsTooltip": {
+    "description": "Tooltip and semantics label for collapsing the automation error card details."
+  },
+  "jobAutomationErrorCardRawErrorLabel": "Error",
+  "@jobAutomationErrorCardRawErrorLabel": {
+    "description": "Section label for the raw PascoaException.error string inside the automation error card."
+  },
+  "jobAutomationErrorCardStackTraceLabel": "Stack trace",
+  "@jobAutomationErrorCardStackTraceLabel": {
+    "description": "Section label for the PascoaException stack trace inside the automation error card."
+  },
   "jobAutomationStatusElapsedText": "Current step elapsed time: {elapsed}.",
   "@jobAutomationStatusElapsedText": {
     "description": "Suffix appended to the automation status card to show how long the current step has been in its latest state.",

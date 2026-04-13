@@ -12,6 +12,8 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'package:serverpod_client/serverpod_client.dart' as _i1;
 import '../entities/job_automation_step.dart' as _i2;
+import '../entities/others/pascoa_exception.dart' as _i3;
+import 'package:pascoa_scout_client/src/protocol/protocol.dart' as _i4;
 
 abstract class JobAutomationRuntime implements _i1.SerializableModel {
   JobAutomationRuntime._({
@@ -24,6 +26,7 @@ abstract class JobAutomationRuntime implements _i1.SerializableModel {
     this.lastSuccessfulScoringAt,
     this.lastSuccessfulProposalGenerationAt,
     this.lastErrorMessage,
+    this.lastError,
     this.lastErrorAt,
   });
 
@@ -37,6 +40,7 @@ abstract class JobAutomationRuntime implements _i1.SerializableModel {
     DateTime? lastSuccessfulScoringAt,
     DateTime? lastSuccessfulProposalGenerationAt,
     String? lastErrorMessage,
+    _i3.PascoaException? lastError,
     DateTime? lastErrorAt,
   }) = _JobAutomationRuntimeImpl;
 
@@ -74,6 +78,11 @@ abstract class JobAutomationRuntime implements _i1.SerializableModel {
               jsonSerialization['lastSuccessfulProposalGenerationAt'],
             ),
       lastErrorMessage: jsonSerialization['lastErrorMessage'] as String?,
+      lastError: jsonSerialization['lastError'] == null
+          ? null
+          : _i4.Protocol().deserialize<_i3.PascoaException>(
+              jsonSerialization['lastError'],
+            ),
       lastErrorAt: jsonSerialization['lastErrorAt'] == null
           ? null
           : _i1.DateTimeJsonExtension.fromJson(
@@ -103,6 +112,8 @@ abstract class JobAutomationRuntime implements _i1.SerializableModel {
 
   String? lastErrorMessage;
 
+  _i3.PascoaException? lastError;
+
   DateTime? lastErrorAt;
 
   /// Returns a shallow copy of this [JobAutomationRuntime]
@@ -118,6 +129,7 @@ abstract class JobAutomationRuntime implements _i1.SerializableModel {
     DateTime? lastSuccessfulScoringAt,
     DateTime? lastSuccessfulProposalGenerationAt,
     String? lastErrorMessage,
+    _i3.PascoaException? lastError,
     DateTime? lastErrorAt,
   });
   @override
@@ -137,6 +149,7 @@ abstract class JobAutomationRuntime implements _i1.SerializableModel {
         'lastSuccessfulProposalGenerationAt': lastSuccessfulProposalGenerationAt
             ?.toJson(),
       if (lastErrorMessage != null) 'lastErrorMessage': lastErrorMessage,
+      if (lastError != null) 'lastError': lastError?.toJson(),
       if (lastErrorAt != null) 'lastErrorAt': lastErrorAt?.toJson(),
     };
   }
@@ -160,6 +173,7 @@ class _JobAutomationRuntimeImpl extends JobAutomationRuntime {
     DateTime? lastSuccessfulScoringAt,
     DateTime? lastSuccessfulProposalGenerationAt,
     String? lastErrorMessage,
+    _i3.PascoaException? lastError,
     DateTime? lastErrorAt,
   }) : super._(
          id: id,
@@ -171,6 +185,7 @@ class _JobAutomationRuntimeImpl extends JobAutomationRuntime {
          lastSuccessfulScoringAt: lastSuccessfulScoringAt,
          lastSuccessfulProposalGenerationAt: lastSuccessfulProposalGenerationAt,
          lastErrorMessage: lastErrorMessage,
+         lastError: lastError,
          lastErrorAt: lastErrorAt,
        );
 
@@ -188,6 +203,7 @@ class _JobAutomationRuntimeImpl extends JobAutomationRuntime {
     Object? lastSuccessfulScoringAt = _Undefined,
     Object? lastSuccessfulProposalGenerationAt = _Undefined,
     Object? lastErrorMessage = _Undefined,
+    Object? lastError = _Undefined,
     Object? lastErrorAt = _Undefined,
   }) {
     return JobAutomationRuntime(
@@ -209,6 +225,9 @@ class _JobAutomationRuntimeImpl extends JobAutomationRuntime {
       lastErrorMessage: lastErrorMessage is String?
           ? lastErrorMessage
           : this.lastErrorMessage,
+      lastError: lastError is _i3.PascoaException?
+          ? lastError
+          : this.lastError?.copyWith(),
       lastErrorAt: lastErrorAt is DateTime? ? lastErrorAt : this.lastErrorAt,
     );
   }

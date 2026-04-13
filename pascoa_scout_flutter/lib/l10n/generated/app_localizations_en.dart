@@ -181,6 +181,24 @@ class AppLocalizationsEn extends AppLocalizations {
       'Automation hit an error. The latest failure is shown below.';
 
   @override
+  String get jobAutomationErrorCardCopyTooltip => 'Copy error details';
+
+  @override
+  String get jobAutomationErrorCardCopied => 'Error details copied.';
+
+  @override
+  String get jobAutomationErrorCardShowDetailsTooltip => 'Show error details';
+
+  @override
+  String get jobAutomationErrorCardHideDetailsTooltip => 'Hide error details';
+
+  @override
+  String get jobAutomationErrorCardRawErrorLabel => 'Error';
+
+  @override
+  String get jobAutomationErrorCardStackTraceLabel => 'Stack trace';
+
+  @override
   String jobAutomationStatusElapsedText(Object elapsed) {
     return 'Current step elapsed time: $elapsed.';
   }

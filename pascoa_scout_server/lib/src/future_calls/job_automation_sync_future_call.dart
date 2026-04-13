@@ -31,16 +31,17 @@ class JobAutomationSyncFutureCall extends FutureCall {
     );
 
     if (settings.jobFilter.searchQueryTerm.trim().isEmpty) {
+      final error = PascoaException(
+        message: 'Server-side filter query is empty',
+        description:
+            'The automation loop cannot fetch Upwork jobs until a non-empty server-side filter has been saved.',
+      );
       logAutomationDone(
         session,
         AutomationLogScope.sync,
         'step fetch skipped | reason=empty server filter query',
       );
-      await _automationService.markError(
-        session,
-        message:
-            'The automation loop cannot fetch Upwork jobs until a non-empty server-side filter has been saved.',
-      );
+      await _automationService.markError(session, error: error);
       await _scheduler.reschedule(
         session,
         callName: jobAutomationSyncFutureCallName,
@@ -94,7 +95,7 @@ class JobAutomationSyncFutureCall extends FutureCall {
           AutomationLogScope.sync,
           'step fetch failed | ${error.message}',
         );
-        await _automationService.markError(session, message: error.message);
+        await _automationService.markError(session, error: error);
         return null;
       },
     );

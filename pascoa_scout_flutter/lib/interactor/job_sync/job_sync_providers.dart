@@ -72,12 +72,7 @@ class JobSyncController extends Notifier<JobSyncState> {
       state = state.copyWith(
         isBusy: false,
         errors: [
-          JobSyncErrorLog(
-            happenedAt: DateTime.now(),
-            type: error.runtimeType.toString(),
-            message: error.toString(),
-            stackTrace: stackTrace.toString(),
-          ),
+          JobSyncErrorLog.fromThrown(error: error, stackTrace: stackTrace),
         ],
       );
     }
@@ -95,11 +90,9 @@ class JobSyncController extends Notifier<JobSyncState> {
             state = state.copyWith(
               isBusy: false,
               errors: [
-                JobSyncErrorLog(
-                  happenedAt: DateTime.now(),
-                  type: error.runtimeType.toString(),
-                  message: error.toString(),
-                  stackTrace: stackTrace.toString(),
+                JobSyncErrorLog.fromThrown(
+                  error: error,
+                  stackTrace: stackTrace,
                 ),
               ],
             );
@@ -282,12 +275,7 @@ class JobSyncController extends Notifier<JobSyncState> {
       state = state.copyWith(
         isBusy: false,
         errors: [
-          JobSyncErrorLog(
-            happenedAt: DateTime.now(),
-            type: error.runtimeType.toString(),
-            message: error.toString(),
-            stackTrace: stackTrace.toString(),
-          ),
+          JobSyncErrorLog.fromThrown(error: error, stackTrace: stackTrace),
           ...state.errors,
         ],
       );
@@ -326,12 +314,7 @@ class JobSyncController extends Notifier<JobSyncState> {
     } catch (error, stackTrace) {
       state = state.copyWith(
         errors: [
-          JobSyncErrorLog(
-            happenedAt: DateTime.now(),
-            type: error.runtimeType.toString(),
-            message: error.toString(),
-            stackTrace: stackTrace.toString(),
-          ),
+          JobSyncErrorLog.fromThrown(error: error, stackTrace: stackTrace),
           ...state.errors,
         ],
       );
@@ -348,16 +331,11 @@ class JobSyncController extends Notifier<JobSyncState> {
 
   void _applyOverview(JobAutomationOverview overview) {
     final runtime = overview.runtime;
-    final errors = runtime.lastErrorMessage == null
+    final hasRuntimeError =
+        runtime.lastErrorMessage != null || runtime.lastError != null;
+    final errors = !hasRuntimeError
         ? const <JobSyncErrorLog>[]
-        : [
-            JobSyncErrorLog(
-              happenedAt: runtime.lastErrorAt ?? DateTime.now(),
-              type: runtime.currentStep.name,
-              message: runtime.lastErrorMessage!,
-              stackTrace: '',
-            ),
-          ];
+        : [JobSyncErrorLog.fromRuntime(runtime)];
     state = state.copyWith(isBusy: false, overview: overview, errors: errors);
   }
 

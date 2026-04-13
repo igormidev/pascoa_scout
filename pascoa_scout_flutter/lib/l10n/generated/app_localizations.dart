@@ -398,6 +398,42 @@ abstract class AppLocalizations {
   /// **'Automation hit an error. The latest failure is shown below.'**
   String get jobAutomationStatusError;
 
+  /// Tooltip and semantics label for copying the automation error details.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy error details'**
+  String get jobAutomationErrorCardCopyTooltip;
+
+  /// Snackbar message shown after copying the automation error details.
+  ///
+  /// In en, this message translates to:
+  /// **'Error details copied.'**
+  String get jobAutomationErrorCardCopied;
+
+  /// Tooltip and semantics label for expanding the automation error card details.
+  ///
+  /// In en, this message translates to:
+  /// **'Show error details'**
+  String get jobAutomationErrorCardShowDetailsTooltip;
+
+  /// Tooltip and semantics label for collapsing the automation error card details.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide error details'**
+  String get jobAutomationErrorCardHideDetailsTooltip;
+
+  /// Section label for the raw PascoaException.error string inside the automation error card.
+  ///
+  /// In en, this message translates to:
+  /// **'Error'**
+  String get jobAutomationErrorCardRawErrorLabel;
+
+  /// Section label for the PascoaException stack trace inside the automation error card.
+  ///
+  /// In en, this message translates to:
+  /// **'Stack trace'**
+  String get jobAutomationErrorCardStackTraceLabel;
+
   /// Suffix appended to the automation status card to show how long the current step has been in its latest state.
   ///
   /// In en, this message translates to:

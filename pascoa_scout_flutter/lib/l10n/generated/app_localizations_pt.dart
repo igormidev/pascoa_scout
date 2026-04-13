@@ -185,6 +185,26 @@ class AppLocalizationsPt extends AppLocalizations {
       'A automação encontrou um erro. A falha mais recente aparece abaixo.';
 
   @override
+  String get jobAutomationErrorCardCopyTooltip => 'Copiar detalhes do erro';
+
+  @override
+  String get jobAutomationErrorCardCopied => 'Detalhes do erro copiados.';
+
+  @override
+  String get jobAutomationErrorCardShowDetailsTooltip =>
+      'Mostrar detalhes do erro';
+
+  @override
+  String get jobAutomationErrorCardHideDetailsTooltip =>
+      'Ocultar detalhes do erro';
+
+  @override
+  String get jobAutomationErrorCardRawErrorLabel => 'Erro';
+
+  @override
+  String get jobAutomationErrorCardStackTraceLabel => 'Rastreamento de pilha';
+
+  @override
   String jobAutomationStatusElapsedText(Object elapsed) {
     return 'Tempo decorrido da etapa atual: $elapsed.';
   }

@@ -305,6 +305,12 @@ class Protocol extends _i1.SerializationManagerServer {
           dartType: 'String?',
         ),
         _i2.ColumnDefinition(
+          name: 'lastError',
+          columnType: _i2.ColumnType.json,
+          isNullable: true,
+          dartType: 'protocol:PascoaException?',
+        ),
+        _i2.ColumnDefinition(
           name: 'lastErrorAt',
           columnType: _i2.ColumnType.timestampWithoutTimeZone,
           isNullable: true,

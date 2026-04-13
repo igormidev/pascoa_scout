@@ -1644,33 +1644,67 @@ class _CompactInfoCard extends StatelessWidget {
   }
 }
 
-class _ErrorLogCard extends StatelessWidget {
+class _ErrorLogCard extends StatefulWidget {
   const _ErrorLogCard({required this.error});
 
   final JobSyncErrorLog error;
 
-  String get _clipboardText =>
-      '${error.type}\n\n${error.message}\n\n${error.stackTrace}';
+  @override
+  State<_ErrorLogCard> createState() => _ErrorLogCardState();
+}
+
+class _ErrorLogCardState extends State<_ErrorLogCard> {
+  bool _isExpanded = false;
 
   @override
   Widget build(BuildContext context) {
+    final error = widget.error;
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final rawError = error.pascoaError?.trim();
+    final nestedStackTrace = error.pascoaStackTrace?.trim();
+    final hasExpandableDetails = error.hasPascoaDetails;
     final copyButton = Semantics(
       button: true,
-      label: 'Copy all',
+      label: l10n.jobAutomationErrorCardCopyTooltip,
       child: IconButton(
         onPressed: () async {
-          await Clipboard.setData(ClipboardData(text: _clipboardText));
+          final clipboardText = _buildJobSyncErrorClipboardText(
+            l10n: l10n,
+            error: error,
+          );
+          await Clipboard.setData(ClipboardData(text: clipboardText));
           if (!context.mounted) {
             return;
           }
 
-          notifySnackbarWithContext(context, message: 'Error details copied.');
+          notifySnackbarWithContext(
+            context,
+            message: l10n.jobAutomationErrorCardCopied,
+          );
         },
         visualDensity: VisualDensity.compact,
         icon: const Icon(Icons.content_copy_rounded, color: Color(0xFFFFDAD6)),
       ),
     );
+    final expandButton = hasExpandableDetails
+        ? Semantics(
+            button: true,
+            label: _isExpanded
+                ? l10n.jobAutomationErrorCardHideDetailsTooltip
+                : l10n.jobAutomationErrorCardShowDetailsTooltip,
+            child: IconButton(
+              onPressed: () => setState(() => _isExpanded = !_isExpanded),
+              visualDensity: VisualDensity.compact,
+              icon: Icon(
+                _isExpanded
+                    ? Icons.expand_less_rounded
+                    : Icons.expand_more_rounded,
+                color: const Color(0xFFFFDAD6),
+              ),
+            ),
+          )
+        : null;
     final usesDesktopPlatform = switch (theme.platform) {
       TargetPlatform.linux ||
       TargetPlatform.macOS ||
@@ -1705,11 +1739,25 @@ class _ErrorLogCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8.0),
+              if (expandButton != null) ...[
+                usesDesktopPlatform
+                    ? expandButton
+                    : Tooltip(
+                        message: _isExpanded
+                            ? l10n.jobAutomationErrorCardHideDetailsTooltip
+                            : l10n.jobAutomationErrorCardShowDetailsTooltip,
+                        child: expandButton,
+                      ),
+                const SizedBox(width: 4.0),
+              ],
               // Flutter 3.41.x has an open desktop AXTree regression involving
               // Tooltip overlays inside scrollable semantics trees.
               usesDesktopPlatform
                   ? copyButton
-                  : Tooltip(message: 'Copy all', child: copyButton),
+                  : Tooltip(
+                      message: l10n.jobAutomationErrorCardCopyTooltip,
+                      child: copyButton,
+                    ),
             ],
           ),
           const SizedBox(height: 10.0),
@@ -1719,18 +1767,100 @@ class _ErrorLogCard extends StatelessWidget {
               color: const Color(0xFFFFDAD6),
             ),
           ),
-          const SizedBox(height: 10.0),
-          SelectableText(
-            error.stackTrace,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.white.withValues(alpha: 0.72),
-              fontFamily: 'monospace',
-            ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOutCubic,
+            child: _isExpanded
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (rawError?.isNotEmpty ?? false) ...[
+                        const SizedBox(height: 12.0),
+                        _ErrorLogDetailSection(
+                          label: l10n.jobAutomationErrorCardRawErrorLabel,
+                          value: rawError!,
+                        ),
+                      ],
+                      if (nestedStackTrace?.isNotEmpty ?? false) ...[
+                        const SizedBox(height: 12.0),
+                        _ErrorLogDetailSection(
+                          label: l10n.jobAutomationErrorCardStackTraceLabel,
+                          value: nestedStackTrace!,
+                          useMonospace: true,
+                        ),
+                      ],
+                    ],
+                  )
+                : const SizedBox.shrink(),
           ),
         ],
       ),
     );
   }
+}
+
+class _ErrorLogDetailSection extends StatelessWidget {
+  const _ErrorLogDetailSection({
+    required this.label,
+    required this.value,
+    this.useMonospace = false,
+  });
+
+  final String label;
+  final String value;
+  final bool useMonospace;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: Colors.white.withValues(alpha: 0.82),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 6.0),
+        SelectableText(
+          value,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: Colors.white.withValues(alpha: 0.72),
+            fontFamily: useMonospace ? 'monospace' : null,
+            height: 1.35,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+String _buildJobSyncErrorClipboardText({
+  required AppLocalizations l10n,
+  required JobSyncErrorLog error,
+}) {
+  final buffer = StringBuffer()
+    ..writeln(error.type)
+    ..write('\n${error.message}');
+  final rawError = error.pascoaError?.trim();
+  final stackTrace = error.visibleStackTrace;
+
+  if (rawError?.isNotEmpty ?? false) {
+    buffer
+      ..write('\n\n${l10n.jobAutomationErrorCardRawErrorLabel}\n')
+      ..write(rawError);
+  }
+
+  if (stackTrace != null) {
+    buffer
+      ..write('\n\n${l10n.jobAutomationErrorCardStackTraceLabel}\n')
+      ..write(stackTrace);
+  }
+
+  return buffer.toString();
 }
 
 class _SelectionPills<T> extends StatelessWidget {

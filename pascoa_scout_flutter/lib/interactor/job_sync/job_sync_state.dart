@@ -105,12 +105,63 @@ class JobSyncErrorLog {
     required this.type,
     required this.message,
     required this.stackTrace,
+    this.pascoaError,
+    this.pascoaStackTrace,
   });
+
+  factory JobSyncErrorLog.fromThrown({
+    required Object error,
+    required StackTrace stackTrace,
+  }) {
+    final pascoaException = error is PascoaException ? error : null;
+
+    return JobSyncErrorLog(
+      happenedAt: DateTime.now(),
+      type: error.runtimeType.toString(),
+      message: pascoaException?.message ?? error.toString(),
+      stackTrace: stackTrace.toString(),
+      pascoaError: pascoaException?.error,
+      pascoaStackTrace: pascoaException?.stackTrace,
+    );
+  }
+
+  factory JobSyncErrorLog.fromRuntime(JobAutomationRuntime runtime) {
+    final lastError = runtime.lastError;
+
+    return JobSyncErrorLog(
+      happenedAt: runtime.lastErrorAt ?? DateTime.now(),
+      type: runtime.currentStep.name,
+      message: lastError?.message ?? runtime.lastErrorMessage ?? '',
+      stackTrace: '',
+      pascoaError: lastError?.error,
+      pascoaStackTrace: lastError?.stackTrace,
+    );
+  }
 
   final DateTime happenedAt;
   final String type;
   final String message;
   final String stackTrace;
+  final String? pascoaError;
+  final String? pascoaStackTrace;
+
+  bool get hasPascoaDetails =>
+      (pascoaError?.trim().isNotEmpty ?? false) ||
+      (pascoaStackTrace?.trim().isNotEmpty ?? false);
+
+  String? get visibleStackTrace {
+    final nestedStackTrace = pascoaStackTrace?.trim();
+    if (nestedStackTrace?.isNotEmpty ?? false) {
+      return nestedStackTrace;
+    }
+
+    final fallbackStackTrace = stackTrace.trim();
+    if (fallbackStackTrace.isNotEmpty) {
+      return fallbackStackTrace;
+    }
+
+    return null;
+  }
 }
 
 class TrackedJob {

@@ -9,6 +9,7 @@ fields:
   lastSuccessfulScoringAt: DateTime?
   lastSuccessfulProposalGenerationAt: DateTime?
   lastErrorMessage: String?
+  lastError: PascoaException?
   lastErrorAt: DateTime?
 indexes:
   job_automation_runtime_singleton_key_unique_idx:

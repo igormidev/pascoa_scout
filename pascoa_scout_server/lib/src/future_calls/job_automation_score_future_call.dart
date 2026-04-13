@@ -70,7 +70,7 @@ class JobAutomationScoreFutureCall extends FutureCall {
           AutomationLogScope.score,
           'step score failed | ${error.message}',
         );
-        await _automationService.markError(session, message: error.message);
+        await _automationService.markError(session, error: error);
         return null;
       },
     );
