@@ -100,6 +100,33 @@ class JobAutomationSyncFutureCall extends FutureCall {
       },
     );
     if (processedCount == null) {
+      final latestSettingsResult = await _automationService.getOrCreateSettings(
+        session,
+      );
+      final latestSettings = latestSettingsResult.fold(
+        (value) => value,
+        (error) => throw error,
+      );
+      if (latestSettings.isJobFetchingPaused) {
+        await _automationService.setCurrentStep(
+          session,
+          JobAutomationStep.pausedWaiting,
+        );
+        return;
+      }
+
+      await _scheduler.reschedule(
+        session,
+        callName: jobAutomationSyncFutureCallName,
+        identifier: jobAutomationSyncFutureCallIdentifier,
+        delay: Duration(minutes: latestSettings.loopDelayMinutes),
+      );
+      await _automationService.publishCurrentOverview(session);
+      logAutomationStart(
+        session,
+        AutomationLogScope.loop,
+        'sync step queued | delay=${latestSettings.loopDelayMinutes}m reason=fetch-failed',
+      );
       return;
     }
 
