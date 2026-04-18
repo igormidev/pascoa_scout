@@ -121,8 +121,9 @@ void _logAutomation(
 ) {
   final normalizedMessage = message.trim().replaceAll(RegExp(r'\s+'), ' ');
   final line =
-      '${_colorFor(scope)}[automation/${scope.name}] ${_iconFor(event)} $normalizedMessage${_resetColor()}\n\n';
-  session.log(line);
+      '${_colorFor(scope)}[automation/${scope.name}] ${_iconFor(event)} $normalizedMessage${_resetColor()}';
+  // ignore: avoid_print
+  print(line);
 }
 
 AutomationLogScope _scopeFromName(String scope) {

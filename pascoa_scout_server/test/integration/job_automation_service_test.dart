@@ -13,6 +13,7 @@ void main() {
       () async {
         final session = sessionBuilder.build();
         final service = JobAutomationService();
+        final scheduler = JobAutomationLoopScheduler();
         final settingsResult = await service.getOrCreateSettings(session);
         final settings = settingsResult.fold(
           (value) => value,
@@ -37,6 +38,7 @@ void main() {
             updatedAt: now,
           ),
         );
+        await scheduler.cancelAutomationFutureCalls(session);
 
         final overviewResult = await service.getOverview(session);
         final overview = overviewResult.fold(
@@ -100,6 +102,7 @@ void main() {
       () async {
         final session = sessionBuilder.build();
         final service = JobAutomationService();
+        final scheduler = JobAutomationLoopScheduler();
         final settingsResult = await service.getOrCreateSettings(session);
         final settings = settingsResult.fold(
           (value) => value,
@@ -124,6 +127,7 @@ void main() {
             updatedAt: now,
           ),
         );
+        await scheduler.cancelAutomationFutureCalls(session);
 
         final overviewResult = await service.getOverview(session);
         final overview = overviewResult.fold(

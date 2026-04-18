@@ -1,5 +1,7 @@
 import 'package:serverpod/serverpod.dart';
 
+import '../core/job_automation_constants.dart';
+
 class JobAutomationLoopScheduler {
   const JobAutomationLoopScheduler();
 
@@ -37,5 +39,12 @@ class JobAutomationLoopScheduler {
     for (final identifier in identifiers) {
       await cancel(session, identifier: identifier);
     }
+  }
+
+  Future<void> cancelAutomationFutureCalls(Session session) {
+    return cancelAll(
+      session,
+      identifiers: jobAutomationFutureCallIdentifiers,
+    );
   }
 }

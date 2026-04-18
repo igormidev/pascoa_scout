@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:codex_cli_interface/codex_cli_interface.dart';
@@ -17,6 +18,7 @@ class JobCodexService {
     required JobAutomationAiModel aiModel,
     required JobAutomationAiThinkingEffort aiThinkingEffort,
     bool enableWebSearch = false,
+    Duration? timeout,
   }) async {
     try {
       final codex = Codex();
@@ -34,10 +36,47 @@ class JobCodexService {
         ).copyWith(workingDirectory: workingDirectory),
       );
 
-      final result = await thread.run(
+      final cancelCompleter = Completer<void>();
+      final runFuture = thread.run(
         prompt,
-        TurnOptions(outputSchema: schema),
+        TurnOptions(
+          outputSchema: schema,
+          cancelSignal: cancelCompleter.future,
+        ),
       );
+      final effectiveTimeout =
+          timeout ??
+          (enableWebSearch
+              ? _defaultCodexWebSearchTimeout
+              : _defaultCodexTimeout);
+      final outcome = await Future.any<Object>([
+        runFuture,
+        Future<Object>.delayed(
+          effectiveTimeout,
+          () => const _CodexRunTimedOut(),
+        ),
+      ]);
+      if (outcome is _CodexRunTimedOut) {
+        if (!cancelCompleter.isCompleted) {
+          cancelCompleter.complete();
+        }
+        unawaited(
+          Future.any<Object?>([
+            runFuture.then<Object?>((_) => null),
+            Future<Object?>.delayed(_cancelDrainGracePeriod, () => null),
+          ]).catchError((Object _, StackTrace _) => null),
+        );
+        return Failure(
+          PascoaException(
+            message: 'Codex generation timed out',
+            description:
+                'The local Codex CLI did not finish the structured generation before the timeout window expired.',
+            error:
+                'Timed out after ${effectiveTimeout.inSeconds}s while waiting for Codex to finish.',
+          ),
+        );
+      }
+      final result = outcome as RunResult;
       final decoded = jsonDecode(result.finalResponse);
       if (decoded is! Map) {
         return Failure(
@@ -63,6 +102,14 @@ class JobCodexService {
       );
     }
   }
+}
+
+const Duration _defaultCodexTimeout = Duration(minutes: 2);
+const Duration _defaultCodexWebSearchTimeout = Duration(minutes: 5);
+const Duration _cancelDrainGracePeriod = Duration(seconds: 5);
+
+final class _CodexRunTimedOut {
+  const _CodexRunTimedOut();
 }
 
 String _mapModel(JobAutomationAiModel aiModel) {

@@ -58,14 +58,7 @@ class JobAutomationEndpoint extends Endpoint {
 
     result.fold((_) {}, (error) => throw error);
     if (isPaused) {
-      await _scheduler.cancelAll(
-        session,
-        identifiers: const [
-          jobAutomationSyncFutureCallIdentifier,
-          jobAutomationScoreFutureCallIdentifier,
-          jobAutomationProposalFutureCallIdentifier,
-        ],
-      );
+      await _scheduler.cancelAutomationFutureCalls(session);
       final runtimeResult = await _service.setCurrentStep(
         session,
         JobAutomationStep.pausedWaiting,

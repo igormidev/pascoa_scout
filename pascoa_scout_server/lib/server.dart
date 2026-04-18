@@ -10,6 +10,7 @@ import 'src/future_calls/job_automation_score_future_call.dart';
 import 'src/future_calls/job_automation_sync_future_call.dart';
 import 'src/generated/endpoints.dart';
 import 'src/generated/protocol.dart';
+import 'src/services/job_automation_startup_service.dart';
 
 /// The starting point of the Serverpod server.
 void run(List<String> args) async {
@@ -76,10 +77,30 @@ void run(List<String> args) async {
     'jobAutomationProposalFutureCall',
   );
 
+  final automationStartupService = JobAutomationStartupService();
+  final prestartCleanupSession = await pod.createSession(enableLogging: false);
+  try {
+    final prestartCleanupResult = await automationStartupService
+        .clearScheduledFutureCalls(prestartCleanupSession);
+    prestartCleanupResult.fold((_) {}, (error) => throw error);
+  } finally {
+    await prestartCleanupSession.close();
+  }
+
   printAutomationLogLegend();
 
   // Start the server.
   await pod.start();
+
+  final startupSession = await pod.createSession(enableLogging: true);
+  try {
+    final startupResult = await automationStartupService.reconcileAfterStartup(
+      startupSession,
+    );
+    startupResult.fold((_) {}, (error) => throw error);
+  } finally {
+    await startupSession.close();
+  }
 }
 
 void _sendRegistrationCode(

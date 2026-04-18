@@ -13,6 +13,12 @@ const String jobAutomationScoreFutureCallIdentifier =
 const String jobAutomationProposalFutureCallIdentifier =
     'job-automation-proposal-future-call';
 
+const List<String> jobAutomationFutureCallIdentifiers = [
+  jobAutomationSyncFutureCallIdentifier,
+  jobAutomationScoreFutureCallIdentifier,
+  jobAutomationProposalFutureCallIdentifier,
+];
+
 const int maxConcurrentAiExecutions = 2;
 const int defaultScoreBatchSize = 20;
 const int defaultProposalBatchSize = 20;

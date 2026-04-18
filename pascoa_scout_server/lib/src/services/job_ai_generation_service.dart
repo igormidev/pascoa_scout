@@ -302,16 +302,29 @@ Scoring rules:
 - aiScoreJustificationText must be concise, specific, and reference the strongest deciding factors from the job overview.
 ''';
 
+      final codexStopwatch = Stopwatch()..start();
+      logAutomationStart(
+        logSession,
+        AutomationLogScope.score,
+        '$analysisLabel $runLabel codex exec started | model=${aiModel.name} effort=${aiThinkingEffort.name} timeout=${_formatCodexTimeout(_scoreCodexTimeout)}',
+      );
       final generationResult = await _codexService.runStructuredJson(
         workingDirectory: workDirectory.path,
         prompt: prompt,
         schema: _scoreSchema,
         aiModel: aiModel,
         aiThinkingEffort: aiThinkingEffort,
+        timeout: _scoreCodexTimeout,
       );
+      codexStopwatch.stop();
 
       return await generationResult.fold(
         (payload) async {
+          logAutomationDone(
+            logSession,
+            AutomationLogScope.score,
+            '$analysisLabel $runLabel codex exec finished | duration=${_formatCodexElapsed(codexStopwatch.elapsed)}',
+          );
           await _writeJsonPayload(workDirectory, 'score-result.json', payload);
           final parsedResult = _parseScorePayload(payload);
           return await parsedResult.fold(
@@ -377,6 +390,11 @@ Scoring rules:
           );
         },
         (error) async {
+          logAutomationFail(
+            logSession,
+            AutomationLogScope.score,
+            '$analysisLabel $runLabel codex exec failed | duration=${_formatCodexElapsed(codexStopwatch.elapsed)} reason=${error.message}',
+          );
           logAutomationFail(
             logSession,
             AutomationLogScope.score,
@@ -493,6 +511,12 @@ Rules:
 - If the scope is small, a single milestone is acceptable, but the pricing still must add up to the total bid.
 ''';
 
+      final codexStopwatch = Stopwatch()..start();
+      logAutomationStart(
+        logSession,
+        AutomationLogScope.proposal,
+        '$analysisLabel $runLabel codex exec started | model=${aiModel.name} effort=${aiThinkingEffort.name} timeout=${_formatCodexTimeout(_proposalCodexTimeout)} webSearch=live',
+      );
       final generationResult = await _codexService.runStructuredJson(
         workingDirectory: workDirectory.path,
         prompt: prompt,
@@ -500,10 +524,17 @@ Rules:
         aiModel: aiModel,
         aiThinkingEffort: aiThinkingEffort,
         enableWebSearch: true,
+        timeout: _proposalCodexTimeout,
       );
+      codexStopwatch.stop();
 
       return await generationResult.fold(
         (payload) async {
+          logAutomationDone(
+            logSession,
+            AutomationLogScope.proposal,
+            '$analysisLabel $runLabel codex exec finished | duration=${_formatCodexElapsed(codexStopwatch.elapsed)}',
+          );
           await _writeJsonPayload(
             workDirectory,
             'proposal-result.json',
@@ -635,6 +666,11 @@ Rules:
           );
         },
         (error) async {
+          logAutomationFail(
+            logSession,
+            AutomationLogScope.proposal,
+            '$analysisLabel $runLabel codex exec failed | duration=${_formatCodexElapsed(codexStopwatch.elapsed)} reason=${error.message}',
+          );
           _logProposalFailure(
             logSession,
             analysisLabel: analysisLabel,
@@ -1360,6 +1396,20 @@ class _ParsedProposalMilestone {
   final String title;
   final String description;
   final double suggestedPrice;
+}
+
+const Duration _scoreCodexTimeout = Duration(minutes: 2);
+const Duration _proposalCodexTimeout = Duration(minutes: 5);
+
+String _formatCodexTimeout(Duration duration) {
+  return '${duration.inSeconds}s';
+}
+
+String _formatCodexElapsed(Duration duration) {
+  final totalMilliseconds = duration.inMilliseconds;
+  final wholeSeconds = totalMilliseconds ~/ 1000;
+  final fractionalMilliseconds = (totalMilliseconds % 1000) ~/ 100;
+  return '$wholeSeconds.${fractionalMilliseconds}s';
 }
 
 const Map<String, Object?> _scoreSchema = {
