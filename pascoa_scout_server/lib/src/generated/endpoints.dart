@@ -137,6 +137,50 @@ class Endpoints extends _i1.EndpointDispatch {
                     rawUrl: params['rawUrl'],
                   ),
         ),
+        'regenerateCoverLetter': _i1.MethodConnector(
+          name: 'regenerateCoverLetter',
+          params: {
+            'jobAnalysisStateId': _i1.ParameterDescription(
+              name: 'jobAnalysisStateId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['jobAnalysis'] as _i2.JobAnalysisEndpoint)
+                  .regenerateCoverLetter(
+                    session,
+                    jobAnalysisStateId: params['jobAnalysisStateId'],
+                  ),
+        ),
+        'regenerateAnswer': _i1.MethodConnector(
+          name: 'regenerateAnswer',
+          params: {
+            'jobAnalysisStateId': _i1.ParameterDescription(
+              name: 'jobAnalysisStateId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+            'relatedQuestionId': _i1.ParameterDescription(
+              name: 'relatedQuestionId',
+              type: _i1.getType<int>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['jobAnalysis'] as _i2.JobAnalysisEndpoint)
+                  .regenerateAnswer(
+                    session,
+                    jobAnalysisStateId: params['jobAnalysisStateId'],
+                    relatedQuestionId: params['relatedQuestionId'],
+                  ),
+        ),
         'forceSync': _i1.MethodStreamConnector(
           name: 'forceSync',
           params: {

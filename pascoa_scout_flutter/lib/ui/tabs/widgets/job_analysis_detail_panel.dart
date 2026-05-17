@@ -15,7 +15,7 @@ import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_proposal_milestones_se
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class JobAnalysisDetailPanel extends ConsumerWidget {
+class JobAnalysisDetailPanel extends ConsumerStatefulWidget {
   const JobAnalysisDetailPanel({
     super.key,
     required this.analysis,
@@ -26,9 +26,113 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
   final VoidCallback onBack;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<JobAnalysisDetailPanel> createState() =>
+      _JobAnalysisDetailPanelState();
+}
+
+mixin _JobAnalysisDetailRefreshMixin on ConsumerState<JobAnalysisDetailPanel> {
+  static const _coverLetterRefreshKey = 'cover-letter';
+
+  final Set<String> _refreshingKeys = <String>{};
+
+  bool isContentRefreshing(String key) => _refreshingKeys.contains(key);
+
+  bool get isCoverLetterRefreshing =>
+      _refreshingKeys.contains(_coverLetterRefreshKey);
+
+  String questionRefreshKey(int relatedQuestionId) =>
+      'question-$relatedQuestionId';
+
+  Future<void> refreshCoverLetter() async {
+    final analysisId = widget.analysis.id;
+    if (analysisId == null) {
+      return;
+    }
+
+    await _runRefreshAction(
+      refreshKey: _coverLetterRefreshKey,
+      request: () => ref
+          .read(clientProvider)
+          .jobAnalysis
+          .regenerateCoverLetter(jobAnalysisStateId: analysisId),
+    );
+  }
+
+  Future<void> refreshQuestionAnswer(int relatedQuestionId) async {
+    final analysisId = widget.analysis.id;
+    if (analysisId == null) {
+      return;
+    }
+
+    await _runRefreshAction(
+      refreshKey: questionRefreshKey(relatedQuestionId),
+      request: () => ref
+          .read(clientProvider)
+          .jobAnalysis
+          .regenerateAnswer(
+            jobAnalysisStateId: analysisId,
+            relatedQuestionId: relatedQuestionId,
+          ),
+    );
+  }
+
+  Future<void> _runRefreshAction({
+    required String refreshKey,
+    required Future<JobAnalysisState> Function() request,
+  }) async {
+    if (_refreshingKeys.contains(refreshKey)) {
+      return;
+    }
+
+    setState(() {
+      _refreshingKeys.add(refreshKey);
+    });
+
+    try {
+      final updated = await Future.wait<Object?>([
+        request(),
+        Future<void>.delayed(const Duration(milliseconds: 500)),
+      ]).then((values) => values.first as JobAnalysisState);
+      if (!mounted) {
+        return;
+      }
+
+      ref.read(selectedJobAnalysisProvider.notifier).update(updated);
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      notifySnackbarWithContext(
+        context,
+        message: error.toString(),
+        tone: AppNotificationTone.error,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _refreshingKeys.remove(refreshKey);
+        });
+      }
+    }
+  }
+}
+
+class _JobAnalysisDetailPanelState extends ConsumerState<JobAnalysisDetailPanel>
+    with _JobAnalysisDetailRefreshMixin {
+  @override
+  void didUpdateWidget(covariant JobAnalysisDetailPanel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!isSameJobAnalysis(oldWidget.analysis, widget.analysis) &&
+        _refreshingKeys.isNotEmpty) {
+      _refreshingKeys.clear();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final analysis = widget.analysis;
     final job = analysis.jobInfo!;
     final score = analysis.score;
     final proposal = analysis.proposal;
@@ -50,7 +154,7 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
                   children: [
                     _DetailHeader(
                       analysis: analysis,
-                      onBack: onBack,
+                      onBack: widget.onBack,
                       onOpenJob: () => _openJob(
                         context,
                         ref,
@@ -161,6 +265,16 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
                           text: question.question,
                           tooltip: l10n.jobAnalysisCopyQuestionTooltip,
                           copiedMessage: l10n.jobAnalysisQuestionCopied,
+                          refreshTooltip:
+                              l10n.jobAnalysisRegenerateQuestionAnswerTooltip,
+                          isRefreshing:
+                              question.id != null &&
+                              isContentRefreshing(
+                                questionRefreshKey(question.id!),
+                              ),
+                          onRefresh: question.id == null
+                              ? null
+                              : () => refreshQuestionAnswer(question.id!),
                         ),
                         const SizedBox(height: 18),
                       ],
@@ -172,6 +286,10 @@ class JobAnalysisDetailPanel extends ConsumerWidget {
                         text: proposal.aiGeneratedCoverLetterText,
                         tooltip: l10n.jobAnalysisCopyCoverLetterTooltip,
                         copiedMessage: l10n.jobAnalysisCoverLetterCopied,
+                        refreshTooltip:
+                            l10n.jobAnalysisRegenerateCoverLetterTooltip,
+                        isRefreshing: isCoverLetterRefreshing,
+                        onRefresh: refreshCoverLetter,
                       ),
                       const SizedBox(height: 24),
                     ],
@@ -833,16 +951,19 @@ class _CompactIconAction extends StatelessWidget {
   const _CompactIconAction({
     required this.icon,
     required this.tooltip,
-    required this.onTap,
+    this.onTap,
+    this.isBusy = false,
   });
 
   final IconData icon;
   final String tooltip;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
+  final bool isBusy;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isEnabled = onTap != null && !isBusy;
 
     return Tooltip(
       message: tooltip,
@@ -850,13 +971,37 @@ class _CompactIconAction extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(10),
-          onTap: onTap,
+          onTap: isEnabled ? onTap : null,
           child: Padding(
             padding: const EdgeInsets.all(4),
-            child: Icon(
-              icon,
-              size: 18,
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            child: SizedBox(
+              width: 18,
+              height: 18,
+              child: Center(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  switchInCurve: Curves.easeOutCubic,
+                  switchOutCurve: Curves.easeInCubic,
+                  child: isBusy
+                      ? SizedBox(
+                          key: const ValueKey('compact-action-loading'),
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        )
+                      : Icon(
+                          key: ValueKey(icon.codePoint),
+                          icon,
+                          size: 18,
+                          color: theme.colorScheme.onSurface.withValues(
+                            alpha: isEnabled ? 0.7 : 0.38,
+                          ),
+                        ),
+                ),
+              ),
             ),
           ),
         ),
@@ -871,12 +1016,18 @@ class _CopyableTextSection extends StatelessWidget {
     required this.text,
     required this.tooltip,
     required this.copiedMessage,
+    this.refreshTooltip,
+    this.onRefresh,
+    this.isRefreshing = false,
   });
 
   final String title;
   final String text;
   final String tooltip;
   final String copiedMessage;
+  final String? refreshTooltip;
+  final VoidCallback? onRefresh;
+  final bool isRefreshing;
 
   @override
   Widget build(BuildContext context) {
@@ -896,9 +1047,9 @@ class _CopyableTextSection extends StatelessWidget {
                 ),
               ),
             ),
-            IconButton(
+            _CompactIconAction(
               tooltip: tooltip,
-              onPressed: () async {
+              onTap: () async {
                 await Clipboard.setData(ClipboardData(text: text));
                 if (!context.mounted) {
                   return;
@@ -906,8 +1057,18 @@ class _CopyableTextSection extends StatelessWidget {
 
                 notifySnackbarWithContext(context, message: copiedMessage);
               },
-              icon: const Icon(Icons.content_copy_rounded),
+              icon: Icons.content_copy_rounded,
             ),
+            if (refreshTooltip != null && onRefresh != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 6),
+                child: _CompactIconAction(
+                  tooltip: refreshTooltip!,
+                  icon: Icons.refresh_rounded,
+                  isBusy: isRefreshing,
+                  onTap: onRefresh,
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 8),

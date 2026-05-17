@@ -428,6 +428,10 @@
   "@jobAnalysisCopyQuestionTooltip": {
     "description": "Tooltip for copying a raw application question."
   },
+  "jobAnalysisRegenerateQuestionAnswerTooltip": "Regenerate answer for this question",
+  "@jobAnalysisRegenerateQuestionAnswerTooltip": {
+    "description": "Tooltip for refreshing the AI-generated answer tied to a raw application question."
+  },
   "jobAnalysisQuestionCopied": "Question copied.",
   "@jobAnalysisQuestionCopied": {
     "description": "Snackbar message after copying a raw application question."
@@ -451,6 +455,10 @@
   "jobAnalysisCopyCoverLetterTooltip": "Copy cover letter",
   "@jobAnalysisCopyCoverLetterTooltip": {
     "description": "Tooltip for copying the AI-generated cover letter."
+  },
+  "jobAnalysisRegenerateCoverLetterTooltip": "Regenerate cover letter",
+  "@jobAnalysisRegenerateCoverLetterTooltip": {
+    "description": "Tooltip for refreshing the AI-generated cover letter."
   },
   "jobAnalysisCoverLetterCopied": "Cover letter copied.",
   "@jobAnalysisCoverLetterCopied": {

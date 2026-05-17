@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:serverpod/serverpod.dart';
 
 import '../generated/protocol.dart';
+import '../services/job_analysis_ai_refresh_service.dart';
 import '../services/job_analysis_force_sync_service.dart';
 import '../services/job_analysis_manual_fetch_service.dart';
 import '../services/job_analysis_query_service.dart';
@@ -11,15 +12,19 @@ class JobAnalysisEndpoint extends Endpoint {
   JobAnalysisEndpoint({
     JobAnalysisQueryService? service,
     JobAnalysisForceSyncService? forceSyncService,
+    JobAnalysisAiRefreshService? aiRefreshService,
     JobAnalysisManualFetchService? manualFetchService,
   }) : _service = service ?? const JobAnalysisQueryService(),
        _forceSyncService =
            forceSyncService ?? const JobAnalysisForceSyncService(),
+       _aiRefreshService =
+           aiRefreshService ?? const JobAnalysisAiRefreshService(),
        _manualFetchService =
            manualFetchService ?? const JobAnalysisManualFetchService();
 
   final JobAnalysisQueryService _service;
   final JobAnalysisForceSyncService _forceSyncService;
+  final JobAnalysisAiRefreshService _aiRefreshService;
   final JobAnalysisManualFetchService _manualFetchService;
 
   Future<JobAnalysisPagination> getPage(
@@ -59,6 +64,30 @@ class JobAnalysisEndpoint extends Endpoint {
     final result = await _manualFetchService.manualFetch(
       session,
       rawUrl: rawUrl,
+    );
+    return result.fold((row) => row, (error) => throw error);
+  }
+
+  Future<JobAnalysisState> regenerateCoverLetter(
+    Session session, {
+    required int jobAnalysisStateId,
+  }) async {
+    final result = await _aiRefreshService.regenerateCoverLetter(
+      session,
+      jobAnalysisStateId: jobAnalysisStateId,
+    );
+    return result.fold((row) => row, (error) => throw error);
+  }
+
+  Future<JobAnalysisState> regenerateAnswer(
+    Session session, {
+    required int jobAnalysisStateId,
+    required int relatedQuestionId,
+  }) async {
+    final result = await _aiRefreshService.regenerateAnswer(
+      session,
+      jobAnalysisStateId: jobAnalysisStateId,
+      relatedQuestionId: relatedQuestionId,
     );
     return result.fold((row) => row, (error) => throw error);
   }

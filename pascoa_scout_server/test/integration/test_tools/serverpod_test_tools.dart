@@ -328,6 +328,74 @@ class _JobAnalysisEndpoint {
     });
   }
 
+  _i3.Future<_i6.JobAnalysisState> regenerateCoverLetter(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int jobAnalysisStateId,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobAnalysis',
+            method: 'regenerateCoverLetter',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobAnalysis',
+          methodName: 'regenerateCoverLetter',
+          parameters: _i1.testObjectToJson({
+            'jobAnalysisStateId': jobAnalysisStateId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.JobAnalysisState>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
+  _i3.Future<_i6.JobAnalysisState> regenerateAnswer(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required int jobAnalysisStateId,
+    required int relatedQuestionId,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobAnalysis',
+            method: 'regenerateAnswer',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobAnalysis',
+          methodName: 'regenerateAnswer',
+          parameters: _i1.testObjectToJson({
+            'jobAnalysisStateId': jobAnalysisStateId,
+            'relatedQuestionId': relatedQuestionId,
+          }),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i6.JobAnalysisState>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Stream<_i7.JobAnalysisForceSyncProgress> forceSync(
     _i1.TestSessionBuilder sessionBuilder, {
     required int jobAnalysisStateId,

@@ -84,6 +84,26 @@ class EndpointJobAnalysis extends _i1.EndpointRef {
         {'rawUrl': rawUrl},
       );
 
+  _i2.Future<_i5.JobAnalysisState> regenerateCoverLetter({
+    required int jobAnalysisStateId,
+  }) => caller.callServerEndpoint<_i5.JobAnalysisState>(
+    'jobAnalysis',
+    'regenerateCoverLetter',
+    {'jobAnalysisStateId': jobAnalysisStateId},
+  );
+
+  _i2.Future<_i5.JobAnalysisState> regenerateAnswer({
+    required int jobAnalysisStateId,
+    required int relatedQuestionId,
+  }) => caller.callServerEndpoint<_i5.JobAnalysisState>(
+    'jobAnalysis',
+    'regenerateAnswer',
+    {
+      'jobAnalysisStateId': jobAnalysisStateId,
+      'relatedQuestionId': relatedQuestionId,
+    },
+  );
+
   _i2.Stream<_i6.JobAnalysisForceSyncProgress> forceSync({
     required int jobAnalysisStateId,
   }) =>

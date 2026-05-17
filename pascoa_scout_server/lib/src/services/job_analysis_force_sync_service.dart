@@ -5,13 +5,14 @@ import '../core/job_automation_logging.dart';
 import '../core/pascoa_result.dart';
 import '../generated/protocol.dart';
 import 'job_ai_generation_service.dart';
+import 'job_analysis_ai_generation_context_mixin.dart';
 import 'job_analysis_query_service.dart';
 import 'job_automation_service.dart';
 
 typedef JobAnalysisForceSyncProgressCallback =
     Future<void> Function(JobAnalysisForceSyncProgress progress);
 
-class JobAnalysisForceSyncService {
+class JobAnalysisForceSyncService with JobAnalysisAiGenerationContextMixin {
   const JobAnalysisForceSyncService({
     JobAnalysisQueryService? queryService,
     JobAiGenerationService? generationService,
@@ -23,6 +24,12 @@ class JobAnalysisForceSyncService {
   final JobAnalysisQueryService _queryService;
   final JobAiGenerationService _generationService;
   final JobAutomationService _automationService;
+
+  @override
+  JobAnalysisQueryService get queryService => _queryService;
+
+  @override
+  JobAutomationService get automationService => _automationService;
 
   Future<PascoaResult<JobAnalysisState>> forceSync(
     Session session, {
@@ -54,36 +61,22 @@ class JobAnalysisForceSyncService {
       return Failure(error);
     }
 
-    final settingsResult = await _automationService.getOrCreateSettings(
-      session,
-    );
-    final settings = settingsResult.fold<JobAutomationSettings?>(
-      (value) => value,
-      (_) => null,
-    );
-    if (settings == null) {
-      final error = settingsResult.fold<PascoaException?>(
-        (_) => null,
-        (failure) => failure,
-      );
-      return fail(error!);
-    }
-
-    final initialAnalysisResult = await _queryService.getById(
+    final contextResult = await loadAiGenerationContext(
       session,
       jobAnalysisStateId: jobAnalysisStateId,
     );
-    final initialAnalysis = initialAnalysisResult.fold<JobAnalysisState?>(
+    final context = contextResult.fold<JobAnalysisAiGenerationContext?>(
       (value) => value,
       (_) => null,
     );
-    if (initialAnalysis == null) {
-      final error = initialAnalysisResult.fold<PascoaException?>(
+    if (context == null) {
+      final error = contextResult.fold<PascoaException?>(
         (_) => null,
         (failure) => failure,
       );
       return fail(error!);
     }
+    final initialAnalysis = context.analysis;
 
     final analysisLabel = formatAutomationAnalysisLabel(initialAnalysis);
     final isFixedPriceJob = initialAnalysis.jobInfo?.jobType == JobType.fixed;
@@ -101,9 +94,8 @@ class JobAnalysisForceSyncService {
     );
     await emit(progress);
 
-    final aiModel = settings.aiModel ?? JobAutomationAiModel.gpt54;
-    final aiThinkingEffort =
-        settings.aiThinkingEffort ?? JobAutomationAiThinkingEffort.xhigh;
+    final aiModel = context.aiModel;
+    final aiThinkingEffort = context.aiThinkingEffort;
 
     await emit(
       progress.copyWith(

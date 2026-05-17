@@ -71,6 +71,54 @@ class JobAiGenerationService {
     );
   }
 
+  Future<PascoaResult<JobProposalGenerationSummary>>
+  generateProposalCoverLetterForAnalysis(
+    Session session, {
+    required JobAnalysisState analysis,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
+    String runLabel = 'mode=force section=cover-letter',
+  }) async {
+    final knowledgeResult = await _knowledgeService.getKnowledgeBundle(session);
+    return await knowledgeResult.fold(
+      (knowledge) async => _generateProposalCoverLetterForAnalysis(
+        session,
+        session,
+        analysis,
+        knowledge,
+        aiModel,
+        aiThinkingEffort,
+        runLabel: runLabel,
+      ),
+      (error) async => Failure(error),
+    );
+  }
+
+  Future<PascoaResult<JobProposalGenerationSummary>>
+  generateProposalAnswerForAnalysis(
+    Session session, {
+    required JobAnalysisState analysis,
+    required int relatedQuestionId,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
+    String runLabel = 'mode=force section=answer',
+  }) async {
+    final knowledgeResult = await _knowledgeService.getKnowledgeBundle(session);
+    return await knowledgeResult.fold(
+      (knowledge) async => _generateProposalAnswerForAnalysis(
+        session,
+        session,
+        analysis,
+        knowledge,
+        relatedQuestionId,
+        aiModel,
+        aiThinkingEffort,
+        runLabel: runLabel,
+      ),
+      (error) async => Failure(error),
+    );
+  }
+
   Future<PascoaResult<int>> generateMissingScores(
     Session session, {
     required int limit,
@@ -465,81 +513,27 @@ Scoring rules:
     );
 
     try {
-      final workDirectory = await _prepareWorkDirectory(
-        analysisId: analysis.id!,
+      final files = await _prepareProposalGenerationFiles(
+        analysis: analysis,
+        knowledge: knowledge,
         stageDirectoryName: 'proposal',
       );
-      final jobFile = await _writeJobContextFile(
-        workDirectory: workDirectory,
-        analysis: analysis,
-        includeScore: true,
-      );
-      final curriculumFile = await _writeFile(
-        workDirectory,
-        'curriculum.md',
-        knowledge.curriculum.markdownText,
-      );
-      final proposalStyleFile = await _writeFile(
-        workDirectory,
-        'proposal-style-preference.md',
-        knowledge.proposalStyle.markdownText,
-      );
-
-      final prompt =
-          '''
-You are writing a tailored Upwork cover letter, question answers, and milestone suggestions for the freelancer.
-
-Before responding, read these files completely and do not continue until you have read them all:
-- @${curriculumFile.path.split('/').last}
-- @${proposalStyleFile.path.split('/').last}
-- @${jobFile.path.split('/').last}
-
-The job file is the canonical source for the contract type and compensation details.
-If the project is fixed-price, you may do focused web research when it materially improves the milestone breakdown, such as validating sensible delivery phases, dependencies, or domain-specific implementation checkpoints. Keep any research tight and relevant to the actual job.
-
-Return only structured JSON that matches the provided schema.
-Rules:
-- aiGeneratedCoverLetterText must sound like the freelancer described in the files.
-- answers must contain one entry for each job question listed in the job file.
-- Each answer entry must use the exact relatedQuestionId from the job file.
-- milestones must be null when the job type is hourly.
-- For fixed-price jobs, milestones must be a non-empty ordered list of concrete payment checkpoints that break the work into sensible delivery phases.
-- Each milestone must contain a concise title, a specific description of the deliverable or outcome, and a numeric suggestedPrice.
-- When the job file provides a fixed price amount, the sum of all milestone suggestedPrice values must equal that amount exactly to the cent.
-- If the fixed price amount is unavailable but the raw budget text still implies a range or target, infer a single reasonable bid total from the job context and make the milestone prices add up to that inferred total.
-- Milestones should be tailored to the scope, reduce delivery risk, and avoid vague placeholders.
-- If the scope is small, a single milestone is acceptable, but the pricing still must add up to the total bid.
-''';
-
-      final codexStopwatch = Stopwatch()..start();
-      logAutomationStart(
+      final generationResult = await _runProposalStructuredGeneration(
         logSession,
-        AutomationLogScope.proposal,
-        '$analysisLabel $runLabel codex exec started | model=${aiModel.name} effort=${aiThinkingEffort.name} timeout=${_formatCodexTimeout(_proposalCodexTimeout)} webSearch=live',
-      );
-      final generationResult = await _codexService.runStructuredJson(
-        workingDirectory: workDirectory.path,
-        prompt: prompt,
+        scope: AutomationLogScope.proposal,
+        analysisLabel: analysisLabel,
+        runLabel: runLabel,
+        workDirectory: files.workDirectory,
+        payloadFileName: 'proposal-result.json',
+        prompt: _buildFullProposalPrompt(files),
         schema: _proposalSchema,
         aiModel: aiModel,
         aiThinkingEffort: aiThinkingEffort,
         enableWebSearch: true,
-        timeout: _proposalCodexTimeout,
       );
-      codexStopwatch.stop();
 
       return await generationResult.fold(
         (payload) async {
-          logAutomationDone(
-            logSession,
-            AutomationLogScope.proposal,
-            '$analysisLabel $runLabel codex exec finished | duration=${_formatCodexElapsed(codexStopwatch.elapsed)}',
-          );
-          await _writeJsonPayload(
-            workDirectory,
-            'proposal-result.json',
-            payload,
-          );
           final parsedResult = _parseProposalPayload(
             payload,
             analysis.jobInfo!,
@@ -547,83 +541,11 @@ Rules:
 
           return await parsedResult.fold(
             (parsed) async {
-              final now = DateTime.now().toUtc();
-              await session.db.transaction((transaction) async {
-                final currentProposal = await JobProposal.db.findFirstRow(
-                  session,
-                  where: (table) =>
-                      table.jobAnalysisStateId.equals(analysis.id),
-                  transaction: transaction,
-                  lockMode: LockMode.forUpdate,
-                );
-
-                final proposal = currentProposal == null
-                    ? await JobProposal.db.insertRow(
-                        session,
-                        JobProposal(
-                          jobAnalysisStateId: analysis.id!,
-                          aiGeneratedCoverLetterText: parsed.coverLetter,
-                        ),
-                        transaction: transaction,
-                      )
-                    : await JobProposal.db.updateRow(
-                        session,
-                        currentProposal.copyWith(
-                          aiGeneratedCoverLetterText: parsed.coverLetter,
-                        ),
-                        transaction: transaction,
-                      );
-
-                await JobProposalAnswerToQuestion.db.deleteWhere(
-                  session,
-                  where: (table) => table.jobProposalId.equals(proposal.id),
-                  transaction: transaction,
-                );
-                await JobProposalMilestone.db.deleteWhere(
-                  session,
-                  where: (table) => table.jobProposalId.equals(proposal.id),
-                  transaction: transaction,
-                );
-
-                if (parsed.answers.isNotEmpty) {
-                  await JobProposalAnswerToQuestion.db.insert(
-                    session,
-                    [
-                      for (final answer in parsed.answers)
-                        JobProposalAnswerToQuestion(
-                          jobProposalId: proposal.id!,
-                          relatedQuestionId: answer.relatedQuestionId,
-                          aiGeneratedAnswerText: answer.answerText,
-                        ),
-                    ],
-                    transaction: transaction,
-                  );
-                }
-
-                if (parsed.milestones.isNotEmpty) {
-                  await JobProposalMilestone.db.insert(
-                    session,
-                    [
-                      for (final milestone in parsed.milestones)
-                        JobProposalMilestone(
-                          jobProposalId: proposal.id!,
-                          positionIndex: milestone.positionIndex,
-                          title: milestone.title,
-                          description: milestone.description,
-                          suggestedPrice: milestone.suggestedPrice,
-                        ),
-                    ],
-                    transaction: transaction,
-                  );
-                }
-
-                await JobAnalysisState.db.updateRow(
-                  session,
-                  analysis.copyWith(createdJobAiResponsesAt: now),
-                  columns: (table) => [table.createdJobAiResponsesAt],
-                  transaction: transaction,
-                );
-              });
+              await _persistFullProposal(
+                session,
+                analysis: analysis,
+                parsed: parsed,
+              );
               final milestoneTotal = parsed.milestones.fold<double>(
                 0,
                 (total, milestone) => total + milestone.suggestedPrice,
@@ -666,11 +588,6 @@ Rules:
           );
         },
         (error) async {
-          logAutomationFail(
-            logSession,
-            AutomationLogScope.proposal,
-            '$analysisLabel $runLabel codex exec failed | duration=${_formatCodexElapsed(codexStopwatch.elapsed)} reason=${error.message}',
-          );
           _logProposalFailure(
             logSession,
             analysisLabel: analysisLabel,
@@ -697,6 +614,696 @@ Rules:
         ),
       );
     }
+  }
+
+  Future<PascoaResult<JobProposalGenerationSummary>>
+  _generateProposalCoverLetterForAnalysis(
+    Session session,
+    Session logSession,
+    JobAnalysisState analysis,
+    JobKnowledgeBundle knowledge,
+    JobAutomationAiModel aiModel,
+    JobAutomationAiThinkingEffort aiThinkingEffort, {
+    required String runLabel,
+  }) async {
+    final validationError = _validateAnalysis(analysis);
+    final analysisLabel = formatAutomationAnalysisLabel(analysis);
+    if (validationError != null) {
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.proposal,
+        '$analysisLabel $runLabel failed | ${validationError.message}',
+      );
+      return Failure(validationError);
+    }
+
+    if (analysis.proposal == null) {
+      return _generateProposalForAnalysis(
+        session,
+        logSession,
+        analysis,
+        knowledge,
+        aiModel,
+        aiThinkingEffort,
+        runLabel: '$runLabel fallback=full-proposal',
+      );
+    }
+
+    logAutomationStart(
+      logSession,
+      AutomationLogScope.proposal,
+      '$analysisLabel $runLabel started | section=cover-letter',
+    );
+
+    try {
+      final files = await _prepareProposalGenerationFiles(
+        analysis: analysis,
+        knowledge: knowledge,
+        stageDirectoryName: 'proposal_cover_letter',
+      );
+      final generationResult = await _runProposalStructuredGeneration(
+        logSession,
+        scope: AutomationLogScope.proposal,
+        analysisLabel: analysisLabel,
+        runLabel: runLabel,
+        workDirectory: files.workDirectory,
+        payloadFileName: 'proposal-cover-letter-result.json',
+        prompt: _buildCoverLetterPrompt(files),
+        schema: _coverLetterSchema,
+        aiModel: aiModel,
+        aiThinkingEffort: aiThinkingEffort,
+      );
+
+      return await generationResult.fold(
+        (payload) async {
+          final parsedResult = _parseCoverLetterPayload(payload);
+          return await parsedResult.fold(
+            (coverLetter) async {
+              await _persistProposalCoverLetter(
+                session,
+                analysis: analysis,
+                coverLetter: coverLetter,
+              );
+              logAutomationDone(
+                logSession,
+                AutomationLogScope.proposal,
+                '$analysisLabel $runLabel finished | section=cover-letter',
+              );
+              return Success(
+                JobProposalGenerationSummary(
+                  answerCount: analysis.proposal?.answers?.length ?? 0,
+                  milestoneCount: analysis.proposal?.milestones?.length ?? 0,
+                  isFixedPriceJob: analysis.jobInfo?.jobType == JobType.fixed,
+                ),
+              );
+            },
+            (error) async {
+              logAutomationFail(
+                logSession,
+                AutomationLogScope.proposal,
+                '$analysisLabel $runLabel failed | ${error.message}',
+              );
+              return Failure(error);
+            },
+          );
+        },
+        (error) async {
+          logAutomationFail(
+            logSession,
+            AutomationLogScope.proposal,
+            '$analysisLabel $runLabel failed | ${error.message}',
+          );
+          return Failure(error);
+        },
+      );
+    } catch (error, stackTrace) {
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.proposal,
+        '$analysisLabel $runLabel failed | ${error.runtimeType}',
+      );
+      return Failure(
+        PascoaException(
+          message: 'Unable to regenerate the cover letter',
+          description:
+              'The AI pipeline failed while regenerating the cover letter for one job.',
+          error: error.toString(),
+          stackTrace: stackTrace.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<PascoaResult<JobProposalGenerationSummary>>
+  _generateProposalAnswerForAnalysis(
+    Session session,
+    Session logSession,
+    JobAnalysisState analysis,
+    JobKnowledgeBundle knowledge,
+    int relatedQuestionId,
+    JobAutomationAiModel aiModel,
+    JobAutomationAiThinkingEffort aiThinkingEffort, {
+    required String runLabel,
+  }) async {
+    final validationError = _validateAnalysis(analysis);
+    final analysisLabel = formatAutomationAnalysisLabel(analysis);
+    if (validationError != null) {
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.answers,
+        '$analysisLabel $runLabel failed | ${validationError.message}',
+      );
+      return Failure(validationError);
+    }
+
+    final targetQuestion = _findQuestionById(
+      analysis.jobInfo?.questions ?? const <Question>[],
+      relatedQuestionId,
+    );
+    if (targetQuestion == null) {
+      final error = PascoaException(
+        message: 'Question not found',
+        description:
+            'The requested relatedQuestionId does not belong to the selected job analysis.',
+      );
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.answers,
+        '$analysisLabel $runLabel failed | ${error.message}',
+      );
+      return Failure(error);
+    }
+
+    if (analysis.proposal == null) {
+      return _generateProposalForAnalysis(
+        session,
+        logSession,
+        analysis,
+        knowledge,
+        aiModel,
+        aiThinkingEffort,
+        runLabel: '$runLabel fallback=full-proposal',
+      );
+    }
+
+    logAutomationStart(
+      logSession,
+      AutomationLogScope.answers,
+      '$analysisLabel $runLabel started | targetQuestion=${targetQuestion.positionIndex + 1}',
+    );
+
+    try {
+      final files = await _prepareProposalGenerationFiles(
+        analysis: analysis,
+        knowledge: knowledge,
+        stageDirectoryName: 'proposal_answer_$relatedQuestionId',
+      );
+      final generationResult = await _runProposalStructuredGeneration(
+        logSession,
+        scope: AutomationLogScope.answers,
+        analysisLabel: analysisLabel,
+        runLabel: runLabel,
+        workDirectory: files.workDirectory,
+        payloadFileName: 'proposal-answer-result.json',
+        prompt: _buildSingleAnswerPrompt(
+          files,
+          question: targetQuestion,
+        ),
+        schema: _singleAnswerSchema,
+        aiModel: aiModel,
+        aiThinkingEffort: aiThinkingEffort,
+      );
+
+      return await generationResult.fold(
+        (payload) async {
+          final parsedResult = _parseSingleAnswerPayload(
+            payload,
+            relatedQuestionId: relatedQuestionId,
+          );
+          return await parsedResult.fold(
+            (answer) async {
+              await _persistProposalAnswer(
+                session,
+                analysis: analysis,
+                answer: answer,
+              );
+              logAutomationDone(
+                logSession,
+                AutomationLogScope.answers,
+                '$analysisLabel $runLabel finished | targetQuestion=${targetQuestion.positionIndex + 1}',
+              );
+              return Success(
+                JobProposalGenerationSummary(
+                  answerCount: 1,
+                  milestoneCount: analysis.proposal?.milestones?.length ?? 0,
+                  isFixedPriceJob: analysis.jobInfo?.jobType == JobType.fixed,
+                ),
+              );
+            },
+            (error) async {
+              logAutomationFail(
+                logSession,
+                AutomationLogScope.answers,
+                '$analysisLabel $runLabel failed | ${error.message}',
+              );
+              return Failure(error);
+            },
+          );
+        },
+        (error) async {
+          logAutomationFail(
+            logSession,
+            AutomationLogScope.answers,
+            '$analysisLabel $runLabel failed | ${error.message}',
+          );
+          return Failure(error);
+        },
+      );
+    } catch (error, stackTrace) {
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.answers,
+        '$analysisLabel $runLabel failed | ${error.runtimeType}',
+      );
+      return Failure(
+        PascoaException(
+          message: 'Unable to regenerate the answer',
+          description:
+              'The AI pipeline failed while regenerating one answer for the selected job question.',
+          error: error.toString(),
+          stackTrace: stackTrace.toString(),
+        ),
+      );
+    }
+  }
+
+  Future<_ProposalGenerationFiles> _prepareProposalGenerationFiles({
+    required JobAnalysisState analysis,
+    required JobKnowledgeBundle knowledge,
+    required String stageDirectoryName,
+  }) async {
+    final workDirectory = await _prepareWorkDirectory(
+      analysisId: analysis.id!,
+      stageDirectoryName: stageDirectoryName,
+    );
+    final jobFile = await _writeJobContextFile(
+      workDirectory: workDirectory,
+      analysis: analysis,
+      includeScore: true,
+    );
+    final curriculumFile = await _writeFile(
+      workDirectory,
+      'curriculum.md',
+      knowledge.curriculum.markdownText,
+    );
+    final proposalStyleFile = await _writeFile(
+      workDirectory,
+      'proposal-style-preference.md',
+      knowledge.proposalStyle.markdownText,
+    );
+    final opportunityPreferenceFile = await _writeFile(
+      workDirectory,
+      'job-opportunity-preference.md',
+      knowledge.opportunityPreference.markdownText,
+    );
+
+    return _ProposalGenerationFiles(
+      workDirectory: workDirectory,
+      jobFile: jobFile,
+      curriculumFile: curriculumFile,
+      proposalStyleFile: proposalStyleFile,
+      opportunityPreferenceFile: opportunityPreferenceFile,
+    );
+  }
+
+  String _buildProposalReadInstructions(_ProposalGenerationFiles files) {
+    return '''
+Before responding, read these files completely and do not continue until you have read them all:
+- @${files.curriculumFile.path.split('/').last}
+- @${files.proposalStyleFile.path.split('/').last}
+- @${files.opportunityPreferenceFile.path.split('/').last}
+- @${files.jobFile.path.split('/').last}
+''';
+  }
+
+  String _buildEvidenceGroundingRules() {
+    return '''
+- Base every statement on the freelancer files and the persisted job context.
+- Reuse concrete facts from the freelancer files whenever relevant, such as shipped products, role scope, technologies, industries, outcomes, and links.
+- Do not say information is unavailable, can be shared later, or can be provided on request when the freelancer files already contain usable evidence.
+- If the freelancer files truly do not contain the requested fact, answer truthfully with the closest supported detail and do not invent credentials, years, metrics, or links.
+''';
+  }
+
+  String _buildQuestionAnswerGroundingRules() {
+    return '''
+- Every answer must be written from the freelancer's real background in the curriculum file, not as a generic template.
+- If a question asks for a GitHub profile, portfolio, website, case study, or similar link, include the actual link present in the freelancer files when available.
+- Each answer should be directly usable in the Upwork form, concise, specific, and should not repeat the raw question.
+''';
+  }
+
+  String _buildFullProposalPrompt(_ProposalGenerationFiles files) {
+    return '''
+You are writing a tailored Upwork cover letter, question answers, and milestone suggestions for the freelancer.
+
+${_buildProposalReadInstructions(files)}
+
+The job file is the canonical source for the contract type and compensation details.
+If the project is fixed-price, you may do focused web research when it materially improves the milestone breakdown, such as validating sensible delivery phases, dependencies, or domain-specific implementation checkpoints. Keep any research tight and relevant to the actual job.
+
+Return only structured JSON that matches the provided schema.
+Rules:
+- aiGeneratedCoverLetterText must sound like the freelancer described in the files.
+${_buildEvidenceGroundingRules()}${_buildQuestionAnswerGroundingRules()}- answers must contain one entry for each job question listed in the job file.
+- Each answer entry must use the exact relatedQuestionId from the job file.
+- milestones must be null when the job type is hourly.
+- For fixed-price jobs, milestones must be a non-empty ordered list of concrete payment checkpoints that break the work into sensible delivery phases.
+- Each milestone must contain a concise title, a specific description of the deliverable or outcome, and a numeric suggestedPrice.
+- When the job file provides a fixed price amount, the sum of all milestone suggestedPrice values must equal that amount exactly to the cent.
+- If the fixed price amount is unavailable but the raw budget text still implies a range or target, infer a single reasonable bid total from the job context and make the milestone prices add up to that inferred total.
+- Milestones should be tailored to the scope, reduce delivery risk, and avoid vague placeholders.
+- If the scope is small, a single milestone is acceptable, but the pricing still must add up to the total bid.
+''';
+  }
+
+  String _buildCoverLetterPrompt(_ProposalGenerationFiles files) {
+    return '''
+You are writing a tailored Upwork cover letter for the freelancer.
+
+${_buildProposalReadInstructions(files)}
+
+The job file is the canonical source for the project scope, contract type, and compensation details.
+
+Return only structured JSON that matches the provided schema.
+Rules:
+- aiGeneratedCoverLetterText must sound like the freelancer described in the files.
+${_buildEvidenceGroundingRules()}- The cover letter should be directly usable in Upwork, concise, specific, and tailored to this exact job.
+''';
+  }
+
+  String _buildSingleAnswerPrompt(
+    _ProposalGenerationFiles files, {
+    required Question question,
+  }) {
+    return '''
+You are writing one tailored Upwork question answer for the freelancer.
+
+${_buildProposalReadInstructions(files)}
+
+Return only structured JSON that matches the provided schema.
+Rules:
+${_buildEvidenceGroundingRules()}${_buildQuestionAnswerGroundingRules()}- Return exactly one answer for the target question below.
+- relatedQuestionId must be ${question.id}.
+
+Target question:
+- Question ${question.positionIndex + 1} (relatedQuestionId: ${question.id}): ${question.question.trim()}
+''';
+  }
+
+  Future<PascoaResult<Map<String, dynamic>>> _runProposalStructuredGeneration(
+    Session logSession, {
+    required AutomationLogScope scope,
+    required String analysisLabel,
+    required String runLabel,
+    required Directory workDirectory,
+    required String payloadFileName,
+    required String prompt,
+    required Map<String, Object?> schema,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
+    bool enableWebSearch = false,
+  }) async {
+    final codexStopwatch = Stopwatch()..start();
+    logAutomationStart(
+      logSession,
+      scope,
+      '$analysisLabel $runLabel codex exec started | model=${aiModel.name} effort=${aiThinkingEffort.name} timeout=${_formatCodexTimeout(_proposalCodexTimeout)}${enableWebSearch ? ' webSearch=live' : ''}',
+    );
+    final generationResult = await _codexService.runStructuredJson(
+      workingDirectory: workDirectory.path,
+      prompt: prompt,
+      schema: schema,
+      aiModel: aiModel,
+      aiThinkingEffort: aiThinkingEffort,
+      enableWebSearch: enableWebSearch,
+      timeout: _proposalCodexTimeout,
+    );
+    codexStopwatch.stop();
+
+    return await generationResult.fold(
+      (payload) async {
+        logAutomationDone(
+          logSession,
+          scope,
+          '$analysisLabel $runLabel codex exec finished | duration=${_formatCodexElapsed(codexStopwatch.elapsed)}',
+        );
+        await _writeJsonPayload(workDirectory, payloadFileName, payload);
+        return Success(payload);
+      },
+      (error) async {
+        logAutomationFail(
+          logSession,
+          scope,
+          '$analysisLabel $runLabel codex exec failed | duration=${_formatCodexElapsed(codexStopwatch.elapsed)} reason=${error.message}',
+        );
+        return Failure(error);
+      },
+    );
+  }
+
+  Future<void> _persistFullProposal(
+    Session session, {
+    required JobAnalysisState analysis,
+    required _ParsedProposalPayload parsed,
+  }) async {
+    final now = DateTime.now().toUtc();
+    await session.db.transaction((transaction) async {
+      final currentProposal = await JobProposal.db.findFirstRow(
+        session,
+        where: (table) => table.jobAnalysisStateId.equals(analysis.id),
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+
+      final proposal = currentProposal == null
+          ? await JobProposal.db.insertRow(
+              session,
+              JobProposal(
+                jobAnalysisStateId: analysis.id!,
+                aiGeneratedCoverLetterText: parsed.coverLetter,
+              ),
+              transaction: transaction,
+            )
+          : await JobProposal.db.updateRow(
+              session,
+              currentProposal.copyWith(
+                aiGeneratedCoverLetterText: parsed.coverLetter,
+              ),
+              transaction: transaction,
+            );
+
+      await JobProposalAnswerToQuestion.db.deleteWhere(
+        session,
+        where: (table) => table.jobProposalId.equals(proposal.id),
+        transaction: transaction,
+      );
+      await JobProposalMilestone.db.deleteWhere(
+        session,
+        where: (table) => table.jobProposalId.equals(proposal.id),
+        transaction: transaction,
+      );
+
+      if (parsed.answers.isNotEmpty) {
+        await JobProposalAnswerToQuestion.db.insert(
+          session,
+          [
+            for (final answer in parsed.answers)
+              JobProposalAnswerToQuestion(
+                jobProposalId: proposal.id!,
+                relatedQuestionId: answer.relatedQuestionId,
+                aiGeneratedAnswerText: answer.answerText,
+              ),
+          ],
+          transaction: transaction,
+        );
+      }
+
+      if (parsed.milestones.isNotEmpty) {
+        await JobProposalMilestone.db.insert(
+          session,
+          [
+            for (final milestone in parsed.milestones)
+              JobProposalMilestone(
+                jobProposalId: proposal.id!,
+                positionIndex: milestone.positionIndex,
+                title: milestone.title,
+                description: milestone.description,
+                suggestedPrice: milestone.suggestedPrice,
+              ),
+          ],
+          transaction: transaction,
+        );
+      }
+
+      await _touchAiResponsesGeneratedAt(
+        session,
+        analysis: analysis,
+        now: now,
+        transaction: transaction,
+      );
+    });
+  }
+
+  Future<void> _persistProposalCoverLetter(
+    Session session, {
+    required JobAnalysisState analysis,
+    required String coverLetter,
+  }) async {
+    final now = DateTime.now().toUtc();
+    await session.db.transaction((transaction) async {
+      final currentProposal = await JobProposal.db.findFirstRow(
+        session,
+        where: (table) => table.jobAnalysisStateId.equals(analysis.id),
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+
+      if (currentProposal == null) {
+        await JobProposal.db.insertRow(
+          session,
+          JobProposal(
+            jobAnalysisStateId: analysis.id!,
+            aiGeneratedCoverLetterText: coverLetter,
+          ),
+          transaction: transaction,
+        );
+      } else {
+        await JobProposal.db.updateRow(
+          session,
+          currentProposal.copyWith(aiGeneratedCoverLetterText: coverLetter),
+          transaction: transaction,
+        );
+      }
+
+      await _touchAiResponsesGeneratedAt(
+        session,
+        analysis: analysis,
+        now: now,
+        transaction: transaction,
+      );
+    });
+  }
+
+  Future<void> _persistProposalAnswer(
+    Session session, {
+    required JobAnalysisState analysis,
+    required _ParsedProposalAnswer answer,
+  }) async {
+    final now = DateTime.now().toUtc();
+    await session.db.transaction((transaction) async {
+      final currentProposal = await JobProposal.db.findFirstRow(
+        session,
+        where: (table) => table.jobAnalysisStateId.equals(analysis.id),
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+      if (currentProposal == null) {
+        throw StateError(
+          'Cannot persist a regenerated answer without an existing proposal row.',
+        );
+      }
+
+      final currentAnswer = await JobProposalAnswerToQuestion.db.findFirstRow(
+        session,
+        where: (table) =>
+            table.jobProposalId.equals(currentProposal.id) &
+            table.relatedQuestionId.equals(answer.relatedQuestionId),
+        transaction: transaction,
+        lockMode: LockMode.forUpdate,
+      );
+
+      if (currentAnswer == null) {
+        await JobProposalAnswerToQuestion.db.insertRow(
+          session,
+          JobProposalAnswerToQuestion(
+            jobProposalId: currentProposal.id!,
+            relatedQuestionId: answer.relatedQuestionId,
+            aiGeneratedAnswerText: answer.answerText,
+          ),
+          transaction: transaction,
+        );
+      } else {
+        await JobProposalAnswerToQuestion.db.updateRow(
+          session,
+          currentAnswer.copyWith(aiGeneratedAnswerText: answer.answerText),
+          transaction: transaction,
+        );
+      }
+
+      await _touchAiResponsesGeneratedAt(
+        session,
+        analysis: analysis,
+        now: now,
+        transaction: transaction,
+      );
+    });
+  }
+
+  Future<void> _touchAiResponsesGeneratedAt(
+    Session session, {
+    required JobAnalysisState analysis,
+    required DateTime now,
+    required Transaction transaction,
+  }) {
+    return JobAnalysisState.db.updateRow(
+      session,
+      analysis.copyWith(createdJobAiResponsesAt: now),
+      columns: (table) => [table.createdJobAiResponsesAt],
+      transaction: transaction,
+    );
+  }
+
+  Question? _findQuestionById(
+    Iterable<Question> questions,
+    int relatedQuestionId,
+  ) {
+    for (final question in questions) {
+      if (question.id == relatedQuestionId) {
+        return question;
+      }
+    }
+    return null;
+  }
+
+  PascoaResult<String> _parseCoverLetterPayload(Map<String, dynamic> payload) {
+    final coverLetter = payload['aiGeneratedCoverLetterText'];
+    if (coverLetter is! String || coverLetter.trim().isEmpty) {
+      return Failure(
+        PascoaException(
+          message: 'Invalid AI proposal payload',
+          description:
+              'Codex returned an empty or missing aiGeneratedCoverLetterText field.',
+          error: jsonEncode(payload),
+        ),
+      );
+    }
+
+    return Success(coverLetter.trim());
+  }
+
+  PascoaResult<_ParsedProposalAnswer> _parseSingleAnswerPayload(
+    Map<String, dynamic> payload, {
+    required int relatedQuestionId,
+  }) {
+    final returnedQuestionId = payload['relatedQuestionId'];
+    final answerText = payload['aiGeneratedAnswerText'];
+    if (returnedQuestionId is! int || returnedQuestionId != relatedQuestionId) {
+      return Failure(
+        PascoaException(
+          message: 'Invalid AI proposal payload',
+          description:
+              'Codex must return the exact relatedQuestionId for the requested answer refresh.',
+          error: jsonEncode(payload),
+        ),
+      );
+    }
+    if (answerText is! String || answerText.trim().isEmpty) {
+      return Failure(
+        PascoaException(
+          message: 'Invalid AI proposal payload',
+          description: 'Codex must return a non-empty regenerated answer.',
+          error: jsonEncode(payload),
+        ),
+      );
+    }
+
+    return Success(
+      _ParsedProposalAnswer(
+        relatedQuestionId: relatedQuestionId,
+        answerText: answerText.trim(),
+      ),
+    );
   }
 
   Future<PascoaResult<T>> _withTaskSession<T extends Object>(
@@ -1398,6 +2005,22 @@ class _ParsedProposalMilestone {
   final double suggestedPrice;
 }
 
+class _ProposalGenerationFiles {
+  const _ProposalGenerationFiles({
+    required this.workDirectory,
+    required this.jobFile,
+    required this.curriculumFile,
+    required this.proposalStyleFile,
+    required this.opportunityPreferenceFile,
+  });
+
+  final Directory workDirectory;
+  final File jobFile;
+  final File curriculumFile;
+  final File proposalStyleFile;
+  final File opportunityPreferenceFile;
+}
+
 const Duration _scoreCodexTimeout = Duration(minutes: 2);
 const Duration _proposalCodexTimeout = Duration(minutes: 5);
 
@@ -1466,5 +2089,26 @@ const Map<String, Object?> _proposalSchema = {
     },
   },
   'required': ['aiGeneratedCoverLetterText', 'answers', 'milestones'],
+  'additionalProperties': false,
+};
+
+const Map<String, Object?> _coverLetterSchema = {
+  'type': 'object',
+  'properties': {
+    'aiGeneratedCoverLetterText': {
+      'type': 'string',
+    },
+  },
+  'required': ['aiGeneratedCoverLetterText'],
+  'additionalProperties': false,
+};
+
+const Map<String, Object?> _singleAnswerSchema = {
+  'type': 'object',
+  'properties': {
+    'relatedQuestionId': {'type': 'integer'},
+    'aiGeneratedAnswerText': {'type': 'string'},
+  },
+  'required': ['relatedQuestionId', 'aiGeneratedAnswerText'],
   'additionalProperties': false,
 };

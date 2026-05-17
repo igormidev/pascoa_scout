@@ -340,6 +340,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jobAnalysisCopyQuestionTooltip => 'Copy question';
 
   @override
+  String get jobAnalysisRegenerateQuestionAnswerTooltip =>
+      'Regenerate answer for this question';
+
+  @override
   String get jobAnalysisQuestionCopied => 'Question copied.';
 
   @override
@@ -359,6 +363,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get jobAnalysisCopyCoverLetterTooltip => 'Copy cover letter';
+
+  @override
+  String get jobAnalysisRegenerateCoverLetterTooltip =>
+      'Regenerate cover letter';
 
   @override
   String get jobAnalysisCoverLetterCopied => 'Cover letter copied.';

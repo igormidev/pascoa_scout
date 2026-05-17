@@ -650,6 +650,12 @@ abstract class AppLocalizations {
   /// **'Copy question'**
   String get jobAnalysisCopyQuestionTooltip;
 
+  /// Tooltip for refreshing the AI-generated answer tied to a raw application question.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate answer for this question'**
+  String get jobAnalysisRegenerateQuestionAnswerTooltip;
+
   /// Snackbar message after copying a raw application question.
   ///
   /// In en, this message translates to:
@@ -685,6 +691,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Copy cover letter'**
   String get jobAnalysisCopyCoverLetterTooltip;
+
+  /// Tooltip for refreshing the AI-generated cover letter.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate cover letter'**
+  String get jobAnalysisRegenerateCoverLetterTooltip;
 
   /// Snackbar message after copying the AI-generated cover letter.
   ///
