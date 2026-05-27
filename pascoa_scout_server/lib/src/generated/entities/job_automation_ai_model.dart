@@ -13,11 +13,14 @@
 import 'package:serverpod/serverpod.dart' as _i1;
 
 enum JobAutomationAiModel implements _i1.SerializableModel {
+  gpt55,
   gpt54,
   gpt54Mini;
 
   static JobAutomationAiModel fromJson(String name) {
     switch (name) {
+      case 'gpt55':
+        return JobAutomationAiModel.gpt55;
       case 'gpt54':
         return JobAutomationAiModel.gpt54;
       case 'gpt54Mini':

@@ -125,6 +125,7 @@ Future<void> main(List<String> args) async {
     final selected = <String, String>{};
     for (final key in <String>[
       'OPENAI_BASE_URL',
+      'OPENAI_API_KEY',
       'CODEX_API_KEY',
       'CODEX_INTERNAL_ORIGINATOR_OVERRIDE',
       'CUSTOM_ENV',

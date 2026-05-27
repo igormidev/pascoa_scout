@@ -61,6 +61,14 @@ void main() {
         _containsPair(
           forwardedArgs,
           '--config',
+          'openai_base_url="http://127.0.0.1:1234"',
+        ),
+        isTrue,
+      );
+      expect(
+        _containsPair(
+          forwardedArgs,
+          '--config',
           'model_reasoning_effort="high"',
         ),
         isTrue,
@@ -97,6 +105,7 @@ void main() {
       final selectedEnv = await fake.readSelectedEnv();
       expect(selectedEnv['CUSTOM_ENV'], 'custom');
       expect(selectedEnv['OPENAI_BASE_URL'], 'http://127.0.0.1:1234');
+      expect(selectedEnv['OPENAI_API_KEY'], 'test-key');
       expect(selectedEnv['CODEX_API_KEY'], 'test-key');
       expect(selectedEnv['CODEX_INTERNAL_ORIGINATOR_OVERRIDE'], isNotEmpty);
       expect(selectedEnv.containsKey('LEAK_TEST'), isFalse);

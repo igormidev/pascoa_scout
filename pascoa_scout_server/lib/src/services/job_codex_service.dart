@@ -114,6 +114,7 @@ final class _CodexRunTimedOut {
 
 String _mapModel(JobAutomationAiModel aiModel) {
   return switch (aiModel) {
+    JobAutomationAiModel.gpt55 => codexGpt55Model,
     JobAutomationAiModel.gpt54 => defaultCodexModel,
     JobAutomationAiModel.gpt54Mini => defaultCodexMiniModel,
   };

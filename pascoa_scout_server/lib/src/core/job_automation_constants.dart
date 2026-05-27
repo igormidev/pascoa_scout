@@ -25,6 +25,7 @@ const int defaultProposalBatchSize = 20;
 const int defaultUpworkSyncResultsPerPage = 20;
 const int defaultProposalMinimumScorePercentage = 70;
 const int defaultLoopDelayMinutes = 5;
+const String codexGpt55Model = 'gpt-5.5';
 const String defaultCodexModel = 'gpt-5.4';
 const String defaultCodexMiniModel = 'gpt-5.4-mini';
 

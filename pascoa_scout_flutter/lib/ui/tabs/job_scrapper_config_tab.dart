@@ -1392,6 +1392,7 @@ String _aiThinkingEffortLabel(
 
 String _aiModelLabel(AppLocalizations l10n, JobAutomationAiModel value) {
   return switch (value) {
+    JobAutomationAiModel.gpt55 => l10n.jobAutomationAiModelGpt55,
     JobAutomationAiModel.gpt54 => l10n.jobAutomationAiModelGpt54,
     JobAutomationAiModel.gpt54Mini => l10n.jobAutomationAiModelGpt54Mini,
   };

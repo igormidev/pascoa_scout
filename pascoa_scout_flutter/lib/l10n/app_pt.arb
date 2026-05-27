@@ -35,6 +35,7 @@
   "jobAutomationAiSettingsTitle": "Geração por IA",
   "jobAutomationAiSettingsDescription": "Escolha o modelo do Codex e o esforço de raciocínio usados para pontuação e geração de propostas.",
   "jobAutomationAiModelLabel": "Modelo",
+  "jobAutomationAiModelGpt55": "GPT-5.5",
   "jobAutomationAiModelGpt54": "GPT-5.4",
   "jobAutomationAiModelGpt54Mini": "GPT-5.4 mini",
   "jobAutomationThinkingEffortTitle": "Esforço de raciocínio",

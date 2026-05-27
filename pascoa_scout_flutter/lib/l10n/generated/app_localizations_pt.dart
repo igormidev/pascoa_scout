@@ -131,6 +131,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get jobAutomationAiModelLabel => 'Modelo';
 
   @override
+  String get jobAutomationAiModelGpt55 => 'GPT-5.5';
+
+  @override
   String get jobAutomationAiModelGpt54 => 'GPT-5.4';
 
   @override

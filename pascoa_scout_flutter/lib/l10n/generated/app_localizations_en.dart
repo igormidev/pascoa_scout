@@ -127,6 +127,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get jobAutomationAiModelLabel => 'Model';
 
   @override
+  String get jobAutomationAiModelGpt55 => 'GPT-5.5';
+
+  @override
   String get jobAutomationAiModelGpt54 => 'GPT-5.4';
 
   @override

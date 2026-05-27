@@ -77,6 +77,11 @@ final class CodexExec {
           ..add(override);
       }
     }
+    if (args.baseUrl != null) {
+      commandArgs
+        ..add('--config')
+        ..add('openai_base_url=${jsonEncode(args.baseUrl)}');
+    }
 
     if (args.model != null) {
       commandArgs
@@ -232,6 +237,7 @@ final class CodexExec {
       env['OPENAI_BASE_URL'] = baseUrl;
     }
     if (apiKey != null) {
+      env['OPENAI_API_KEY'] = apiKey;
       env['CODEX_API_KEY'] = apiKey;
     }
 

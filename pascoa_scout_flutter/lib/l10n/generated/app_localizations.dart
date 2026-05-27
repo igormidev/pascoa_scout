@@ -308,6 +308,12 @@ abstract class AppLocalizations {
   /// **'Model'**
   String get jobAutomationAiModelLabel;
 
+  /// Dropdown option for the GPT-5.5 Codex model.
+  ///
+  /// In en, this message translates to:
+  /// **'GPT-5.5'**
+  String get jobAutomationAiModelGpt55;
+
   /// Dropdown option for the GPT-5.4 Codex model.
   ///
   /// In en, this message translates to:
