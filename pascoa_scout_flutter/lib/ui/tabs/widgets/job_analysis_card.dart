@@ -40,6 +40,8 @@ class JobAnalysisCard extends StatelessWidget {
     final score = analysis.score;
     final canRefresh = analysis.id != null && onRefresh != null;
     final canForceSync = analysis.id != null && onForceSync != null;
+    final isPaymentVerified =
+        job.paymentVerifiedStatus == PaymentVerifiedStatus.verified;
     final selectedBorderColor = isSelected
         ? theme.colorScheme.primary
         : theme.colorScheme.outline.withValues(alpha: 0.22);
@@ -224,20 +226,21 @@ class JobAnalysisCard extends StatelessWidget {
                           if (analysis.createdJobAiResponsesAt != null)
                             Padding(
                               padding: const EdgeInsets.only(left: 8),
-                              child: Tooltip(
-                                message: l10n.jobAnalysisAiAnswersReadyTooltip,
-                                child: CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: Theme.of(
-                                    context,
-                                  ).colorScheme.primary,
-                                  child: Icon(
-                                    Icons.check,
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onPrimary,
-                                  ),
-                                ),
+                              child: _StatusCircleBadge(
+                                tooltip: l10n.jobAnalysisAiAnswersReadyTooltip,
+                                icon: Icons.check,
+                                backgroundColor: theme.colorScheme.primary,
+                                iconColor: theme.colorScheme.onPrimary,
+                              ),
+                            ),
+                          if (isPaymentVerified)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: _StatusCircleBadge(
+                                tooltip: l10n.jobAnalysisPaymentVerifiedLabel,
+                                icon: Icons.price_check_rounded,
+                                backgroundColor: theme.colorScheme.primary,
+                                iconColor: theme.colorScheme.onPrimary,
                               ),
                             ),
                         ],
@@ -327,6 +330,32 @@ class JobAnalysisCard extends StatelessWidget {
         context.mounted) {
       await onMarkJobViewed!(analysis);
     }
+  }
+}
+
+class _StatusCircleBadge extends StatelessWidget {
+  const _StatusCircleBadge({
+    required this.tooltip,
+    required this.icon,
+    required this.backgroundColor,
+    required this.iconColor,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final Color backgroundColor;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: CircleAvatar(
+        radius: 16,
+        backgroundColor: backgroundColor,
+        child: Icon(icon, size: 22, color: iconColor),
+      ),
+    );
   }
 }
 

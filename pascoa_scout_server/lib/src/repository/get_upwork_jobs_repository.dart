@@ -38,6 +38,8 @@ class GetUpworkJobRepositoryApifyImpl implements IGetUpworkJobsRepository {
         buildUpworkApifyRunUri().toString(),
         data: requestBody,
         options: Options(
+          connectTimeout: const Duration(minutes: 3),
+          receiveTimeout: const Duration(minutes: 3),
           headers: <String, dynamic>{'Authorization': 'Bearer $apifyToken'},
           contentType: Headers.jsonContentType,
           responseType: ResponseType.json,

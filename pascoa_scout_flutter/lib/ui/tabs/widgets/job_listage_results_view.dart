@@ -54,6 +54,8 @@ class JobListageResultsView extends StatefulWidget {
 }
 
 class _JobListageResultsViewState extends State<JobListageResultsView> {
+  static const _scrollEdgeTolerance = 1.0;
+
   bool _showPaginationPill = true;
 
   bool get _hasPagination {
@@ -66,10 +68,13 @@ class _JobListageResultsViewState extends State<JobListageResultsView> {
   }
 
   bool _handleUserScroll(UserScrollNotification notification) {
+    final metrics = notification.metrics;
+    final isAtTop = metrics.extentBefore <= _scrollEdgeTolerance;
+    final isAtBottom = metrics.extentAfter <= _scrollEdgeTolerance;
     final shouldShow = switch (notification.direction) {
       ScrollDirection.forward => true,
-      ScrollDirection.reverse => false,
-      ScrollDirection.idle => notification.metrics.pixels <= 0,
+      ScrollDirection.reverse => isAtBottom,
+      ScrollDirection.idle => isAtTop || isAtBottom || _showPaginationPill,
     };
 
     if (shouldShow != _showPaginationPill) {
