@@ -20,28 +20,32 @@ import 'package:pascoa_scout_server/src/generated/entities/job_analysis_list_fil
     as _i5;
 import 'package:pascoa_scout_server/src/generated/entities/job_analysis_state.dart'
     as _i6;
-import 'package:pascoa_scout_server/src/generated/entities/job_analysis_force_sync_progress.dart'
+import 'package:pascoa_scout_server/src/generated/entities/manual_job_proposal_result.dart'
     as _i7;
-import 'package:pascoa_scout_server/src/generated/entities/job_automation_overview.dart'
+import 'package:pascoa_scout_server/src/generated/entities/manual_job_proposal_request.dart'
     as _i8;
-import 'package:pascoa_scout_server/src/generated/entities/job_automation_settings_update.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_analysis_force_sync_progress.dart'
     as _i9;
-import 'package:pascoa_scout_server/src/generated/entities/job_knowledge_summary.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_automation_overview.dart'
     as _i10;
-import 'package:pascoa_scout_server/src/generated/entities/job_knowledge_draft.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_automation_settings_update.dart'
     as _i11;
-import 'package:pascoa_scout_server/src/generated/entities/job_curriculum_profile.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_knowledge_summary.dart'
     as _i12;
-import 'package:pascoa_scout_server/src/generated/entities/job_proposal_style_preference.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_knowledge_draft.dart'
     as _i13;
-import 'package:pascoa_scout_server/src/generated/entities/job_opportunity_preference.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_curriculum_profile.dart'
     as _i14;
-import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_info.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_proposal_style_preference.dart'
     as _i15;
-import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_filter.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_opportunity_preference.dart'
     as _i16;
-import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/pagination.dart'
+import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_info.dart'
     as _i17;
+import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_filter.dart'
+    as _i18;
+import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/pagination.dart'
+    as _i19;
 import 'package:pascoa_scout_server/src/generated/protocol.dart';
 import 'package:pascoa_scout_server/src/generated/endpoints.dart';
 export 'package:serverpod_test/serverpod_test_public_exports.dart';
@@ -144,6 +148,7 @@ void withServerpod(
       serverpodLoggingMode: serverpodLoggingMode,
       testServerOutputMode: testServerOutputMode,
       experimentalFeatures: experimentalFeatures,
+      configOverride: configOverride,
       runtimeParametersBuilder: runtimeParametersBuilder,
     ),
     maybeRollbackDatabase: rollbackDatabase,
@@ -328,6 +333,37 @@ class _JobAnalysisEndpoint {
     });
   }
 
+  _i3.Future<_i7.ManualJobProposalResult> generateManualProposal(
+    _i1.TestSessionBuilder sessionBuilder, {
+    required _i8.ManualJobProposalRequest request,
+  }) async {
+    return _i1.callAwaitableFunctionAndHandleExceptions(() async {
+      var _localUniqueSession =
+          (sessionBuilder as _i1.InternalTestSessionBuilder).internalBuild(
+            endpoint: 'jobAnalysis',
+            method: 'generateManualProposal',
+          );
+      try {
+        var _localCallContext = await _endpointDispatch.getMethodCallContext(
+          createSessionCallback: (_) => _localUniqueSession,
+          endpointPath: 'jobAnalysis',
+          methodName: 'generateManualProposal',
+          parameters: _i1.testObjectToJson({'request': request}),
+          serializationManager: _serializationManager,
+        );
+        var _localReturnValue =
+            await (_localCallContext.method.call(
+                  _localUniqueSession,
+                  _localCallContext.arguments,
+                )
+                as _i3.Future<_i7.ManualJobProposalResult>);
+        return _localReturnValue;
+      } finally {
+        await _localUniqueSession.close();
+      }
+    });
+  }
+
   _i3.Future<_i6.JobAnalysisState> regenerateCoverLetter(
     _i1.TestSessionBuilder sessionBuilder, {
     required int jobAnalysisStateId,
@@ -396,12 +432,12 @@ class _JobAnalysisEndpoint {
     });
   }
 
-  _i3.Stream<_i7.JobAnalysisForceSyncProgress> forceSync(
+  _i3.Stream<_i9.JobAnalysisForceSyncProgress> forceSync(
     _i1.TestSessionBuilder sessionBuilder, {
     required int jobAnalysisStateId,
   }) {
     var _localTestStreamManager =
-        _i1.TestStreamManager<_i7.JobAnalysisForceSyncProgress>();
+        _i1.TestStreamManager<_i9.JobAnalysisForceSyncProgress>();
     _i1.callStreamFunctionAndHandleExceptions(
       () async {
         var _localUniqueSession =
@@ -440,7 +476,7 @@ class _JobAutomationEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i8.JobAutomationOverview> getOverview(
+  _i3.Future<_i10.JobAutomationOverview> getOverview(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -462,7 +498,7 @@ class _JobAutomationEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.JobAutomationOverview>);
+                as _i3.Future<_i10.JobAutomationOverview>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -470,11 +506,11 @@ class _JobAutomationEndpoint {
     });
   }
 
-  _i3.Stream<_i8.JobAutomationOverview> watchOverview(
+  _i3.Stream<_i10.JobAutomationOverview> watchOverview(
     _i1.TestSessionBuilder sessionBuilder,
   ) {
     var _localTestStreamManager =
-        _i1.TestStreamManager<_i8.JobAutomationOverview>();
+        _i1.TestStreamManager<_i10.JobAutomationOverview>();
     _i1.callStreamFunctionAndHandleExceptions(
       () async {
         var _localUniqueSession =
@@ -502,9 +538,9 @@ class _JobAutomationEndpoint {
     return _localTestStreamManager.outputStreamController.stream;
   }
 
-  _i3.Future<_i8.JobAutomationOverview> updateSettings(
+  _i3.Future<_i10.JobAutomationOverview> updateSettings(
     _i1.TestSessionBuilder sessionBuilder, {
-    required _i9.JobAutomationSettingsUpdate update,
+    required _i11.JobAutomationSettingsUpdate update,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -525,7 +561,7 @@ class _JobAutomationEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.JobAutomationOverview>);
+                as _i3.Future<_i10.JobAutomationOverview>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -533,7 +569,7 @@ class _JobAutomationEndpoint {
     });
   }
 
-  _i3.Future<_i8.JobAutomationOverview> setJobFetchingPaused(
+  _i3.Future<_i10.JobAutomationOverview> setJobFetchingPaused(
     _i1.TestSessionBuilder sessionBuilder, {
     required bool isPaused,
   }) async {
@@ -556,7 +592,7 @@ class _JobAutomationEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i8.JobAutomationOverview>);
+                as _i3.Future<_i10.JobAutomationOverview>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -575,7 +611,7 @@ class _JobKnowledgeEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<_i10.JobKnowledgeSummary> getSummary(
+  _i3.Future<_i12.JobKnowledgeSummary> getSummary(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -597,7 +633,7 @@ class _JobKnowledgeEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i10.JobKnowledgeSummary>);
+                as _i3.Future<_i12.JobKnowledgeSummary>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -605,7 +641,7 @@ class _JobKnowledgeEndpoint {
     });
   }
 
-  _i3.Future<_i11.JobKnowledgeDraft> getDraft(
+  _i3.Future<_i13.JobKnowledgeDraft> getDraft(
     _i1.TestSessionBuilder sessionBuilder,
   ) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
@@ -627,7 +663,7 @@ class _JobKnowledgeEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i11.JobKnowledgeDraft>);
+                as _i3.Future<_i13.JobKnowledgeDraft>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -635,7 +671,7 @@ class _JobKnowledgeEndpoint {
     });
   }
 
-  _i3.Future<_i12.JobCurriculumProfile> saveCurriculum(
+  _i3.Future<_i14.JobCurriculumProfile> saveCurriculum(
     _i1.TestSessionBuilder sessionBuilder, {
     required String markdownText,
   }) async {
@@ -658,7 +694,7 @@ class _JobKnowledgeEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i12.JobCurriculumProfile>);
+                as _i3.Future<_i14.JobCurriculumProfile>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -666,7 +702,7 @@ class _JobKnowledgeEndpoint {
     });
   }
 
-  _i3.Future<_i13.JobProposalStylePreference> saveProposalStylePreference(
+  _i3.Future<_i15.JobProposalStylePreference> saveProposalStylePreference(
     _i1.TestSessionBuilder sessionBuilder, {
     required String markdownText,
   }) async {
@@ -689,7 +725,7 @@ class _JobKnowledgeEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i13.JobProposalStylePreference>);
+                as _i3.Future<_i15.JobProposalStylePreference>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -697,7 +733,7 @@ class _JobKnowledgeEndpoint {
     });
   }
 
-  _i3.Future<_i14.JobOpportunityPreference> saveOpportunityPreference(
+  _i3.Future<_i16.JobOpportunityPreference> saveOpportunityPreference(
     _i1.TestSessionBuilder sessionBuilder, {
     required String markdownText,
   }) async {
@@ -720,7 +756,7 @@ class _JobKnowledgeEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<_i14.JobOpportunityPreference>);
+                as _i3.Future<_i16.JobOpportunityPreference>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();
@@ -739,10 +775,10 @@ class _UpworkJobsEndpoint {
 
   final _i2.SerializationManager _serializationManager;
 
-  _i3.Future<List<_i15.JobInfo>> getJobs(
+  _i3.Future<List<_i17.JobInfo>> getJobs(
     _i1.TestSessionBuilder sessionBuilder, {
-    required _i16.JobFilter filter,
-    required _i17.Pagination? pagination,
+    required _i18.JobFilter filter,
+    required _i19.Pagination? pagination,
   }) async {
     return _i1.callAwaitableFunctionAndHandleExceptions(() async {
       var _localUniqueSession =
@@ -766,7 +802,7 @@ class _UpworkJobsEndpoint {
                   _localUniqueSession,
                   _localCallContext.arguments,
                 )
-                as _i3.Future<List<_i15.JobInfo>>);
+                as _i3.Future<List<_i17.JobInfo>>);
         return _localReturnValue;
       } finally {
         await _localUniqueSession.close();

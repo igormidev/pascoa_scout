@@ -27,6 +27,7 @@ class _JobScrapperConfigEditorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
     return Form(
@@ -91,8 +92,7 @@ class _JobScrapperConfigEditorView extends StatelessWidget {
               const SizedBox(height: 20.0),
               _SectionCard(
                 title: 'Actions',
-                description:
-                    'Copy Apify cURL mirrors the exact polling request. Save stores the current filter in local preferences and Riverpod, and Discard restores the last saved snapshot.',
+                description: l10n.jobScrapperEditorActionsDescription,
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final useColumn = constraints.maxWidth < 560.0;
@@ -104,7 +104,7 @@ class _JobScrapperConfigEditorView extends StatelessWidget {
                     final copyCurlButton = OutlinedButton.icon(
                       onPressed: () => unawaited(onCopyCurl()),
                       icon: const Icon(Icons.content_copy_rounded),
-                      label: const Text('Copy Apify cURL'),
+                      label: Text(l10n.jobScrapperCopyCurlButton),
                     );
                     final saveButton = ElevatedButton.icon(
                       onPressed: () => unawaited(onSave()),

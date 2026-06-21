@@ -290,6 +290,126 @@ abstract class AppLocalizations {
   /// **'Manual fetch completed and the list was refreshed.'**
   String get jobListManualFetchSuccess;
 
+  /// Button label for switching the compact scraper summary back to filter editing.
+  ///
+  /// In en, this message translates to:
+  /// **'Change filters'**
+  String get jobScrapperChangeFiltersButton;
+
+  /// Button label for copying the generated cURL request.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy cURL'**
+  String get jobScrapperCopyCurlButton;
+
+  /// Button label for opening the one-shot manual proposal generation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Manually Gen. Proposal'**
+  String get jobScrapperManualProposalButton;
+
+  /// Description for the filter editor action buttons.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy cURL mirrors the exact polling request. Save stores the current filter in local preferences and Riverpod, and Discard restores the last saved snapshot.'**
+  String get jobScrapperEditorActionsDescription;
+
+  /// Dialog title for manually generating a one-shot proposal from user-entered job details.
+  ///
+  /// In en, this message translates to:
+  /// **'Manually generate proposal'**
+  String get jobManualProposalDialogTitle;
+
+  /// Description shown in the manual proposal generation dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate a one-shot proposal for an invited Upwork job that is not available in the dashboard. Nothing is saved to the database.'**
+  String get jobManualProposalDialogDescription;
+
+  /// Text field label for the manually entered job title.
+  ///
+  /// In en, this message translates to:
+  /// **'Job title'**
+  String get jobManualProposalTitleLabel;
+
+  /// Text field label for the manually entered job description.
+  ///
+  /// In en, this message translates to:
+  /// **'Job description'**
+  String get jobManualProposalDescriptionLabel;
+
+  /// Segmented control option for a fixed-price manual job.
+  ///
+  /// In en, this message translates to:
+  /// **'Fixed price'**
+  String get jobManualProposalFixedPriceOption;
+
+  /// Segmented control option for an hourly manual job.
+  ///
+  /// In en, this message translates to:
+  /// **'Hourly'**
+  String get jobManualProposalHourlyOption;
+
+  /// Text field label for the manually entered fixed amount or hourly rate.
+  ///
+  /// In en, this message translates to:
+  /// **'Client offered price'**
+  String get jobManualProposalPriceLabel;
+
+  /// Button label for closing the manual proposal dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get jobManualProposalCloseButton;
+
+  /// Primary action button for generating a manual proposal.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate proposal'**
+  String get jobManualProposalGenerateButton;
+
+  /// Primary action button for regenerating a manual proposal after one result exists.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate proposal'**
+  String get jobManualProposalRegenerateButton;
+
+  /// Busy button label shown while manual proposal generation is running.
+  ///
+  /// In en, this message translates to:
+  /// **'Generating...'**
+  String get jobManualProposalGeneratingButton;
+
+  /// Validation message shown when the manual proposal title is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the job title.'**
+  String get jobManualProposalTitleRequired;
+
+  /// Validation message shown when the manual proposal description is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the job description.'**
+  String get jobManualProposalDescriptionRequired;
+
+  /// Validation message shown when the manual proposal price is empty or invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the offered price.'**
+  String get jobManualProposalPriceRequired;
+
+  /// Validation message shown when the manual proposal price is not positive.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a price greater than zero.'**
+  String get jobManualProposalPricePositive;
+
+  /// Section title for the manually generated cover letter result.
+  ///
+  /// In en, this message translates to:
+  /// **'Generated cover letter'**
+  String get jobManualProposalCoverLetterTitle;
+
   /// Title for the automation card that controls the Codex model and reasoning effort.
   ///
   /// In en, this message translates to:

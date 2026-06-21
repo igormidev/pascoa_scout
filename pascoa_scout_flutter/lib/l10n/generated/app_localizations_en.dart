@@ -117,6 +117,70 @@ class AppLocalizationsEn extends AppLocalizations {
       'Manual fetch completed and the list was refreshed.';
 
   @override
+  String get jobScrapperChangeFiltersButton => 'Change filters';
+
+  @override
+  String get jobScrapperCopyCurlButton => 'Copy cURL';
+
+  @override
+  String get jobScrapperManualProposalButton => 'Manually Gen. Proposal';
+
+  @override
+  String get jobScrapperEditorActionsDescription =>
+      'Copy cURL mirrors the exact polling request. Save stores the current filter in local preferences and Riverpod, and Discard restores the last saved snapshot.';
+
+  @override
+  String get jobManualProposalDialogTitle => 'Manually generate proposal';
+
+  @override
+  String get jobManualProposalDialogDescription =>
+      'Generate a one-shot proposal for an invited Upwork job that is not available in the dashboard. Nothing is saved to the database.';
+
+  @override
+  String get jobManualProposalTitleLabel => 'Job title';
+
+  @override
+  String get jobManualProposalDescriptionLabel => 'Job description';
+
+  @override
+  String get jobManualProposalFixedPriceOption => 'Fixed price';
+
+  @override
+  String get jobManualProposalHourlyOption => 'Hourly';
+
+  @override
+  String get jobManualProposalPriceLabel => 'Client offered price';
+
+  @override
+  String get jobManualProposalCloseButton => 'Close';
+
+  @override
+  String get jobManualProposalGenerateButton => 'Generate proposal';
+
+  @override
+  String get jobManualProposalRegenerateButton => 'Regenerate proposal';
+
+  @override
+  String get jobManualProposalGeneratingButton => 'Generating...';
+
+  @override
+  String get jobManualProposalTitleRequired => 'Enter the job title.';
+
+  @override
+  String get jobManualProposalDescriptionRequired =>
+      'Enter the job description.';
+
+  @override
+  String get jobManualProposalPriceRequired => 'Enter the offered price.';
+
+  @override
+  String get jobManualProposalPricePositive =>
+      'Enter a price greater than zero.';
+
+  @override
+  String get jobManualProposalCoverLetterTitle => 'Generated cover letter';
+
+  @override
   String get jobAutomationAiSettingsTitle => 'AI generation';
 
   @override

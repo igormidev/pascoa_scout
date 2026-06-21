@@ -18,6 +18,7 @@ import 'package:pascoa_scout/interactor/job_sync/job_sync_providers.dart';
 import 'package:pascoa_scout/interactor/job_sync/job_sync_state.dart';
 import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_list_live_refresh_setting_card.dart';
+import 'package:pascoa_scout/ui/tabs/widgets/job_listage_manual_proposal_dialog.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
 part 'widgets/job_scrapper_advanced_sections_view.dart';
@@ -233,6 +234,13 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
     await showDialog<void>(
       context: context,
       builder: (context) => _JobKnowledgeEditorDialog(kind: kind),
+    );
+  }
+
+  Future<void> _openManualProposalDialog() async {
+    await showDialog<void>(
+      context: context,
+      builder: (context) => const JobListageManualProposalDialog(),
     );
   }
 
@@ -535,6 +543,7 @@ class _JobScrapperConfigTabState extends ConsumerState<JobScrapperConfigTab> {
               onCopyCurl: () {
                 _copyCurl(currentFilter);
               },
+              onGenerateManualProposal: _openManualProposalDialog,
               onChangeCurriculum: () =>
                   _showKnowledgeEditor(_JobKnowledgeEditorKind.curriculum),
               onChangeProposalWriting: () =>
@@ -853,6 +862,7 @@ class _CompactFilterRunTab extends StatelessWidget {
     required this.summaryText,
     required this.onChangeFilters,
     required this.onCopyCurl,
+    required this.onGenerateManualProposal,
     required this.onChangeCurriculum,
     required this.onChangeProposalWriting,
     required this.onChangeJobScoreLogic,
@@ -861,6 +871,7 @@ class _CompactFilterRunTab extends StatelessWidget {
   final String summaryText;
   final VoidCallback onChangeFilters;
   final VoidCallback onCopyCurl;
+  final Future<void> Function() onGenerateManualProposal;
   final Future<void> Function() onChangeCurriculum;
   final Future<void> Function() onChangeProposalWriting;
   final Future<void> Function() onChangeJobScoreLogic;
@@ -907,6 +918,7 @@ class _CompactFilterRunTab extends StatelessWidget {
         _CompactFilterRunActions(
           onChangeFilters: onChangeFilters,
           onCopyCurl: onCopyCurl,
+          onGenerateManualProposal: onGenerateManualProposal,
         ),
         const _CompactFilterLockHint(),
         const Padding(
@@ -934,33 +946,53 @@ class _CompactFilterRunActions extends ConsumerWidget {
   const _CompactFilterRunActions({
     required this.onChangeFilters,
     required this.onCopyCurl,
+    required this.onGenerateManualProposal,
   });
 
   final VoidCallback onChangeFilters;
   final VoidCallback onCopyCurl;
+  final Future<void> Function() onGenerateManualProposal;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final isLocked = ref.watch(
       jobSyncControllerProvider.select((state) => state.isLocked),
     );
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final useColumn = constraints.maxWidth < 460.0;
+        final useColumn = constraints.maxWidth < 620.0;
+        final buttonStyle = OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 52),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          textStyle: theme.textTheme.labelLarge?.copyWith(
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        );
         final changeFiltersButton = AnimatedOpacity(
           duration: 220.ms,
           opacity: isLocked ? 0.48 : 1.0,
           child: OutlinedButton.icon(
+            style: buttonStyle,
             onPressed: isLocked ? null : onChangeFilters,
-            icon: const Icon(Icons.tune_rounded),
-            label: const Text('Change filter settings'),
+            icon: const Icon(Icons.tune_rounded, size: 20),
+            label: Text(l10n.jobScrapperChangeFiltersButton),
           ),
         );
         final copyCurlButton = OutlinedButton.icon(
+          style: buttonStyle,
           onPressed: onCopyCurl,
-          icon: const Icon(Icons.content_copy_rounded),
-          label: const Text('Copy Apify cURL'),
+          icon: const Icon(Icons.content_copy_rounded, size: 20),
+          label: Text(l10n.jobScrapperCopyCurlButton),
+        );
+        final manualProposalButton = OutlinedButton.icon(
+          style: buttonStyle,
+          onPressed: () => unawaited(onGenerateManualProposal()),
+          icon: const Icon(Icons.auto_awesome_rounded, size: 20),
+          label: Text(l10n.jobScrapperManualProposalButton),
         );
 
         if (useColumn) {
@@ -970,6 +1002,8 @@ class _CompactFilterRunActions extends ConsumerWidget {
               changeFiltersButton,
               const SizedBox(height: 12.0),
               copyCurlButton,
+              const SizedBox(height: 12.0),
+              manualProposalButton,
             ],
           );
         }
@@ -979,6 +1013,8 @@ class _CompactFilterRunActions extends ConsumerWidget {
             Expanded(child: changeFiltersButton),
             const SizedBox(width: 12.0),
             Expanded(child: copyCurlButton),
+            const SizedBox(width: 12.0),
+            Expanded(child: manualProposalButton),
           ],
         );
       },

@@ -1,0 +1,5 @@
+enum: ManualJobProposalPriceKind
+serialized: byName
+values:
+  - fixed
+  - hourly

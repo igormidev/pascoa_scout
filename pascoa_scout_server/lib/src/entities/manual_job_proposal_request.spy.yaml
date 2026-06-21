@@ -1,0 +1,6 @@
+class: ManualJobProposalRequest
+fields:
+  title: String
+  description: String
+  price: double
+  priceKind: ManualJobProposalPriceKind

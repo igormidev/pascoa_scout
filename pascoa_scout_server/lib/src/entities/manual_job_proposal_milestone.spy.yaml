@@ -1,0 +1,6 @@
+class: ManualJobProposalMilestone
+fields:
+  positionIndex: int
+  title: String
+  description: String
+  suggestedPrice: double

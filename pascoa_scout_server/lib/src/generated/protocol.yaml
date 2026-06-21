@@ -3,6 +3,7 @@ jobAnalysis:
   - refreshCard:
   - markJobViewed:
   - manualFetch:
+  - generateManualProposal:
   - regenerateCoverLetter:
   - regenerateAnswer:
   - forceSync:

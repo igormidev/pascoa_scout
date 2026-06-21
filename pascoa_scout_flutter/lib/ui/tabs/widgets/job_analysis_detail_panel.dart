@@ -295,7 +295,12 @@ class _JobAnalysisDetailPanelState extends ConsumerState<JobAnalysisDetailPanel>
                     ],
                     if (proposal?.milestones?.isNotEmpty ?? false) ...[
                       JobAnalysisProposalMilestonesSection(
-                        milestones: proposal!.milestones!,
+                        milestones: proposal!.milestones!
+                            .map(
+                              JobAnalysisProposalMilestoneData
+                                  .fromJobProposalMilestone,
+                            )
+                            .toList(growable: false),
                       ),
                       const SizedBox(height: 24),
                     ],

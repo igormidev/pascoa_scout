@@ -1,0 +1,4 @@
+class: ManualJobProposalResult
+fields:
+  aiGeneratedCoverLetterText: String
+  milestones: List<ManualJobProposalMilestone>?

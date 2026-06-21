@@ -6,6 +6,7 @@ import '../generated/protocol.dart';
 import '../services/job_analysis_ai_refresh_service.dart';
 import '../services/job_analysis_force_sync_service.dart';
 import '../services/job_analysis_manual_fetch_service.dart';
+import '../services/job_analysis_manual_proposal_service.dart';
 import '../services/job_analysis_query_service.dart';
 
 class JobAnalysisEndpoint extends Endpoint {
@@ -14,18 +15,22 @@ class JobAnalysisEndpoint extends Endpoint {
     JobAnalysisForceSyncService? forceSyncService,
     JobAnalysisAiRefreshService? aiRefreshService,
     JobAnalysisManualFetchService? manualFetchService,
+    JobAnalysisManualProposalService? manualProposalService,
   }) : _service = service ?? const JobAnalysisQueryService(),
        _forceSyncService =
            forceSyncService ?? const JobAnalysisForceSyncService(),
        _aiRefreshService =
            aiRefreshService ?? const JobAnalysisAiRefreshService(),
        _manualFetchService =
-           manualFetchService ?? const JobAnalysisManualFetchService();
+           manualFetchService ?? const JobAnalysisManualFetchService(),
+       _manualProposalService =
+           manualProposalService ?? const JobAnalysisManualProposalService();
 
   final JobAnalysisQueryService _service;
   final JobAnalysisForceSyncService _forceSyncService;
   final JobAnalysisAiRefreshService _aiRefreshService;
   final JobAnalysisManualFetchService _manualFetchService;
+  final JobAnalysisManualProposalService _manualProposalService;
 
   Future<JobAnalysisPagination> getPage(
     Session session, {
@@ -66,6 +71,17 @@ class JobAnalysisEndpoint extends Endpoint {
       rawUrl: rawUrl,
     );
     return result.fold((row) => row, (error) => throw error);
+  }
+
+  Future<ManualJobProposalResult> generateManualProposal(
+    Session session, {
+    required ManualJobProposalRequest request,
+  }) async {
+    final result = await _manualProposalService.generateManualProposal(
+      session,
+      request: request,
+    );
+    return result.fold((proposal) => proposal, (error) => throw error);
   }
 
   Future<JobAnalysisState> regenerateCoverLetter(

@@ -18,33 +18,37 @@ import 'package:pascoa_scout_client/src/protocol/entities/job_analysis_list_filt
     as _i4;
 import 'package:pascoa_scout_client/src/protocol/entities/job_analysis_state.dart'
     as _i5;
-import 'package:pascoa_scout_client/src/protocol/entities/job_analysis_force_sync_progress.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/manual_job_proposal_result.dart'
     as _i6;
-import 'package:pascoa_scout_client/src/protocol/entities/job_automation_overview.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/manual_job_proposal_request.dart'
     as _i7;
-import 'package:pascoa_scout_client/src/protocol/entities/job_automation_settings_update.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/job_analysis_force_sync_progress.dart'
     as _i8;
-import 'package:pascoa_scout_client/src/protocol/entities/job_knowledge_summary.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/job_automation_overview.dart'
     as _i9;
-import 'package:pascoa_scout_client/src/protocol/entities/job_knowledge_draft.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/job_automation_settings_update.dart'
     as _i10;
-import 'package:pascoa_scout_client/src/protocol/entities/job_curriculum_profile.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/job_knowledge_summary.dart'
     as _i11;
-import 'package:pascoa_scout_client/src/protocol/entities/job_proposal_style_preference.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/job_knowledge_draft.dart'
     as _i12;
-import 'package:pascoa_scout_client/src/protocol/entities/job_opportunity_preference.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/job_curriculum_profile.dart'
     as _i13;
-import 'package:pascoa_scout_client/src/protocol/entities/upwork_scrap/job_info.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/job_proposal_style_preference.dart'
     as _i14;
-import 'package:pascoa_scout_client/src/protocol/entities/upwork_scrap/job_filter.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/job_opportunity_preference.dart'
     as _i15;
-import 'package:pascoa_scout_client/src/protocol/entities/upwork_scrap/pagination.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/upwork_scrap/job_info.dart'
     as _i16;
-import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/upwork_scrap/job_filter.dart'
     as _i17;
-import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+import 'package:pascoa_scout_client/src/protocol/entities/upwork_scrap/pagination.dart'
     as _i18;
-import 'protocol.dart' as _i19;
+import 'package:serverpod_auth_idp_client/serverpod_auth_idp_client.dart'
+    as _i19;
+import 'package:serverpod_auth_core_client/serverpod_auth_core_client.dart'
+    as _i20;
+import 'protocol.dart' as _i21;
 
 /// {@category Endpoint}
 class EndpointJobAnalysis extends _i1.EndpointRef {
@@ -84,6 +88,14 @@ class EndpointJobAnalysis extends _i1.EndpointRef {
         {'rawUrl': rawUrl},
       );
 
+  _i2.Future<_i6.ManualJobProposalResult> generateManualProposal({
+    required _i7.ManualJobProposalRequest request,
+  }) => caller.callServerEndpoint<_i6.ManualJobProposalResult>(
+    'jobAnalysis',
+    'generateManualProposal',
+    {'request': request},
+  );
+
   _i2.Future<_i5.JobAnalysisState> regenerateCoverLetter({
     required int jobAnalysisStateId,
   }) => caller.callServerEndpoint<_i5.JobAnalysisState>(
@@ -104,12 +116,12 @@ class EndpointJobAnalysis extends _i1.EndpointRef {
     },
   );
 
-  _i2.Stream<_i6.JobAnalysisForceSyncProgress> forceSync({
+  _i2.Stream<_i8.JobAnalysisForceSyncProgress> forceSync({
     required int jobAnalysisStateId,
   }) =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i6.JobAnalysisForceSyncProgress>,
-        _i6.JobAnalysisForceSyncProgress
+        _i2.Stream<_i8.JobAnalysisForceSyncProgress>,
+        _i8.JobAnalysisForceSyncProgress
       >(
         'jobAnalysis',
         'forceSync',
@@ -125,17 +137,17 @@ class EndpointJobAutomation extends _i1.EndpointRef {
   @override
   String get name => 'jobAutomation';
 
-  _i2.Future<_i7.JobAutomationOverview> getOverview() =>
-      caller.callServerEndpoint<_i7.JobAutomationOverview>(
+  _i2.Future<_i9.JobAutomationOverview> getOverview() =>
+      caller.callServerEndpoint<_i9.JobAutomationOverview>(
         'jobAutomation',
         'getOverview',
         {},
       );
 
-  _i2.Stream<_i7.JobAutomationOverview> watchOverview() =>
+  _i2.Stream<_i9.JobAutomationOverview> watchOverview() =>
       caller.callStreamingServerEndpoint<
-        _i2.Stream<_i7.JobAutomationOverview>,
-        _i7.JobAutomationOverview
+        _i2.Stream<_i9.JobAutomationOverview>,
+        _i9.JobAutomationOverview
       >(
         'jobAutomation',
         'watchOverview',
@@ -143,17 +155,17 @@ class EndpointJobAutomation extends _i1.EndpointRef {
         {},
       );
 
-  _i2.Future<_i7.JobAutomationOverview> updateSettings({
-    required _i8.JobAutomationSettingsUpdate update,
-  }) => caller.callServerEndpoint<_i7.JobAutomationOverview>(
+  _i2.Future<_i9.JobAutomationOverview> updateSettings({
+    required _i10.JobAutomationSettingsUpdate update,
+  }) => caller.callServerEndpoint<_i9.JobAutomationOverview>(
     'jobAutomation',
     'updateSettings',
     {'update': update},
   );
 
-  _i2.Future<_i7.JobAutomationOverview> setJobFetchingPaused({
+  _i2.Future<_i9.JobAutomationOverview> setJobFetchingPaused({
     required bool isPaused,
-  }) => caller.callServerEndpoint<_i7.JobAutomationOverview>(
+  }) => caller.callServerEndpoint<_i9.JobAutomationOverview>(
     'jobAutomation',
     'setJobFetchingPaused',
     {'isPaused': isPaused},
@@ -167,39 +179,39 @@ class EndpointJobKnowledge extends _i1.EndpointRef {
   @override
   String get name => 'jobKnowledge';
 
-  _i2.Future<_i9.JobKnowledgeSummary> getSummary() =>
-      caller.callServerEndpoint<_i9.JobKnowledgeSummary>(
+  _i2.Future<_i11.JobKnowledgeSummary> getSummary() =>
+      caller.callServerEndpoint<_i11.JobKnowledgeSummary>(
         'jobKnowledge',
         'getSummary',
         {},
       );
 
-  _i2.Future<_i10.JobKnowledgeDraft> getDraft() =>
-      caller.callServerEndpoint<_i10.JobKnowledgeDraft>(
+  _i2.Future<_i12.JobKnowledgeDraft> getDraft() =>
+      caller.callServerEndpoint<_i12.JobKnowledgeDraft>(
         'jobKnowledge',
         'getDraft',
         {},
       );
 
-  _i2.Future<_i11.JobCurriculumProfile> saveCurriculum({
+  _i2.Future<_i13.JobCurriculumProfile> saveCurriculum({
     required String markdownText,
-  }) => caller.callServerEndpoint<_i11.JobCurriculumProfile>(
+  }) => caller.callServerEndpoint<_i13.JobCurriculumProfile>(
     'jobKnowledge',
     'saveCurriculum',
     {'markdownText': markdownText},
   );
 
-  _i2.Future<_i12.JobProposalStylePreference> saveProposalStylePreference({
+  _i2.Future<_i14.JobProposalStylePreference> saveProposalStylePreference({
     required String markdownText,
-  }) => caller.callServerEndpoint<_i12.JobProposalStylePreference>(
+  }) => caller.callServerEndpoint<_i14.JobProposalStylePreference>(
     'jobKnowledge',
     'saveProposalStylePreference',
     {'markdownText': markdownText},
   );
 
-  _i2.Future<_i13.JobOpportunityPreference> saveOpportunityPreference({
+  _i2.Future<_i15.JobOpportunityPreference> saveOpportunityPreference({
     required String markdownText,
-  }) => caller.callServerEndpoint<_i13.JobOpportunityPreference>(
+  }) => caller.callServerEndpoint<_i15.JobOpportunityPreference>(
     'jobKnowledge',
     'saveOpportunityPreference',
     {'markdownText': markdownText},
@@ -213,10 +225,10 @@ class EndpointUpworkJobs extends _i1.EndpointRef {
   @override
   String get name => 'upworkJobs';
 
-  _i2.Future<List<_i14.JobInfo>> getJobs({
-    required _i15.JobFilter filter,
-    required _i16.Pagination? pagination,
-  }) => caller.callServerEndpoint<List<_i14.JobInfo>>(
+  _i2.Future<List<_i16.JobInfo>> getJobs({
+    required _i17.JobFilter filter,
+    required _i18.Pagination? pagination,
+  }) => caller.callServerEndpoint<List<_i16.JobInfo>>(
     'upworkJobs',
     'getJobs',
     {
@@ -228,13 +240,13 @@ class EndpointUpworkJobs extends _i1.EndpointRef {
 
 class Modules {
   Modules(Client client) {
-    serverpod_auth_idp = _i17.Caller(client);
-    serverpod_auth_core = _i18.Caller(client);
+    serverpod_auth_idp = _i19.Caller(client);
+    serverpod_auth_core = _i20.Caller(client);
   }
 
-  late final _i17.Caller serverpod_auth_idp;
+  late final _i19.Caller serverpod_auth_idp;
 
-  late final _i18.Caller serverpod_auth_core;
+  late final _i20.Caller serverpod_auth_core;
 }
 
 class Client extends _i1.ServerpodClientShared {
@@ -257,7 +269,7 @@ class Client extends _i1.ServerpodClientShared {
     bool? disconnectStreamsOnLostInternetConnection,
   }) : super(
          host,
-         _i19.Protocol(),
+         _i21.Protocol(),
          securityContext: securityContext,
          streamingConnectionTimeout: streamingConnectionTimeout,
          connectionTimeout: connectionTimeout,

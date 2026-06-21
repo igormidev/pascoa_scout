@@ -133,6 +133,86 @@
   "@jobListManualFetchSuccess": {
     "description": "Snackbar message shown after a manual fetch succeeds."
   },
+  "jobScrapperChangeFiltersButton": "Change filters",
+  "@jobScrapperChangeFiltersButton": {
+    "description": "Button label for switching the compact scraper summary back to filter editing."
+  },
+  "jobScrapperCopyCurlButton": "Copy cURL",
+  "@jobScrapperCopyCurlButton": {
+    "description": "Button label for copying the generated cURL request."
+  },
+  "jobScrapperManualProposalButton": "Manually Gen. Proposal",
+  "@jobScrapperManualProposalButton": {
+    "description": "Button label for opening the one-shot manual proposal generation dialog."
+  },
+  "jobScrapperEditorActionsDescription": "Copy cURL mirrors the exact polling request. Save stores the current filter in local preferences and Riverpod, and Discard restores the last saved snapshot.",
+  "@jobScrapperEditorActionsDescription": {
+    "description": "Description for the filter editor action buttons."
+  },
+  "jobManualProposalDialogTitle": "Manually generate proposal",
+  "@jobManualProposalDialogTitle": {
+    "description": "Dialog title for manually generating a one-shot proposal from user-entered job details."
+  },
+  "jobManualProposalDialogDescription": "Generate a one-shot proposal for an invited Upwork job that is not available in the dashboard. Nothing is saved to the database.",
+  "@jobManualProposalDialogDescription": {
+    "description": "Description shown in the manual proposal generation dialog."
+  },
+  "jobManualProposalTitleLabel": "Job title",
+  "@jobManualProposalTitleLabel": {
+    "description": "Text field label for the manually entered job title."
+  },
+  "jobManualProposalDescriptionLabel": "Job description",
+  "@jobManualProposalDescriptionLabel": {
+    "description": "Text field label for the manually entered job description."
+  },
+  "jobManualProposalFixedPriceOption": "Fixed price",
+  "@jobManualProposalFixedPriceOption": {
+    "description": "Segmented control option for a fixed-price manual job."
+  },
+  "jobManualProposalHourlyOption": "Hourly",
+  "@jobManualProposalHourlyOption": {
+    "description": "Segmented control option for an hourly manual job."
+  },
+  "jobManualProposalPriceLabel": "Client offered price",
+  "@jobManualProposalPriceLabel": {
+    "description": "Text field label for the manually entered fixed amount or hourly rate."
+  },
+  "jobManualProposalCloseButton": "Close",
+  "@jobManualProposalCloseButton": {
+    "description": "Button label for closing the manual proposal dialog."
+  },
+  "jobManualProposalGenerateButton": "Generate proposal",
+  "@jobManualProposalGenerateButton": {
+    "description": "Primary action button for generating a manual proposal."
+  },
+  "jobManualProposalRegenerateButton": "Regenerate proposal",
+  "@jobManualProposalRegenerateButton": {
+    "description": "Primary action button for regenerating a manual proposal after one result exists."
+  },
+  "jobManualProposalGeneratingButton": "Generating...",
+  "@jobManualProposalGeneratingButton": {
+    "description": "Busy button label shown while manual proposal generation is running."
+  },
+  "jobManualProposalTitleRequired": "Enter the job title.",
+  "@jobManualProposalTitleRequired": {
+    "description": "Validation message shown when the manual proposal title is empty."
+  },
+  "jobManualProposalDescriptionRequired": "Enter the job description.",
+  "@jobManualProposalDescriptionRequired": {
+    "description": "Validation message shown when the manual proposal description is empty."
+  },
+  "jobManualProposalPriceRequired": "Enter the offered price.",
+  "@jobManualProposalPriceRequired": {
+    "description": "Validation message shown when the manual proposal price is empty or invalid."
+  },
+  "jobManualProposalPricePositive": "Enter a price greater than zero.",
+  "@jobManualProposalPricePositive": {
+    "description": "Validation message shown when the manual proposal price is not positive."
+  },
+  "jobManualProposalCoverLetterTitle": "Generated cover letter",
+  "@jobManualProposalCoverLetterTitle": {
+    "description": "Section title for the manually generated cover letter result."
+  },
   "jobAutomationAiSettingsTitle": "AI generation",
   "@jobAutomationAiSettingsTitle": {
     "description": "Title for the automation card that controls the Codex model and reasoning effort."

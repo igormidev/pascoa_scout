@@ -121,6 +121,70 @@ class AppLocalizationsPt extends AppLocalizations {
       'A busca manual foi concluída e a lista foi atualizada.';
 
   @override
+  String get jobScrapperChangeFiltersButton => 'Alterar filtros';
+
+  @override
+  String get jobScrapperCopyCurlButton => 'Copiar cURL';
+
+  @override
+  String get jobScrapperManualProposalButton => 'Gerar prop. manual';
+
+  @override
+  String get jobScrapperEditorActionsDescription =>
+      'Copiar cURL replica a requisição exata de busca. Salvar grava o filtro atual nas preferências locais e no Riverpod, e Descartar restaura o último estado salvo.';
+
+  @override
+  String get jobManualProposalDialogTitle => 'Gerar proposta manualmente';
+
+  @override
+  String get jobManualProposalDialogDescription =>
+      'Gere uma proposta pontual para uma vaga da Upwork por convite que não aparece no painel. Nada é salvo no banco de dados.';
+
+  @override
+  String get jobManualProposalTitleLabel => 'Título da vaga';
+
+  @override
+  String get jobManualProposalDescriptionLabel => 'Descrição da vaga';
+
+  @override
+  String get jobManualProposalFixedPriceOption => 'Preço fixo';
+
+  @override
+  String get jobManualProposalHourlyOption => 'Por hora';
+
+  @override
+  String get jobManualProposalPriceLabel => 'Preço oferecido pelo cliente';
+
+  @override
+  String get jobManualProposalCloseButton => 'Fechar';
+
+  @override
+  String get jobManualProposalGenerateButton => 'Gerar proposta';
+
+  @override
+  String get jobManualProposalRegenerateButton => 'Gerar novamente';
+
+  @override
+  String get jobManualProposalGeneratingButton => 'Gerando...';
+
+  @override
+  String get jobManualProposalTitleRequired => 'Informe o título da vaga.';
+
+  @override
+  String get jobManualProposalDescriptionRequired =>
+      'Informe a descrição da vaga.';
+
+  @override
+  String get jobManualProposalPriceRequired => 'Informe o preço oferecido.';
+
+  @override
+  String get jobManualProposalPricePositive =>
+      'Informe um preço maior que zero.';
+
+  @override
+  String get jobManualProposalCoverLetterTitle => 'Carta gerada';
+
+  @override
   String get jobAutomationAiSettingsTitle => 'Geração por IA';
 
   @override

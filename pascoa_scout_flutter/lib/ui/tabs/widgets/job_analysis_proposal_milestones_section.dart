@@ -5,13 +5,45 @@ import 'package:pascoa_scout/l10n/generated/app_localizations.dart';
 import 'package:pascoa_scout/ui/tabs/widgets/job_analysis_formatters.dart';
 import 'package:pascoa_scout_client/pascoa_scout_client.dart';
 
+class JobAnalysisProposalMilestoneData {
+  const JobAnalysisProposalMilestoneData({
+    required this.title,
+    required this.description,
+    required this.suggestedPrice,
+  });
+
+  factory JobAnalysisProposalMilestoneData.fromJobProposalMilestone(
+    JobProposalMilestone milestone,
+  ) {
+    return JobAnalysisProposalMilestoneData(
+      title: milestone.title,
+      description: milestone.description,
+      suggestedPrice: milestone.suggestedPrice,
+    );
+  }
+
+  factory JobAnalysisProposalMilestoneData.fromManualJobProposalMilestone(
+    ManualJobProposalMilestone milestone,
+  ) {
+    return JobAnalysisProposalMilestoneData(
+      title: milestone.title,
+      description: milestone.description,
+      suggestedPrice: milestone.suggestedPrice,
+    );
+  }
+
+  final String title;
+  final String description;
+  final double suggestedPrice;
+}
+
 class JobAnalysisProposalMilestonesSection extends StatelessWidget {
   const JobAnalysisProposalMilestonesSection({
     super.key,
     required this.milestones,
   });
 
-  final List<JobProposalMilestone> milestones;
+  final List<JobAnalysisProposalMilestoneData> milestones;
 
   @override
   Widget build(BuildContext context) {
@@ -83,7 +115,7 @@ class _MilestoneCard extends StatelessWidget {
   const _MilestoneCard({required this.index, required this.milestone});
 
   final int index;
-  final JobProposalMilestone milestone;
+  final JobAnalysisProposalMilestoneData milestone;
 
   @override
   Widget build(BuildContext context) {

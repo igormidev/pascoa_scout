@@ -71,6 +71,32 @@ class JobAiGenerationService {
     );
   }
 
+  Future<PascoaResult<ManualJobProposalResult>> generateManualProposal(
+    Session session, {
+    required ManualJobProposalRequest request,
+    required JobAutomationAiModel aiModel,
+    required JobAutomationAiThinkingEffort aiThinkingEffort,
+    String runLabel = 'mode=manual',
+  }) async {
+    final validationError = _validateManualProposalRequest(request);
+    if (validationError != null) {
+      return Failure(validationError);
+    }
+
+    final knowledgeResult = await _knowledgeService.getKnowledgeBundle(session);
+    return await knowledgeResult.fold(
+      (knowledge) async => _generateManualProposal(
+        session,
+        request,
+        knowledge,
+        aiModel,
+        aiThinkingEffort,
+        runLabel: runLabel,
+      ),
+      (error) async => Failure(error),
+    );
+  }
+
   Future<PascoaResult<JobProposalGenerationSummary>>
   generateProposalCoverLetterForAnalysis(
     Session session, {
@@ -616,6 +642,132 @@ Scoring rules:
     }
   }
 
+  Future<PascoaResult<ManualJobProposalResult>> _generateManualProposal(
+    Session logSession,
+    ManualJobProposalRequest request,
+    JobKnowledgeBundle knowledge,
+    JobAutomationAiModel aiModel,
+    JobAutomationAiThinkingEffort aiThinkingEffort, {
+    required String runLabel,
+  }) async {
+    final normalizedRequest = _normalizeManualProposalRequest(request);
+    final isFixedPriceJob =
+        normalizedRequest.priceKind == ManualJobProposalPriceKind.fixed;
+    final analysisLabel =
+        'manual title="${summarizeAutomationTitle(normalizedRequest.title)}"';
+
+    logAutomationStart(
+      logSession,
+      AutomationLogScope.proposal,
+      '$analysisLabel $runLabel started | contract=${normalizedRequest.priceKind.name}',
+    );
+    logAutomationStart(
+      logSession,
+      AutomationLogScope.milestones,
+      isFixedPriceJob
+          ? '$analysisLabel $runLabel started | fixed-price milestone plan requested'
+          : '$analysisLabel $runLabel started | hourly contract so milestones must be skipped',
+    );
+
+    try {
+      final files = await _prepareManualProposalGenerationFiles(
+        request: normalizedRequest,
+        knowledge: knowledge,
+      );
+      final generationResult = await _runProposalStructuredGeneration(
+        logSession,
+        scope: AutomationLogScope.proposal,
+        analysisLabel: analysisLabel,
+        runLabel: runLabel,
+        workDirectory: files.workDirectory,
+        payloadFileName: 'manual-proposal-result.json',
+        prompt: _buildManualProposalPrompt(files),
+        schema: _proposalSchema,
+        aiModel: aiModel,
+        aiThinkingEffort: aiThinkingEffort,
+        enableWebSearch: isFixedPriceJob,
+      );
+
+      return await generationResult.fold(
+        (payload) async {
+          final parsedResult = _parseProposalPayload(
+            payload,
+            _buildManualJobInfo(normalizedRequest),
+          );
+
+          return parsedResult.fold(
+            (parsed) {
+              final milestoneTotal = parsed.milestones.fold<double>(
+                0,
+                (total, milestone) => total + milestone.suggestedPrice,
+              );
+              logAutomationDone(
+                logSession,
+                AutomationLogScope.proposal,
+                '$analysisLabel $runLabel finished | coverLetter=yes persisted=no',
+              );
+              logAutomationDone(
+                logSession,
+                AutomationLogScope.milestones,
+                isFixedPriceJob
+                    ? '$analysisLabel $runLabel finished | generated=${parsed.milestones.length} total=${_formatCurrency(milestoneTotal)} persisted=no'
+                    : '$analysisLabel $runLabel finished | skipped=hourly-contract persisted=no',
+              );
+
+              return Success(_manualProposalResultFromParsed(parsed));
+            },
+            (error) {
+              logAutomationFail(
+                logSession,
+                AutomationLogScope.proposal,
+                '$analysisLabel $runLabel failed | ${error.message}',
+              );
+              logAutomationFail(
+                logSession,
+                AutomationLogScope.milestones,
+                '$analysisLabel $runLabel failed | proposal output missing',
+              );
+              return Failure(error);
+            },
+          );
+        },
+        (error) async {
+          logAutomationFail(
+            logSession,
+            AutomationLogScope.proposal,
+            '$analysisLabel $runLabel failed | ${error.message}',
+          );
+          logAutomationFail(
+            logSession,
+            AutomationLogScope.milestones,
+            '$analysisLabel $runLabel failed | proposal output missing',
+          );
+          return Failure(error);
+        },
+      );
+    } catch (error, stackTrace) {
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.proposal,
+        '$analysisLabel $runLabel failed | ${error.runtimeType}',
+      );
+      logAutomationFail(
+        logSession,
+        AutomationLogScope.milestones,
+        '$analysisLabel $runLabel failed | proposal output missing',
+      );
+      return Failure(
+        PascoaException(
+          message: 'Unable to generate the manual proposal',
+          description:
+              'The AI pipeline failed while generating a one-shot proposal from manually entered job details.',
+          error: error.toString(),
+          stackTrace: stackTrace.toString(),
+        ),
+      );
+    }
+  }
+
   Future<PascoaResult<JobProposalGenerationSummary>>
   _generateProposalCoverLetterForAnalysis(
     Session session,
@@ -916,30 +1068,47 @@ Scoring rules:
     );
   }
 
+  Future<_ProposalGenerationFiles> _prepareManualProposalGenerationFiles({
+    required ManualJobProposalRequest request,
+    required JobKnowledgeBundle knowledge,
+  }) async {
+    final workDirectory = await _prepareManualWorkDirectory();
+    final jobFile = await _writeManualJobContextFile(
+      workDirectory: workDirectory,
+      request: request,
+    );
+    final curriculumFile = await _writeFile(
+      workDirectory,
+      'curriculum.md',
+      knowledge.curriculum.markdownText,
+    );
+    final proposalStyleFile = await _writeFile(
+      workDirectory,
+      'proposal-style-preference.md',
+      knowledge.proposalStyle.markdownText,
+    );
+    final opportunityPreferenceFile = await _writeFile(
+      workDirectory,
+      'job-opportunity-preference.md',
+      knowledge.opportunityPreference.markdownText,
+    );
+
+    return _ProposalGenerationFiles(
+      workDirectory: workDirectory,
+      jobFile: jobFile,
+      curriculumFile: curriculumFile,
+      proposalStyleFile: proposalStyleFile,
+      opportunityPreferenceFile: opportunityPreferenceFile,
+    );
+  }
+
   String _buildProposalReadInstructions(_ProposalGenerationFiles files) {
     return '''
-Before responding, read these files completely and do not continue until you have read them all:
+$_proposalReadInstructionsIntro
 - @${files.curriculumFile.path.split('/').last}
 - @${files.proposalStyleFile.path.split('/').last}
 - @${files.opportunityPreferenceFile.path.split('/').last}
 - @${files.jobFile.path.split('/').last}
-''';
-  }
-
-  String _buildEvidenceGroundingRules() {
-    return '''
-- Base every statement on the freelancer files and the persisted job context.
-- Reuse concrete facts from the freelancer files whenever relevant, such as shipped products, role scope, technologies, industries, outcomes, and links.
-- Do not say information is unavailable, can be shared later, or can be provided on request when the freelancer files already contain usable evidence.
-- If the freelancer files truly do not contain the requested fact, answer truthfully with the closest supported detail and do not invent credentials, years, metrics, or links.
-''';
-  }
-
-  String _buildQuestionAnswerGroundingRules() {
-    return '''
-- Every answer must be written from the freelancer's real background in the curriculum file, not as a generic template.
-- If a question asks for a GitHub profile, portfolio, website, case study, or similar link, include the actual link present in the freelancer files when available.
-- Each answer should be directly usable in the Upwork form, concise, specific, and should not repeat the raw question.
 ''';
   }
 
@@ -954,17 +1123,24 @@ If the project is fixed-price, you may do focused web research when it materiall
 
 Return only structured JSON that matches the provided schema.
 Rules:
-- aiGeneratedCoverLetterText must sound like the freelancer described in the files.
-${_buildEvidenceGroundingRules()}${_buildQuestionAnswerGroundingRules()}- answers must contain one entry for each job question listed in the job file.
-- Each answer entry must use the exact relatedQuestionId from the job file.
-- milestones must be null when the job type is hourly.
-- For fixed-price jobs, milestones must be a non-empty ordered list of concrete payment checkpoints that break the work into sensible delivery phases.
-- Each milestone must contain a concise title, a specific description of the deliverable or outcome, and a numeric suggestedPrice.
-- When the job file provides a fixed price amount, the sum of all milestone suggestedPrice values must equal that amount exactly to the cent.
-- If the fixed price amount is unavailable but the raw budget text still implies a range or target, infer a single reasonable bid total from the job context and make the milestone prices add up to that inferred total.
-- Milestones should be tailored to the scope, reduce delivery risk, and avoid vague placeholders.
-- If the scope is small, a single milestone is acceptable, but the pricing still must add up to the total bid.
-''';
+$_proposalCoverLetterSoundRule$_proposalEvidenceGroundingRules$_proposalQuestionAnswerGroundingRules$_proposalFullQuestionCoverageRules$_proposalMilestoneGenerationRules''';
+  }
+
+  String _buildManualProposalPrompt(_ProposalGenerationFiles files) {
+    return '''
+You are writing a tailored Upwork cover letter and optional milestone suggestions for the freelancer.
+
+${_buildProposalReadInstructions(files)}
+
+The job file is the canonical source for the manually entered invitation scope, contract type, and offered compensation.
+It has less data than persisted Apify jobs, so use the available title, description, and price carefully without inventing missing client details.
+Where the rules mention persisted job context, use the manual job file as the job context for this one-shot request.
+
+Return only structured JSON that matches the provided schema.
+Rules:
+$_proposalCoverLetterSoundRule$_proposalEvidenceGroundingRules- The cover letter should be directly usable in Upwork, concise, specific, and tailored to this exact job.
+- answers must be an empty list because no Upwork application questions were provided for this manual invitation.
+$_proposalMilestoneGenerationRules''';
   }
 
   String _buildCoverLetterPrompt(_ProposalGenerationFiles files) {
@@ -977,8 +1153,7 @@ The job file is the canonical source for the project scope, contract type, and c
 
 Return only structured JSON that matches the provided schema.
 Rules:
-- aiGeneratedCoverLetterText must sound like the freelancer described in the files.
-${_buildEvidenceGroundingRules()}- The cover letter should be directly usable in Upwork, concise, specific, and tailored to this exact job.
+$_proposalCoverLetterSoundRule$_proposalEvidenceGroundingRules- The cover letter should be directly usable in Upwork, concise, specific, and tailored to this exact job.
 ''';
   }
 
@@ -993,7 +1168,7 @@ ${_buildProposalReadInstructions(files)}
 
 Return only structured JSON that matches the provided schema.
 Rules:
-${_buildEvidenceGroundingRules()}${_buildQuestionAnswerGroundingRules()}- Return exactly one answer for the target question below.
+$_proposalEvidenceGroundingRules$_proposalQuestionAnswerGroundingRules- Return exactly one answer for the target question below.
 - relatedQuestionId must be ${question.id}.
 
 Target question:
@@ -1364,6 +1539,49 @@ Target question:
     return null;
   }
 
+  PascoaException? _validateManualProposalRequest(
+    ManualJobProposalRequest request,
+  ) {
+    final normalizedTitle = request.title.trim();
+    if (normalizedTitle.isEmpty) {
+      return PascoaException(
+        message: 'Job title is required',
+        description:
+            'Enter the invited Upwork job title before generating a manual proposal.',
+      );
+    }
+
+    final normalizedDescription = request.description.trim();
+    if (normalizedDescription.isEmpty) {
+      return PascoaException(
+        message: 'Job description is required',
+        description:
+            'Enter the invited Upwork job description before generating a manual proposal.',
+      );
+    }
+
+    if (request.price <= 0) {
+      return PascoaException(
+        message: 'Offered price must be positive',
+        description:
+            'Enter the fixed project amount or hourly rate offered by the client.',
+      );
+    }
+
+    return null;
+  }
+
+  ManualJobProposalRequest _normalizeManualProposalRequest(
+    ManualJobProposalRequest request,
+  ) {
+    return ManualJobProposalRequest(
+      title: request.title.trim(),
+      description: request.description.trim(),
+      price: _roundCurrency(request.price),
+      priceKind: request.priceKind,
+    );
+  }
+
   Future<Directory> _prepareWorkDirectory({
     required int analysisId,
     required String stageDirectoryName,
@@ -1376,6 +1594,56 @@ Target question:
     }
     await directory.create(recursive: true);
     return directory;
+  }
+
+  Future<Directory> _prepareManualWorkDirectory() async {
+    final directory = Directory(
+      '${Directory.current.path}/$codexRunsDirectoryName/manual_proposal_${DateTime.now().toUtc().microsecondsSinceEpoch}/proposal',
+    );
+    if (directory.existsSync()) {
+      await directory.delete(recursive: true);
+    }
+    await directory.create(recursive: true);
+    return directory;
+  }
+
+  Future<File> _writeManualJobContextFile({
+    required Directory workDirectory,
+    required ManualJobProposalRequest request,
+  }) {
+    final jobType = request.priceKind == ManualJobProposalPriceKind.fixed
+        ? JobType.fixed
+        : JobType.hourly;
+    final buffer = StringBuffer()
+      ..writeln('# Manual Upwork invitation overview')
+      ..writeln()
+      ..writeln(
+        'This file is the canonical human-formatted overview of a manually entered Upwork invitation.',
+      )
+      ..writeln(
+        'It has limited data because this invitation is not available through the Apify job feed.',
+      )
+      ..writeln()
+      ..writeln('## Compensation and contract')
+      ..writeln('- **Job type:** ${_formatEnumValue(jobType)}')
+      ..writeln('- **Offered price:** ${_formatCurrency(request.price)}')
+      ..writeln(
+        '- **Fixed price amount:** ${jobType == JobType.fixed ? _formatCurrency(request.price) : 'Not available'}',
+      )
+      ..writeln(
+        '- **Hourly rate:** ${jobType == JobType.hourly ? _formatCurrency(request.price) : 'Not available'}',
+      )
+      ..writeln()
+      ..writeln('## Title')
+      ..writeln(request.title.trim())
+      ..writeln()
+      ..writeln('## Description')
+      ..writeln(request.description.trim())
+      ..writeln()
+      ..writeln('## Application questions')
+      ..writeln('No application questions were provided.');
+
+    return _writeFile(workDirectory, 'manual-job.md', buffer.toString());
   }
 
   Future<File> _writeJobContextFile({
@@ -1937,6 +2205,48 @@ Target question:
   double _roundCurrency(double value) {
     return double.parse(value.toStringAsFixed(2));
   }
+
+  JobInfo _buildManualJobInfo(ManualJobProposalRequest request) {
+    final isFixedPrice = request.priceKind == ManualJobProposalPriceKind.fixed;
+    return JobInfo(
+      upworkId: 'manual-invitation',
+      title: request.title,
+      description: request.description,
+      url: 'manual://upwork-invitation',
+      budget: isFixedPrice
+          ? _formatCurrency(request.price)
+          : '${_formatCurrency(request.price)}/hr',
+      fixedPriceAmount: isFixedPrice ? request.price : null,
+      hourlyMinRate: isFixedPrice ? null : request.price,
+      hourlyMaxRate: isFixedPrice ? null : request.price,
+      jobType: isFixedPrice ? JobType.fixed : JobType.hourly,
+      experienceLevel: ExperienceLevel.intermediate,
+      paymentVerifiedStatus: PaymentVerifiedStatus.unknown,
+      allowedApplicantCountries: const [],
+      tags: const [],
+      hasHired: false,
+      questions: const [],
+    );
+  }
+
+  ManualJobProposalResult _manualProposalResultFromParsed(
+    _ParsedProposalPayload parsed,
+  ) {
+    return ManualJobProposalResult(
+      aiGeneratedCoverLetterText: parsed.coverLetter,
+      milestones: parsed.milestones.isEmpty
+          ? null
+          : [
+              for (final milestone in parsed.milestones)
+                ManualJobProposalMilestone(
+                  positionIndex: milestone.positionIndex,
+                  title: milestone.title,
+                  description: milestone.description,
+                  suggestedPrice: milestone.suggestedPrice,
+                ),
+            ],
+    );
+  }
 }
 
 class _ParsedScorePayload {
@@ -2020,6 +2330,40 @@ class _ProposalGenerationFiles {
   final File proposalStyleFile;
   final File opportunityPreferenceFile;
 }
+
+const String _proposalReadInstructionsIntro =
+    'Before responding, read these files completely and do not continue until you have read them all:';
+
+const String _proposalCoverLetterSoundRule =
+    '- aiGeneratedCoverLetterText must sound like the freelancer described in the files.\n';
+
+const String _proposalEvidenceGroundingRules = '''
+- Base every statement on the freelancer files and the persisted job context.
+- Reuse concrete facts from the freelancer files whenever relevant, such as shipped products, role scope, technologies, industries, outcomes, and links.
+- Do not say information is unavailable, can be shared later, or can be provided on request when the freelancer files already contain usable evidence.
+- If the freelancer files truly do not contain the requested fact, answer truthfully with the closest supported detail and do not invent credentials, years, metrics, or links.
+''';
+
+const String _proposalQuestionAnswerGroundingRules = '''
+- Every answer must be written from the freelancer's real background in the curriculum file, not as a generic template.
+- If a question asks for a GitHub profile, portfolio, website, case study, or similar link, include the actual link present in the freelancer files when available.
+- Each answer should be directly usable in the Upwork form, concise, specific, and should not repeat the raw question.
+''';
+
+const String _proposalFullQuestionCoverageRules = '''
+- answers must contain one entry for each job question listed in the job file.
+- Each answer entry must use the exact relatedQuestionId from the job file.
+''';
+
+const String _proposalMilestoneGenerationRules = '''
+- milestones must be null when the job type is hourly.
+- For fixed-price jobs, milestones must be a non-empty ordered list of concrete payment checkpoints that break the work into sensible delivery phases.
+- Each milestone must contain a concise title, a specific description of the deliverable or outcome, and a numeric suggestedPrice.
+- When the job file provides a fixed price amount, the sum of all milestone suggestedPrice values must equal that amount exactly to the cent.
+- If the fixed price amount is unavailable but the raw budget text still implies a range or target, infer a single reasonable bid total from the job context and make the milestone prices add up to that inferred total.
+- Milestones should be tailored to the scope, reduce delivery risk, and avoid vague placeholders.
+- If the scope is small, a single milestone is acceptable, but the pricing still must add up to the total bid.
+''';
 
 const Duration _scoreCodexTimeout = Duration(minutes: 2);
 const Duration _proposalCodexTimeout = Duration(minutes: 5);

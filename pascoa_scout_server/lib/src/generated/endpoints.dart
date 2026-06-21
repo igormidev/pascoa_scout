@@ -17,16 +17,18 @@ import '../endpoints/job_knowledge_endpoint.dart' as _i4;
 import '../endpoints/upwork_jobs_endpoint.dart' as _i5;
 import 'package:pascoa_scout_server/src/generated/entities/job_analysis_list_filter.dart'
     as _i6;
-import 'package:pascoa_scout_server/src/generated/entities/job_automation_settings_update.dart'
+import 'package:pascoa_scout_server/src/generated/entities/manual_job_proposal_request.dart'
     as _i7;
-import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_filter.dart'
+import 'package:pascoa_scout_server/src/generated/entities/job_automation_settings_update.dart'
     as _i8;
-import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/pagination.dart'
+import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/job_filter.dart'
     as _i9;
-import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
+import 'package:pascoa_scout_server/src/generated/entities/upwork_scrap/pagination.dart'
     as _i10;
-import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+import 'package:serverpod_auth_idp_server/serverpod_auth_idp_server.dart'
     as _i11;
+import 'package:serverpod_auth_core_server/serverpod_auth_core_server.dart'
+    as _i12;
 
 class Endpoints extends _i1.EndpointDispatch {
   @override
@@ -137,6 +139,25 @@ class Endpoints extends _i1.EndpointDispatch {
                     rawUrl: params['rawUrl'],
                   ),
         ),
+        'generateManualProposal': _i1.MethodConnector(
+          name: 'generateManualProposal',
+          params: {
+            'request': _i1.ParameterDescription(
+              name: 'request',
+              type: _i1.getType<_i7.ManualJobProposalRequest>(),
+              nullable: false,
+            ),
+          },
+          call:
+              (
+                _i1.Session session,
+                Map<String, dynamic> params,
+              ) async => (endpoints['jobAnalysis'] as _i2.JobAnalysisEndpoint)
+                  .generateManualProposal(
+                    session,
+                    request: params['request'],
+                  ),
+        ),
         'regenerateCoverLetter': _i1.MethodConnector(
           name: 'regenerateCoverLetter',
           params: {
@@ -225,7 +246,7 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'update': _i1.ParameterDescription(
               name: 'update',
-              type: _i1.getType<_i7.JobAutomationSettingsUpdate>(),
+              type: _i1.getType<_i8.JobAutomationSettingsUpdate>(),
               nullable: false,
             ),
           },
@@ -367,12 +388,12 @@ class Endpoints extends _i1.EndpointDispatch {
           params: {
             'filter': _i1.ParameterDescription(
               name: 'filter',
-              type: _i1.getType<_i8.JobFilter>(),
+              type: _i1.getType<_i9.JobFilter>(),
               nullable: false,
             ),
             'pagination': _i1.ParameterDescription(
               name: 'pagination',
-              type: _i1.getType<_i9.Pagination?>(),
+              type: _i1.getType<_i10.Pagination?>(),
               nullable: true,
             ),
           },
@@ -389,9 +410,9 @@ class Endpoints extends _i1.EndpointDispatch {
         ),
       },
     );
-    modules['serverpod_auth_idp'] = _i10.Endpoints()
+    modules['serverpod_auth_idp'] = _i11.Endpoints()
       ..initializeEndpoints(server);
-    modules['serverpod_auth_core'] = _i11.Endpoints()
+    modules['serverpod_auth_core'] = _i12.Endpoints()
       ..initializeEndpoints(server);
   }
 }
